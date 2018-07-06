@@ -59,7 +59,7 @@ drop
 2 constant lisp-builtin-tag
 3 constant lisp-symbol-tag
 4 constant lisp-special-tag
-5 constant lisp-compound-tag
+5 constant lisp-lambda-tag
 6 constant lisp-max-tag
 
 lisp-max-tag cells allocate throw constant eval-dispatch
@@ -98,10 +98,10 @@ struct
 end-struct lisp-special
 
 struct
-    cell% field compound-tag
-    cell% field compound-args
-    cell% field compound-body
-end-struct lisp-compound
+    cell% field lambda-tag
+    cell% field lambda-args
+    cell% field lambda-body
+end-struct lisp-lambda
 
 : cons { car cdr -- lisp }
     lisp-pair %allocate throw
@@ -139,11 +139,11 @@ end-struct lisp-compound
     dup special-tag lisp-special-tag swap !
     dup special-xt xt swap ! ;
 
-: compound { args body -- lisp }
-    lisp-compound %allocate throw
-    dup compound-tag lisp-compound-tag swap !
-    dup compound-args args swap !
-    dup compound-body body swap ! ;
+: lambda { args body -- lisp }
+    lisp-lambda %allocate throw
+    dup lambda-tag lisp-lambda-tag swap !
+    dup lambda-args args swap !
+    dup lambda-body body swap ! ;
 
 : lisp-display ( lisp -- )
     dup 0= if
@@ -184,10 +184,10 @@ end-struct lisp-compound
 
 ' lisp-display-special display-dispatch lisp-special-tag cells + !
 
-: lisp-display-compound ( lisp -- )
-    [char] & emit compound-body @ . ;
+: lisp-display-lambda ( lisp -- )
+    [char] & emit lambda-body @ . ;
 
-' lisp-display-compound display-dispatch lisp-compound-tag cells + !
+' lisp-display-lambda display-dispatch lisp-lambda-tag cells + !
 
 : lisp-eval ( lisp -- lisp )
     dup 0<> if
@@ -212,17 +212,17 @@ end-struct lisp-compound
     repeat
     2drop ;
 
-: lisp-apply-compound ( func args -- lisp )
+: lisp-apply-lambda ( func args -- lisp )
     symtab-save >r
-    over compound-args @ swap lisp-bind-vars
-    compound-body @ lisp-eval
+    over lambda-args @ swap lisp-bind-vars
+    lambda-body @ lisp-eval
     r> symtab-restore ;
 
 : lisp-apply ( func args -- lisp )
     >r dup lisp-tag @ lisp-builtin-tag = if
 	r> swap builtin-xt @ execute
     else
-	r> lisp-apply-compound
+	r> lisp-apply-lambda
     endif ;
 
 : lisp-eval-pair ( lisp -- lisp )
@@ -253,9 +253,9 @@ end-struct lisp-compound
 
 ' lisp-eval-special eval-dispatch lisp-special-tag cells + !
 
-: lisp-eval-compound ( lisp -- lisp ) ;
+: lisp-eval-lambda ( lisp -- lisp ) ;
 
-' lisp-eval-compound eval-dispatch lisp-compound-tag cells + !
+' lisp-eval-lambda eval-dispatch lisp-lambda-tag cells + !
 
 \ the reader
 
@@ -365,7 +365,7 @@ defer lisp-read-lisp
 s" quote" string-new ' lisp-special-quote special symtab-add
 
 : lisp-special-lambda ( lisp -- lisp )
-    dup car swap cdr car compound ;
+    dup car swap cdr car lambda ;
 
 s" lambda" string-new ' lisp-special-lambda special symtab-add
 
@@ -480,7 +480,7 @@ s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 
 ' lisp-eq?-symbol eq?-dispatch lisp-symbol-tag cells + !
 
-' lisp-false eq?-dispatch lisp-compound-tag cells + !
+' lisp-false eq?-dispatch lisp-lambda-tag cells + !
 
 : lisp-builtin-display ( lisp -- lisp )
     car lisp-display 0 ;
