@@ -390,6 +390,17 @@ s" t" string-new lisp-true symtab-add
 
 s" cond" string-new ' lisp-special-cond special symtab-add
 
+: lisp-special-if ( lisp -- lisp )
+  dup car lisp-eval 0<> if
+    cdr car lisp-eval
+  else
+    cdr cdr dup 0<> if
+      car lisp-eval
+    then
+  then ;
+
+s" if" string-new ' lisp-special-if special symtab-add
+
 \ builtins
 
 : lisp-builtin-+ ( lisp -- lisp )
