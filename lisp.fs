@@ -401,6 +401,24 @@ s" cond" string-new ' lisp-special-cond special symtab-add
 
 s" if" string-new ' lisp-special-if special symtab-add
 
+: lisp-special-let ( lisp -- lisp ) \ really let*
+  symtab-save >r
+  dup car
+  begin
+    dup 0<>
+  while
+    dup car
+    dup car \ name
+    swap cdr car \ value
+    lisp-eval lisp-bind-var
+    cdr
+  repeat
+  drop cdr lisp-eval-list
+  r> symtab-restore
+;
+
+s" let" string-new ' lisp-special-let special symtab-add
+
 \ builtins
 
 : lisp-builtin-+ ( lisp -- lisp )
