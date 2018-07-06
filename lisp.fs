@@ -33,7 +33,7 @@ drop
 	r@ symtab-namea @ r@ symtab-nameu @ namea nameu compare
 	0= if
 	    r> symtab-lisp @ unloop exit
-	endif
+	then
 	r> symtab-next @
     repeat
     drop 0 ;
@@ -150,7 +150,7 @@ end-struct lisp-lambda
 	drop [char] ( emit [char] ) emit
     else
 	dup lisp-tag @ cells display-dispatch + @ execute
-    endif ;
+    then ;
 
 : lisp-display-pair ( lisp -- )
     [char] ( emit 32 emit
@@ -192,12 +192,12 @@ end-struct lisp-lambda
 : lisp-eval ( lisp -- lisp )
     dup 0<> if
 	dup lisp-tag @ cells eval-dispatch + @ execute
-    endif ;
+    then ;
 
 : lisp-eval-list recursive ( lisp -- lisp )
     dup 0<> if
 	dup car lisp-eval swap cdr lisp-eval-list cons
-    endif ;
+    then ;
 
 : lisp-bind-var ( name value -- )
     >r dup symbol-namea @ swap symbol-nameu @ r> symtab-add ;
@@ -223,7 +223,7 @@ end-struct lisp-lambda
 	r> swap builtin-xt @ execute
     else
 	r> lisp-apply-lambda
-    endif ;
+    then ;
 
 : lisp-eval-pair ( lisp -- lisp )
     >r
@@ -232,7 +232,7 @@ end-struct lisp-lambda
 	r> cdr swap special-xt @ execute
     else
 	r> cdr lisp-eval-list lisp-apply
-    endif ;
+    then ;
 
 ' lisp-eval-pair eval-dispatch lisp-pair-tag cells + !
 
@@ -264,7 +264,7 @@ end-struct lisp-lambda
 	0
     else
 	dup c@ swap 1+ swap
-    endif ;
+    then ;
 
 : lisp-unread-char ( e a -- e a )
     1- ;
@@ -281,7 +281,7 @@ end-struct lisp-lambda
     repeat
     0<> if
 	lisp-unread-char
-    endif ;
+    then ;
 
 128 allocate throw constant token-buffer
 
@@ -296,7 +296,7 @@ end-struct lisp-lambda
     repeat
     0<> if
 	lisp-unread-char
-    endif
+    then
     token-buffer r> ;
 
 defer lisp-read-lisp
@@ -307,7 +307,7 @@ defer lisp-read-lisp
 	0
     else
 	lisp-unread-char lisp-read-lisp >r lisp-read-list r> swap cons
-    endif ;
+    then ;
 
 : lisp-read-number ( e a -- e a lisp )
     lisp-read-token string>num number ;
@@ -327,9 +327,9 @@ defer lisp-read-lisp
 		lisp-unread-char lisp-read-number
 	    else
 		lisp-unread-char lisp-read-symbol
-	    endif
-	endif
-    endif ;
+	    then
+	then
+    then ;
 ' _lisp-read-lisp is lisp-read-lisp
 
 : lisp-load-from-string ( a u -- lisp )
@@ -354,8 +354,8 @@ defer lisp-read-lisp
 	else
 	    r> close-file drop
 	    read-buffer swap lisp-load-from-string
-	endif
-    endif ;
+	then
+    then ;
 
 \ specials
 
@@ -385,8 +385,8 @@ s" t" string-new lisp-true symtab-add
     else
 	cdr dup 0<> if
 	    lisp-special-cond
-	endif
-    endif ;
+	then
+    then ;
 
 s" cond" string-new ' lisp-special-cond special symtab-add
 
@@ -413,7 +413,7 @@ s" +" string-new ' lisp-builtin-+ builtin symtab-add
 	    over 0=
 	until
 	nip number
-    endif ;
+    then ;
 
 s" -" string-new ' lisp-builtin-- builtin symtab-add
 
@@ -451,8 +451,8 @@ s" cdr" string-new ' lisp-builtin-cdr builtin symtab-add
 	    2drop lisp-false
 	else
 	    dup lisp-tag @ cells eq?-dispatch + @ execute
-	endif
-    endif ;
+	then
+    then ;
 
 s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 
@@ -463,7 +463,7 @@ s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 	lisp-true
     else
 	lisp-false
-    endif ;
+    then ;
 
 ' lisp-eq?-number eq?-dispatch lisp-number-tag cells + !
 
@@ -476,7 +476,7 @@ s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 	lisp-true
     else
 	lisp-false
-    endif ;
+    then ;
 
 ' lisp-eq?-symbol eq?-dispatch lisp-symbol-tag cells + !
 
