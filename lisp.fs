@@ -259,26 +259,56 @@ end-struct lisp-lambda
 
 \ the reader
 
-variable 'lisp-read-char
-variable 'lisp-unread-char
+variable paren-count
+variable stdin-lastchar
+variable stdin-unread
+variable read-from-string
 
-: lisp-read-char 'lisp-read-char @ execute ;
-: lisp-unread-char 'lisp-unread-char @ execute ;
-
-: lisp-read-char-str ( e a -- e a c )
-    2dup <= if
-	0
+: check-char ( c - c )
+  \ Returns 0 if done reading, else c
+  \ Used when reading from input streams
+  dup 10 = if \ RET
+      paren-count @ 0 = if
+        drop 0 exit
+      else
+        ." :  "
+      then
     else
-	dup c@ swap 1+ swap
+      dup [char] ( = if
+        paren-count dup @ 1+ swap !
+      else
+        dup [char] ) = if
+          paren-count dup @ 1- swap !
+        then
+      then
     then ;
 
-: lisp-unread-char-str ( e a -- e a )
-    1- ;
+: lisp-char-from-input
+  stdin-unread @ if
+    0 stdin-unread !
+    stdin-lastchar @
+  else
+    xkey check-char
+    dup stdin-lastchar !
+  then ;
 
-: set-string-char-readers
-  ['] lisp-read-char-str 'lisp-read-char !
-  ['] lisp-unread-char-str 'lisp-unread-char !
-  ;
+: lisp-read-char ( e a -- e a c )
+    read-from-string @ if
+      2dup <= if
+	0
+      else
+	dup c@ swap 1+ swap
+      then
+    else
+      lisp-char-from-input
+    then ;
+
+: lisp-unread-char ( e a -- e a )
+    read-from-string @ if
+      1-
+    else
+      1 stdin-unread !
+    then ;
 
 : lisp-is-ws ( c -- flag )
     dup 10 = swap dup 13 = swap dup 9 = swap 32 = or or or ;
@@ -344,7 +374,7 @@ defer lisp-read-lisp
 ' _lisp-read-lisp is lisp-read-lisp
 
 : lisp-load-from-string ( a u -- lisp )
-    set-string-char-readers
+    1 read-from-string !
     over + swap 0 >r
     begin
 	lisp-skip-ws 2dup >
@@ -368,6 +398,13 @@ defer lisp-read-lisp
 	    read-buffer swap lisp-load-from-string
 	then
     then ;
+
+: lisp-read-from-input
+ -1 stdin-lastchar !
+  0 stdin-unread !
+  0 paren-count !
+  ." > " lisp-read-lisp
+;
 
 \ specials
 
@@ -528,61 +565,9 @@ s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 
 s" display" string-new ' lisp-builtin-display builtin symtab-add
 
-variable paren-count
-variable stdin-lastchar
-variable stdin-unread
-
-: check-char ( c - c )
-  \ returns 0 if done reading, else c
-  dup 10 = if \ RET
-      paren-count @ 0 = if
-        drop 0 exit
-      else
-        ." :  "
-      then
-    else
-      dup [char] ( = if
-        paren-count dup @ 1+ swap !
-      else
-        dup [char] ) = if
-          paren-count dup @ 1- swap !
-        then
-      then
-    then
-  ;
-
-\ how does it know when it's at the end?
-: lisp-read-char-stdin ( - c )
-  stdin-unread @ if
-    0 stdin-unread !
-    stdin-lastchar @
-  else
-    xkey check-char
-    dup stdin-lastchar !
-  then ;
-
-: lisp-unread-char-stdin ( c - )
-  stdin-unread @ if
-    ." ERROR: double unread"
-  then
-  1 stdin-unread ! ;
-
-: set-string-stdin-readers
-  ['] lisp-read-char-stdin 'lisp-read-char !
-  ['] lisp-unread-char-stdin 'lisp-unread-char !
-  -1 stdin-lastchar !
-  0 stdin-unread !
-  0 paren-count !
-  ;
-
-: lisp-read-from-stdin
-  set-string-stdin-readers
-  ." > " lisp-read-lisp
-;
-
 : repl
   begin
-    lisp-read-from-stdin
+    lisp-read-from-input
     lisp-eval
     lisp-display cr
   0 until ;
