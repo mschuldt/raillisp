@@ -517,44 +517,32 @@ s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 s" display" string-new ' lisp-builtin-display builtin symtab-add
 
 variable paren-count
-variable input-end
 
-: count-parens ( addr n - c )
-  0 do
-    dup c@
-    dup [char] ( = if
-      paren-count dup @ 1+ swap !
+: read-input ( - addr n)
+  0 paren-count !
+  pad dup >r
+  ." > "
+  begin
+    xkey
+    dup 10 = if \ RET
+      paren-count @ 0 = if
+        drop
+        r> swap over -
+        exit
+      else
+        ." :  "
+      then
     else
-      dup [char] ) = if
-        paren-count dup @ 1- swap !
+      dup [char] ( = if
+        paren-count dup @ 1+ swap !
+      else
+        dup [char] ) = if
+          paren-count dup @ 1- swap !
+        then
       then
     then
-    drop 1 +
-  loop
-  drop paren-count @
-;
-
-: read-input ( - addr n )
-  \ read input until parens are balanced
-  0 paren-count !
-  pad input-end !
-  0
-  begin
-    dup if
-      \ insert whitespace between lines
-      input-end 32 over @ c!
-      dup @ 1+ swap !
-      ." : "
-    else
-      ." > " 1+
-    then
-    input-end @
-    dup 100 accept
-    2dup + input-end !
-    count-parens 0 = until
-  drop
-  pad input-end @ over -
- ;
+    over c! 1+
+    0 until ;
 
 : repl
   begin
@@ -562,3 +550,4 @@ variable input-end
     lisp-load-from-string
     lisp-display cr
   0 until ;
+
