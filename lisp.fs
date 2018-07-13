@@ -597,3 +597,5 @@ s" exit" string-new ' bye builtin symtab-add
     lisp-eval
     lisp-display cr
   0 until ;
+
+s" init.l"  lisp-load-from-file drop
