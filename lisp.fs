@@ -565,6 +565,8 @@ s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 
 s" display" string-new ' lisp-builtin-display builtin symtab-add
 
+s" exit" string-new ' bye builtin symtab-add
+
 : repl
   begin
     lisp-read-from-input
