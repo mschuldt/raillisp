@@ -461,6 +461,7 @@ s" define" string-new ' lisp-special-define special symtab-add
 0 0 cons constant lisp-true
 
 s" t" string-new lisp-true symtab-add
+s" nil" string-new lisp-false symtab-add
 
 : lisp-special-cond recursive ( lisp -- lisp )
     dup car car lisp-eval 0<> if
