@@ -485,6 +485,8 @@ s" cond" string-new ' lisp-special-cond special symtab-add
 
 s" if" string-new ' lisp-special-if special symtab-add
 
+s" progn" string-new ' lisp-eval-body special symtab-add
+
 : lisp-special-let ( lisp -- lisp ) \ really let*
   symtab-save >r
   dup car
