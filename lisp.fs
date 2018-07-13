@@ -60,7 +60,8 @@ drop
 3 constant lisp-symbol-tag
 4 constant lisp-special-tag
 5 constant lisp-lambda-tag
-6 constant lisp-max-tag
+6 constant lisp-macro-tag
+7 constant lisp-max-tag
 
 lisp-max-tag cells allocate throw constant eval-dispatch
 lisp-max-tag cells allocate throw constant display-dispatch
@@ -145,6 +146,10 @@ end-struct lisp-lambda
     dup lambda-args args swap !
     dup lambda-body body swap ! ;
 
+: macro ( args body -- lisp )
+       lambda
+       dup lambda-tag lisp-macro-tag swap ! ;
+
 : lisp-display ( lisp -- )
     dup 0= if
 	drop [char] ( emit [char] ) emit
@@ -189,6 +194,11 @@ end-struct lisp-lambda
 
 ' lisp-display-lambda display-dispatch lisp-lambda-tag cells + !
 
+: lisp-display-macro ( lisp -- )
+    [char] * emit lisp-display-lambda ;
+
+' lisp-display-macro display-dispatch lisp-macro-tag cells + !
+
 : lisp-eval ( lisp -- lisp )
     dup 0<> if
 	dup lisp-tag @ cells eval-dispatch + @ execute
@@ -228,10 +238,14 @@ end-struct lisp-lambda
 : lisp-eval-pair ( lisp -- lisp )
     >r
     r@ car lisp-eval
-    dup lisp-tag @ lisp-special-tag = if
-	r> cdr swap special-xt @ execute
+    dup lisp-tag @ dup lisp-special-tag = if
+	drop r> cdr swap special-xt @ execute
     else
+      lisp-macro-tag = if
+        r> cdr lisp-apply-lambda
+      else
 	r> cdr lisp-eval-list lisp-apply
+      then
     then ;
 
 ' lisp-eval-pair eval-dispatch lisp-pair-tag cells + !
@@ -256,6 +270,11 @@ end-struct lisp-lambda
 : lisp-eval-lambda ( lisp -- lisp ) ;
 
 ' lisp-eval-lambda eval-dispatch lisp-lambda-tag cells + !
+
+: lisp-eval-macro ( lisp -- lisp ) ;
+
+' lisp-eval-macro eval-dispatch lisp-macro-tag cells + !
+
 
 \ the reader
 
@@ -417,6 +436,11 @@ s" quote" string-new ' lisp-special-quote special symtab-add
     dup car swap cdr car lambda ;
 
 s" lambda" string-new ' lisp-special-lambda special symtab-add
+
+: lisp-special-macro ( lisp -- lisp )
+  dup car swap cdr car macro ;
+
+s" macro" string-new ' lisp-special-macro special symtab-add
 
 : lisp-special-define ( lisp -- lisp )
     dup car swap cdr car lisp-eval lisp-bind-var 0 ;
