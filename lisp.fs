@@ -204,6 +204,16 @@ end-struct lisp-lambda
 	dup lisp-tag @ cells eval-dispatch + @ execute
     then ;
 
+: lisp-eval-body ( lisp -- lisp )
+  \ evaluates a list, returning the result of the last form
+  0 swap \ return value
+  begin
+    dup 0<>
+  while
+    nip dup car lisp-eval swap cdr
+  repeat
+  drop ;
+
 : lisp-eval-list recursive ( lisp -- lisp )
     dup 0<> if
 	dup car lisp-eval swap cdr lisp-eval-list cons
@@ -225,7 +235,7 @@ end-struct lisp-lambda
 : lisp-apply-lambda ( func args -- lisp )
     symtab-save >r
     over lambda-args @ swap lisp-bind-vars
-    lambda-body @ lisp-eval
+    lambda-body @ lisp-eval-body
     r> symtab-restore ;
 
 : lisp-apply ( func args -- lisp )
@@ -433,12 +443,12 @@ defer lisp-read-lisp
 s" quote" string-new ' lisp-special-quote special symtab-add
 
 : lisp-special-lambda ( lisp -- lisp )
-    dup car swap cdr car lambda ;
+    dup car swap cdr lambda ;
 
 s" lambda" string-new ' lisp-special-lambda special symtab-add
 
 : lisp-special-macro ( lisp -- lisp )
-  dup car swap cdr car macro ;
+  dup car swap cdr macro ;
 
 s" macro" string-new ' lisp-special-macro special symtab-add
 
