@@ -516,3 +516,9 @@ s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 
 s" display" string-new ' lisp-builtin-display builtin symtab-add
 
+: repl
+  begin
+    ." > " pad 100 accept pad swap
+    lisp-load-from-string
+    lisp-display
+  0 until ;
