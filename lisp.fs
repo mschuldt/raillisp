@@ -529,18 +529,14 @@ s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 s" display" string-new ' lisp-builtin-display builtin symtab-add
 
 variable paren-count
+variable stdin-lastchar
+variable stdin-unread
 
-: read-input ( - addr n)
-  0 paren-count !
-  pad dup >r
-  ." > "
-  begin
-    xkey
-    dup 10 = if \ RET
+: check-char ( c - c )
+  \ returns 0 if done reading, else c
+  dup 10 = if \ RET
       paren-count @ 0 = if
-        drop
-        r> swap over -
-        exit
+        drop 0 exit
       else
         ." :  "
       then
@@ -553,13 +549,40 @@ variable paren-count
         then
       then
     then
-    over c! 1+
-    0 until ;
+  ;
+
+\ how does it know when it's at the end?
+: lisp-read-char-stdin ( - c )
+  stdin-unread @ if
+    0 stdin-unread !
+    stdin-lastchar @
+  else
+    xkey check-char
+    dup stdin-lastchar !
+  then ;
+
+: lisp-unread-char-stdin ( c - )
+  stdin-unread @ if
+    ." ERROR: double unread"
+  then
+  1 stdin-unread ! ;
+
+: set-string-stdin-readers
+  ['] lisp-read-char-stdin 'lisp-read-char !
+  ['] lisp-unread-char-stdin 'lisp-unread-char !
+  -1 stdin-lastchar !
+  0 stdin-unread !
+  0 paren-count !
+  ;
+
+: lisp-read-from-stdin
+  set-string-stdin-readers
+  ." > " lisp-read-lisp
+;
 
 : repl
   begin
-    read-input
-    lisp-load-from-string
+    lisp-read-from-stdin
+    lisp-eval
     lisp-display cr
   0 until ;
-
