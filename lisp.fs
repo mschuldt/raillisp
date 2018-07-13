@@ -259,15 +259,26 @@ end-struct lisp-lambda
 
 \ the reader
 
-: lisp-read-char ( e a -- e a c )
+variable 'lisp-read-char
+variable 'lisp-unread-char
+
+: lisp-read-char 'lisp-read-char @ execute ;
+: lisp-unread-char 'lisp-unread-char @ execute ;
+
+: lisp-read-char-str ( e a -- e a c )
     2dup <= if
 	0
     else
 	dup c@ swap 1+ swap
     then ;
 
-: lisp-unread-char ( e a -- e a )
+: lisp-unread-char-str ( e a -- e a )
     1- ;
+
+: set-string-char-readers
+  ['] lisp-read-char-str 'lisp-read-char !
+  ['] lisp-unread-char-str 'lisp-unread-char !
+  ;
 
 : lisp-is-ws ( c -- flag )
     dup 10 = swap dup 13 = swap dup 9 = swap 32 = or or or ;
@@ -333,6 +344,7 @@ defer lisp-read-lisp
 ' _lisp-read-lisp is lisp-read-lisp
 
 : lisp-load-from-string ( a u -- lisp )
+    set-string-char-readers
     over + swap 0 >r
     begin
 	lisp-skip-ws 2dup >
