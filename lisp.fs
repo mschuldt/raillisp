@@ -101,6 +101,7 @@ end-struct lisp-special
 struct
     cell% field lambda-tag
     cell% field lambda-args
+    cell% field lambda-vararg
     cell% field lambda-body
 end-struct lisp-lambda
 
@@ -154,10 +155,44 @@ s" nil" string-new lisp-false symtab-add
     else
 	lisp-false
     then ;
+
+s" &rest" symbol-new constant &rest
+
+: get-vararg recursive ( arglist - vararg)
+  \ return the vararg symbol and remove from arglist
+  dup 0<> if
+    dup cdr 0<> if
+      dup cdr car &rest lisp-eq?-symbol if
+        dup cdr cdr car  \ vararg
+        swap pair-cdr 0 swap !
+      else
+        cdr get-vararg
+      then
+    else
+      drop 0
+    then
+  else
+    drop 0
+  then ;
+
+: split-args ( arglist - args vararg)
+  dup car &rest lisp-eq?-symbol if
+    0 swap cdr car
+  else
+    dup get-vararg
+  then ;
+
+: set-lambda-args ( lisp args - lisp )
+  swap >r
+  split-args
+  r@ lambda-vararg !
+  r> lambda-args !
+;
+
 : lambda { args body -- lisp }
     lisp-lambda %allocate throw
     dup lambda-tag lisp-lambda-tag swap !
-    dup lambda-args args swap !
+    dup args set-lambda-args
     dup lambda-body body swap ! ;
 
 : macro ( args body -- lisp )
@@ -244,11 +279,16 @@ s" nil" string-new lisp-false symtab-add
 	2dup car swap car lisp-bind-var
 	cdr swap cdr swap
     repeat
-    2drop ;
+    drop ;
 
 : lisp-apply-lambda ( func args -- lisp )
     symtab-save >r
     over lambda-args @ swap lisp-bind-vars
+    over lambda-vararg @ dup if
+      swap lisp-bind-var
+    else
+      2drop
+    then
     lambda-body @ lisp-eval-body
     r> symtab-restore ;
 
