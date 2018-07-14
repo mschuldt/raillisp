@@ -140,6 +140,20 @@ end-struct lisp-lambda
     dup special-tag lisp-special-tag swap !
     dup special-xt xt swap ! ;
 
+0 constant lisp-false
+0 0 cons constant lisp-true
+
+s" t" string-new lisp-true symtab-add
+s" nil" string-new lisp-false symtab-add
+
+: lisp-eq?-symbol { lisp1 lisp2 -- lisp }
+    lisp1 symbol-namea @ lisp1 symbol-nameu @
+    lisp2 symbol-namea @ lisp2 symbol-nameu @
+    compare 0= if
+	lisp-true
+    else
+	lisp-false
+    then ;
 : lambda { args body -- lisp }
     lisp-lambda %allocate throw
     dup lambda-tag lisp-lambda-tag swap !
@@ -457,12 +471,6 @@ s" macro" string-new ' lisp-special-macro special symtab-add
 
 s" define" string-new ' lisp-special-define special symtab-add
 
-0 constant lisp-false
-0 0 cons constant lisp-true
-
-s" t" string-new lisp-true symtab-add
-s" nil" string-new lisp-false symtab-add
-
 : lisp-special-cond recursive ( lisp -- lisp )
     dup car car lisp-eval 0<> if
 	car cdr car lisp-eval
@@ -595,15 +603,6 @@ s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 
 ' lisp-false eq?-dispatch lisp-builtin-tag cells + !
 
-: lisp-eq?-symbol { lisp1 lisp2 -- lisp }
-    lisp1 symbol-namea @ lisp1 symbol-nameu @
-    lisp2 symbol-namea @ lisp2 symbol-nameu @
-    compare 0= if
-	lisp-true
-    else
-	lisp-false
-    then ;
-
 ' lisp-eq?-symbol eq?-dispatch lisp-symbol-tag cells + !
 
 ' lisp-false eq?-dispatch lisp-lambda-tag cells + !
@@ -622,4 +621,4 @@ s" exit" string-new ' bye builtin symtab-add
     lisp-display cr
   0 until ;
 
-s" init.l"  lisp-load-from-file drop
+s" init.l" lisp-load-from-file drop
