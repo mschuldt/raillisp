@@ -306,7 +306,7 @@ s" &rest" symbol-new constant &rest
 	drop r> cdr swap special-xt @ execute
     else
       lisp-macro-tag = if
-        r> cdr lisp-apply-lambda
+        r> cdr lisp-apply-lambda lisp-eval
       else
 	r> cdr lisp-eval-list lisp-apply
       then
