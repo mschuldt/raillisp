@@ -485,6 +485,17 @@ s" cond" string-new ' lisp-special-cond special symtab-add
 
 s" if" string-new ' lisp-special-if special symtab-add
 
+: lisp-special-while ( lisp -- lisp )
+  dup car swap cdr
+  begin
+    over lisp-eval 0<>
+  while
+    dup lisp-eval-body drop
+  repeat
+  2drop 0 ;
+
+s" while" string-new ' lisp-special-while special symtab-add
+
 s" progn" string-new ' lisp-eval-body special symtab-add
 
 : lisp-special-let ( lisp -- lisp ) \ really let*
