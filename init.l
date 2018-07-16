@@ -1,20 +1,20 @@
 
 (define defmacro
   (macro (name args &rest body)
-         (cons (quote define)
+         (cons 'define
                (cons name
-                     (cons (cons (quote macro)
+                     (cons (cons 'macro
                                  (cons args body))
                            nil)))))
 
 (defmacro defun (name args &rest body)
-  (cons (quote define)
+  (cons 'define
         (cons name
-              (cons (cons (quote lambda)
+              (cons (cons 'lambda
                           (cons args body))
                     nil))))
 
-(define caar (lambda (x) (car (car x))))
-(define cadr (lambda (x) (car (cdr x))))
-(define cdar (lambda (x) (cdr (car x))))
-(define cddr (lambda (x) (cdr (cdr x))))
+(defun caar (x) (car (car x)))
+(defun cadr (x) (car (cdr x)))
+(defun cdar (x) (cdr (car x)))
+(defun cddr (x) (cdr (cdr x)))
