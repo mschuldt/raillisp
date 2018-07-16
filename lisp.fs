@@ -589,6 +589,7 @@ defer lisp-read-lisp
     then ;
 
 : lisp-read-from-input
+  0 read-from-string !
  -1 stdin-lastchar !
   0 stdin-unread !
   0 paren-count !
