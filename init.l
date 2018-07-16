@@ -57,7 +57,8 @@
 
 (defmacro assert (form)
   (list 'unless form
-        '(display 'AssertionFailed)
+        '(progn (display 'AssertionFailed)
+                (exit))
         (list 'display (list 'quote form))))
 
 (defun caar (x) (car (car x)))
