@@ -664,6 +664,40 @@ s" *" string-new ' lisp-builtin-* builtin symtab-add
 
 s" cons" string-new ' lisp-builtin-cons builtin symtab-add
 
+: lisp-get-arg-numbers ( lisp - n n )
+  dup car number-num @
+  swap cdr car number-num @ ;
+
+: lisp-builtin-= ( lisp -- lisp )
+  lisp-get-arg-numbers
+  = if lisp-true else lisp-false then ;
+
+s" =" string-new ' lisp-builtin-= builtin symtab-add
+
+: lisp-builtin-> ( lisp -- lisp )
+  lisp-get-arg-numbers
+  > if lisp-true else lisp-false then ;
+
+s" >" string-new ' lisp-builtin-> builtin symtab-add
+
+: lisp-builtin-< ( lisp -- lisp )
+  lisp-get-arg-numbers
+  < if lisp-true else lisp-false then ;
+
+s" <" string-new ' lisp-builtin-< builtin symtab-add
+
+: lisp-builtin-<= ( lisp -- lisp )
+  lisp-get-arg-numbers
+  <= if lisp-true else lisp-false then ;
+
+s" <=" string-new ' lisp-builtin-<= builtin symtab-add
+
+: lisp-builtin->= ( lisp -- lisp )
+  lisp-get-arg-numbers
+  >= if lisp-true else lisp-false then ;
+
+s" >=" string-new ' lisp-builtin->= builtin symtab-add
+
 : lisp-builtin-car ( lisp -- lisp )
     car car ;
 
