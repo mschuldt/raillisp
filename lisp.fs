@@ -654,6 +654,15 @@ s" display" string-new ' lisp-builtin-display builtin symtab-add
 
 s" exit" string-new ' bye builtin symtab-add
 
+: lisp-builtin-not
+  car 0= if
+    lisp-true
+  else
+    lisp-false
+  then ;
+
+s" not" string-new ' lisp-builtin-not builtin symtab-add
+
 : repl
   begin
     lisp-read-from-input
