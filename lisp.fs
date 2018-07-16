@@ -460,6 +460,10 @@ defer lisp-read-lisp
 : lisp-read-symbol ( e a -- e a lisp )
     lisp-read-token string-new symbol ;
 
+: lisp-read-quote ( e a -- e a lisp )
+  lisp-read-lisp lisp-false cons
+  s" quote" symbol-new swap cons ;
+
 : _lisp-read-lisp ( e a -- e a lisp )
     lisp-skip lisp-read-char
     dup 0= if
@@ -468,10 +472,14 @@ defer lisp-read-lisp
 	dup [char] ( = if
 	    drop lisp-read-list
 	else
-	    dup [char] 0 >= swap [char] 9 <= and if
-		lisp-unread-char lisp-read-number
+	    dup [char] 0 >= over [char] 9 <= and if
+		drop lisp-unread-char lisp-read-number
 	    else
+              [char] ' = if
+                lisp-read-quote
+              else
 		lisp-unread-char lisp-read-symbol
+              then
 	    then
 	then
     then ;
