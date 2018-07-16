@@ -45,6 +45,16 @@
 (defmacro unless (test &rest body)
   (list 'if test nil (cons 'progn body)))
 
+(defun apply (fn &rest args)
+  (let ((head args)
+        (prev nil))
+    (while (cdr args)
+      (setq prev args)
+      (setq args (cdr args)))
+    (when (consp (car args))
+      (setcdr prev (car args)))
+    (apply-1 fn head)))
+
 (defmacro assert (form)
   (list 'unless form
         '(display 'AssertionFailed)

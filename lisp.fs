@@ -846,6 +846,11 @@ s" not" string-new ' lisp-builtin-not builtin symtab-add
 
 s" eval" string-new ' lisp-builtin-eval builtin symtab-add
 
+: lisp-builtin-apply-1 ( lisp - lisp)
+  dup car swap cdr car lisp-apply ;
+
+s" apply-1" string-new ' lisp-builtin-apply-1 builtin symtab-add
+
 : lisp-type-tag
   car lisp-tag @ number ;
 
