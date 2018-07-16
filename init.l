@@ -14,6 +14,9 @@
                           (cons args body))
                     nil))))
 
+(defun list (&rest args)
+  args)
+
 (defun caar (x) (car (car x)))
 (defun cadr (x) (car (cdr x)))
 (defun cdar (x) (cdr (car x)))
