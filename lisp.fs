@@ -698,7 +698,7 @@ s" progn" string-new ' lisp-eval-body special symtab-add
     lisp-eval lisp-bind-var
     cdr
   repeat
-  drop cdr lisp-eval-list
+  drop cdr lisp-eval-list car
   r> symtab-restore
 ;
 
