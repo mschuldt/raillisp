@@ -32,7 +32,7 @@ drop
 	>r
 	r@ symtab-namea @ r@ symtab-nameu @ namea nameu compare
 	0= if
-	    r> symtab-lisp @ unloop exit
+	  r> exit
 	then
 	r> symtab-next @
     repeat
@@ -322,8 +322,17 @@ s" &rest" symbol-new constant &rest
 
 ' lisp-eval-builtin eval-dispatch lisp-builtin-tag cells + !
 
+: error-undefined-value
+  cr ." undefined value: " lisp-display cr ;
+
 : lisp-eval-symbol { lisp -- lisp }
-    lisp symbol-namea @ lisp symbol-nameu @ symtab-lookup ;
+    lisp symbol-namea @ lisp symbol-nameu @
+    symtab-lookup dup 0= if
+      drop lisp error-undefined-value
+      else
+        symtab-lisp @
+    then ;
+
 
 ' lisp-eval-symbol eval-dispatch lisp-symbol-tag cells + !
 
