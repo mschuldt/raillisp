@@ -61,6 +61,7 @@ drop
 4 constant lisp-special-tag
 5 constant lisp-lambda-tag
 6 constant lisp-macro-tag
+7 constant lisp-string-tag
 7 constant lisp-max-tag
 
 lisp-max-tag cells allocate throw constant eval-dispatch
@@ -135,6 +136,10 @@ end-struct lisp-lambda
 
 : symbol-new ( namea nameu -- lisp )
     string-new symbol ;
+
+: string ( namea nameu -- lisp )
+   symbol
+   dup symbol-tag lisp-string-tag swap ! ;
 
 : special { xt -- lisp }
     lisp-special %allocate throw
@@ -232,6 +237,13 @@ s" &rest" symbol-new constant &rest
     lisp symbol-namea @ lisp symbol-nameu @ type ;
 
 ' lisp-display-symbol display-dispatch lisp-symbol-tag cells + !
+
+: lisp-display-string { lisp -- }
+    [char] " dup emit
+    lisp symbol-namea @ lisp symbol-nameu @
+    type emit ;
+
+' lisp-display-string display-dispatch lisp-string-tag cells + !
 
 : lisp-display-special ( lisp -- )
     [char] # emit special-xt @ . ;
@@ -345,6 +357,10 @@ s" &rest" symbol-new constant &rest
 s" set" string-new ' lisp-builtin-set builtin symtab-add
 
 ' lisp-eval-symbol eval-dispatch lisp-symbol-tag cells + !
+
+: lisp-eval-string ( lisp --lisp ) ;
+
+' lisp-eval-string eval-dispatch lisp-string-tag cells + !
 
 : lisp-eval-special ( lisp -- lisp ) ;
 
@@ -483,6 +499,20 @@ defer lisp-read-lisp
   lisp-read-lisp lisp-false cons
   s" quote" symbol-new swap cons ;
 
+: lisp-read-string
+  0 >r
+  lisp-read-char
+  begin
+    dup 0<> over [char] " <> and
+  while
+    token-buffer r@ + c! r> 1+ >r lisp-read-char
+  repeat
+  dup 0<> swap [char] " <> and if
+    lisp-unread-char
+  then
+  token-buffer r>
+  string-new string ;
+
 : _lisp-read-lisp ( e a -- e a lisp )
     lisp-skip lisp-read-char
     dup 0= if
@@ -494,10 +524,14 @@ defer lisp-read-lisp
 	    dup [char] 0 >= over [char] 9 <= and if
 		drop lisp-unread-char lisp-read-number
 	    else
-              [char] ' = if
-                lisp-read-quote
+              dup [char] ' = if
+                drop lisp-read-quote
               else
-		lisp-unread-char lisp-read-symbol
+                [char] " = if
+                  lisp-read-string
+                else
+		  lisp-unread-char lisp-read-symbol
+                then
               then
 	    then
 	then
