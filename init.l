@@ -29,6 +29,13 @@
               (cons 'progn body)
               '(setq --dolist-tail-- (cdr --dolist-tail--)))))
 
+(defmacro dotimes (spec &rest body)
+  (list 'let (list (list '--dotimes-limit-- (car (cdr spec)))
+                   (list (car spec) 0))
+        (list 'while (list '< (car spec) '--dotimes-limit--)
+              (cons 'progn body)
+              (list 'setq (car spec) (list '+ (car spec) 1)))))
+
 (defmacro when (test &rest body)
   (list 'if test (cons 'progn body) nil))
 
