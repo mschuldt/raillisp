@@ -1,4 +1,4 @@
-include lisp.fs
+include raillisp.fth
 
 0 exit-on-error !
 

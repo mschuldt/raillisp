@@ -877,4 +877,4 @@ s" lisp-type-tag" string-new ' lisp-type-tag builtin symtab-add
     lisp-display cr
   0 until ;
 
-s" init.l" lisp-load-from-file drop
+s" raillisp.lsp" lisp-load-from-file drop
