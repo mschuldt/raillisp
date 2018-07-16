@@ -572,6 +572,11 @@ defer lisp-read-lisp
     repeat
     2drop r> ;
 
+: lisp-read-from-string ( a u -- lisp )
+    1 read-from-string !
+    over + swap
+    lisp-skip lisp-read-lisp >r 2drop r> ;
+
 8192 allocate throw constant read-buffer
 
 : lisp-load-from-file ( a u -- lisp )
@@ -841,6 +846,13 @@ s" exit" string-new ' bye builtin symtab-add
   then ;
 
 s" not" string-new ' lisp-builtin-not builtin symtab-add
+
+: lisp-builtin-read ( lisp - lisp)
+  car dup symbol-namea @ swap symbol-nameu @
+  1 read-from-string !
+  lisp-read-from-string ;
+
+s" read" string-new ' lisp-builtin-read builtin symtab-add
 
 : lisp-builtin-eval ( lisp - lisp)
   car lisp-eval ;
