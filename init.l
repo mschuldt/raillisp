@@ -34,6 +34,12 @@
 
 (defmacro unless (test &rest body)
   (list 'if test nil (cons 'progn body)))
+
+(defmacro assert (form)
+  (list 'unless form
+        '(display 'AssertionFailed)
+        (list 'display (list 'quote form))))
+
 (defun caar (x) (car (car x)))
 (defun cadr (x) (car (cdr x)))
 (defun cdar (x) (cdr (car x)))
