@@ -499,12 +499,30 @@ defer lisp-read-lisp
   lisp-read-lisp lisp-false cons
   s" quote" symbol-new swap cons ;
 
+: lisp-escape-char ( c - c )
+  dup [char] n = if
+    drop 10
+  else
+    dup [char] \ = if \ todo: move escape codes to lisp
+      drop [char] \
+    else
+      dup [char] " = if
+        drop [char] "
+      else
+        cr ." invalid escape code: " emit cr bye
+      then
+    then
+  then ;
+
 : lisp-read-string
   0 >r
   lisp-read-char
   begin
     dup 0<> over [char] " <> and
   while
+    dup [char] \ = if
+      drop lisp-read-char lisp-escape-char
+    then
     token-buffer r@ + c! r> 1+ >r lisp-read-char
   repeat
   dup 0<> swap [char] " <> and if
