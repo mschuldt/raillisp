@@ -55,6 +55,9 @@
       (setcdr prev (car args)))
     (apply-1 fn head)))
 
+(defun funcall (fn &rest args)
+  (apply-1 fn args))
+
 (defmacro assert (form)
   (list 'unless form
         '(progn (display 'AssertionFailed)
