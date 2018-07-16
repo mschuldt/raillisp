@@ -333,6 +333,16 @@ s" &rest" symbol-new constant &rest
         symtab-lisp @
     then ;
 
+: lisp-builtin-set ( lisp -- lisp )
+  dup car dup
+  symbol-namea @ swap symbol-nameu @ symtab-lookup
+  dup 0= if
+    drop error-undefined-value
+  else
+    symtab-lisp swap cdr car dup rot !
+  then ;
+
+s" set" string-new ' lisp-builtin-set builtin symtab-add
 
 ' lisp-eval-symbol eval-dispatch lisp-symbol-tag cells + !
 
