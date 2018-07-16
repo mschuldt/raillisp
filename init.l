@@ -17,6 +17,9 @@
 (defun list (&rest args)
   args)
 
+(defmacro setq (var value)
+  (list 'set (list 'quote var) value))
+
 (defun caar (x) (car (car x)))
 (defun cadr (x) (car (cdr x)))
 (defun cdar (x) (cdr (car x)))
