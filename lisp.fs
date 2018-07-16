@@ -335,7 +335,7 @@ s" &rest" symbol-new constant &rest
 ' lisp-eval-builtin eval-dispatch lisp-builtin-tag cells + !
 
 : error-undefined-value
-  cr ." undefined value: " lisp-display cr ;
+  cr ." undefined value: " lisp-display cr bye ;
 
 : lisp-eval-symbol { lisp -- lisp }
     lisp symbol-namea @ lisp symbol-nameu @
