@@ -576,6 +576,20 @@ s" if" string-new ' lisp-special-if special symtab-add
 
 s" and" string-new ' lisp-special-and special symtab-add
 
+: lisp-special-or  ( lisp -- lisp )
+  lisp-false swap
+  begin
+    dup 0<>
+  while
+    nip dup car lisp-eval swap cdr
+    over 0<> if
+      drop lisp-false
+    then
+  repeat
+  drop ;
+
+s" or" string-new ' lisp-special-or special symtab-add
+
 : lisp-special-while ( lisp -- lisp )
   dup car swap cdr
   begin
