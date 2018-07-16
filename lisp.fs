@@ -407,10 +407,31 @@ variable read-from-string
 	lisp-unread-char
     then ;
 
+: lisp-skip-line
+  lisp-read-char
+  begin
+    dup 0<> over 10 <> and \ 10 = \n
+  while
+    drop lisp-read-char
+  repeat
+  0<> if
+    lisp-unread-char
+  then ;
+
+: lisp-skip
+  lisp-skip-ws
+  lisp-read-char
+  59 = if \ 59 = ;
+    lisp-skip-line
+  else
+    lisp-unread-char
+  then
+  lisp-skip-ws ;
+
 128 allocate throw constant token-buffer
 
 : lisp-read-token ( e a -- e a a u )
-    lisp-skip-ws
+    lisp-skip
     0 >r
     lisp-read-char
     begin
@@ -426,7 +447,7 @@ variable read-from-string
 defer lisp-read-lisp
 
 : lisp-read-list recursive ( e a -- e a lisp )
-    lisp-skip-ws lisp-read-char
+    lisp-skip lisp-read-char
     dup [char] ) = swap 0 = or if
 	0
     else
@@ -440,7 +461,7 @@ defer lisp-read-lisp
     lisp-read-token string-new symbol ;
 
 : _lisp-read-lisp ( e a -- e a lisp )
-    lisp-skip-ws lisp-read-char
+    lisp-skip lisp-read-char
     dup 0= if
 	drop 0
     else
@@ -460,7 +481,7 @@ defer lisp-read-lisp
     1 read-from-string !
     over + swap 0 >r
     begin
-	lisp-skip-ws 2dup >
+	lisp-skip 2dup >
     while
 	r> drop lisp-read-lisp lisp-eval >r
     repeat
