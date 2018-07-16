@@ -36,6 +36,9 @@
               (cons 'progn body)
               (list 'setq (car spec) (list '+ (car spec) 1)))))
 
+(defun consp (obj)
+  (= (lisp-type-tag obj) 0))
+
 (defmacro when (test &rest body)
   (list 'if test (cons 'progn body) nil))
 
