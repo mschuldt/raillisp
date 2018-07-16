@@ -846,6 +846,12 @@ s" not" string-new ' lisp-builtin-not builtin symtab-add
 
 s" eval" string-new ' lisp-builtin-eval builtin symtab-add
 
+: lisp-type-tag
+  car lisp-tag @ number ;
+
+s" lisp-type-tag" string-new ' lisp-type-tag builtin symtab-add
+
+
 : repl
   begin
     lisp-read-from-input
