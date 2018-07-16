@@ -29,6 +29,11 @@
               (cons 'progn body)
               '(setq --dolist-tail-- (cdr --dolist-tail--)))))
 
+(defmacro when (test &rest body)
+  (list 'if test (cons 'progn body) nil))
+
+(defmacro unless (test &rest body)
+  (list 'if test nil (cons 'progn body)))
 (defun caar (x) (car (car x)))
 (defun cadr (x) (car (cdr x)))
 (defun cdar (x) (cdr (car x)))
