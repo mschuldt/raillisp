@@ -65,3 +65,7 @@
 (defun cadr (x) (car (cdr x)))
 (defun cdar (x) (cdr (car x)))
 (defun cddr (x) (cdr (cdr x)))
+
+(defun 1+ (n) (+ n 1))
+(defun 1- (n) (- n 1))
+
