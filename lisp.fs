@@ -785,6 +785,16 @@ s" car" string-new ' lisp-builtin-car builtin symtab-add
 
 s" cdr" string-new ' lisp-builtin-cdr builtin symtab-add
 
+: lisp-builtin-setcar ( lisp -- lisp )
+    dup car swap cdr car over pair-car ! ;
+
+s" setcar" string-new ' lisp-builtin-setcar builtin symtab-add
+
+: lisp-builtin-setcdr ( lisp -- lisp )
+    dup car swap cdr car over pair-cdr ! ;
+
+s" setcdr" string-new ' lisp-builtin-setcdr builtin symtab-add
+
 : lisp-builtin-eq? ( lisp -- lisp )
     dup car swap cdr car 2dup = if
 	2drop lisp-true
