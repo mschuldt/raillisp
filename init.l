@@ -20,6 +20,15 @@
 (defmacro setq (var value)
   (list 'set (list 'quote var) value))
 
+(defmacro dolist (spec &rest body)
+  (list 'let (list (list '--dolist-tail-- (car (cdr spec)))
+                   (list (car spec) nil))
+        (list 'while '--dolist-tail--
+              (list 'setq (car spec) '(car --dolist-tail--))
+              (list 'setq (car spec) '(car --dolist-tail--))
+              (cons 'progn body)
+              '(setq --dolist-tail-- (cdr --dolist-tail--)))))
+
 (defun caar (x) (car (car x)))
 (defun cadr (x) (car (cdr x)))
 (defun cdar (x) (cdr (car x)))
