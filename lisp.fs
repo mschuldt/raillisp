@@ -831,6 +831,11 @@ s" exit" string-new ' bye builtin symtab-add
 
 s" not" string-new ' lisp-builtin-not builtin symtab-add
 
+: lisp-builtin-eval ( lisp - lisp)
+  car lisp-eval ;
+
+s" eval" string-new ' lisp-builtin-eval builtin symtab-add
+
 : repl
   begin
     lisp-read-from-input
