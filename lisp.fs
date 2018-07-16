@@ -2,6 +2,12 @@
 
 \ utilities
 
+variable exit-on-error
+1 exit-on-error !
+
+: maybe-bye
+  exit-on-error @ if bye then ;
+
 : string-new { a u -- a u }
     a u allocate drop dup >r u cmove
     r> u ;
@@ -335,7 +341,7 @@ s" &rest" symbol-new constant &rest
 ' lisp-eval-builtin eval-dispatch lisp-builtin-tag cells + !
 
 : error-undefined-value
-  cr ." undefined value: " lisp-display cr bye ;
+  cr ." undefined value: " lisp-display cr maybe-bye ;
 
 : lisp-eval-symbol { lisp -- lisp }
     lisp symbol-namea @ lisp symbol-nameu @
@@ -509,7 +515,7 @@ defer lisp-read-lisp
       dup [char] " = if
         drop [char] "
       else
-        cr ." invalid escape code: " emit cr bye
+        cr ." invalid escape code: " emit cr maybe-bye
       then
     then
   then ;
