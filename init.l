@@ -36,8 +36,17 @@
               (cons 'progn body)
               (list 'setq (car spec) (list '+ (car spec) 1)))))
 
-(defun consp (obj)
-  (= (lisp-type-tag obj) 0))
+(defun consp (obj) (= (lisp-type-tag obj) 0))
+(defun numberp (obj) (= (lisp-type-tag obj) 1))
+(defun symbolp (obj) (= (lisp-type-tag obj) 2))
+(defun stringp (obj) (= (lisp-type-tag obj) 7))
+
+(defun type-of (obj)
+  (let ((tag (lisp-type-tag obj)))
+    (cond ((= tag 0) 'cons)
+          ((= tag 1) 'number)
+          ((= tag 2) 'symbol)
+          ((= tag 70 'string)))))
 
 (defmacro when (test &rest body)
   (list 'if test (cons 'progn body) nil))
