@@ -30,19 +30,19 @@ end-struct symtab
 0 variable symtab-first
 drop
 
-: symtab-lookup { namea nameu -- }
+: symtab-lookup ( namea nameu -- symtab )
     symtab-first @
     begin
-	dup 0<>
+        dup 0<>
     while
-	>r
-	r@ symtab-namea @ r@ symtab-nameu @ namea nameu compare
-	0= if
-	  r> exit
-	then
-	r> symtab-next @
+        >r
+        2dup r@ symtab-namea @ r@ symtab-nameu @ compare
+        0= if
+          2drop r> exit
+        then
+        r> symtab-next @
     repeat
-    drop 0 ;
+    drop 2drop 0 ;
 
 : symtab-add { namea nameu lisp -- }
     symtab %allocate throw
