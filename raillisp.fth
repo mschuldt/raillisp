@@ -712,6 +712,25 @@ s" progn" string-new ' lisp-eval-body special symtab-add
 
 s" let" string-new ' lisp-special-let special symtab-add
 
+: lisp-special-forth ( lisp -- lisp)
+  \ execute a list of symbols as forth words.
+  \ words must not modify the return stack.
+  >r
+  begin
+    r@ 0<>
+  while
+    r@ car dup symbol-namea @ swap symbol-nameu @
+    find-name dup 0= if
+      ." ERROR: invalid word" cr
+    else
+      name>int execute
+    then
+    r> cdr >r
+  repeat
+  r> ;
+
+s" forth" string-new ' lisp-special-forth special symtab-add
+
 \ builtins
 
 : lisp-builtin-+ ( lisp -- lisp )
