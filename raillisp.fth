@@ -160,9 +160,9 @@ end-struct lisp-lambda
 s" t" string-new lisp-true symtab-add
 s" nil" string-new lisp-false symtab-add
 
-: lisp-eq?-symbol { lisp1 lisp2 -- lisp }
-    lisp1 symbol-namea @ lisp1 symbol-nameu @
-    lisp2 symbol-namea @ lisp2 symbol-nameu @
+: lisp-eq?-symbol ( lisp1 lisp2 -- lisp )
+    dup symbol-namea @ swap symbol-nameu @
+    rot dup symbol-namea @ swap symbol-nameu @
     compare 0= if
 	lisp-true
     else
@@ -242,14 +242,14 @@ s" &rest" symbol-new constant &rest
 
 ' lisp-display-builtin display-dispatch lisp-builtin-tag cells + !
 
-: lisp-display-symbol { lisp -- }
-    lisp symbol-namea @ lisp symbol-nameu @ type ;
+: lisp-display-symbol ( lisp -- )
+    dup symbol-namea @ swap symbol-nameu @ type ;
 
 ' lisp-display-symbol display-dispatch lisp-symbol-tag cells + !
 
-: lisp-display-string { lisp -- }
+: lisp-display-string ( lisp -- )
     [char] " dup emit
-    lisp symbol-namea @ lisp symbol-nameu @
+    swap dup symbol-namea @ swap symbol-nameu @
     type emit ;
 
 ' lisp-display-string display-dispatch lisp-string-tag cells + !
@@ -346,12 +346,13 @@ s" &rest" symbol-new constant &rest
 : error-undefined-value
   cr ." undefined value: " lisp-display cr maybe-bye ;
 
-: lisp-eval-symbol { lisp -- lisp }
-    lisp symbol-namea @ lisp symbol-nameu @
+: lisp-eval-symbol ( lisp -- lisp )
+    dup dup symbol-namea @ swap symbol-nameu @
     symtab-lookup dup 0= if
-      drop lisp error-undefined-value
+      drop error-undefined-value
       else
         symtab-lisp @
+        swap drop
     then ;
 
 : lisp-builtin-set ( lisp -- lisp )
