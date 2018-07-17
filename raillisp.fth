@@ -8,9 +8,9 @@ variable exit-on-error
 : maybe-bye
   exit-on-error @ if bye then ;
 
-: string-new { a u -- a u }
-    a u allocate drop dup >r u cmove
-    r> u ;
+: string-new ( a u -- a u )
+  dup rot over allocate drop
+  dup >r rot cmove r> swap ;
 
 : string>num ( a u -- n )
     0 swap 0 ?do
