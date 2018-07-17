@@ -112,11 +112,12 @@ struct
     cell% field lambda-body
 end-struct lisp-lambda
 
-: cons { car cdr -- lisp }
-    lisp-pair %allocate throw
-    dup pair-tag lisp-pair-tag swap !
-    dup pair-car car swap !
-    dup pair-cdr cdr swap ! ;
+: cons ( car cdr -- lisp )
+    lisp-pair %allocate throw >r
+    r@ pair-tag lisp-pair-tag swap !
+    r@ pair-cdr !
+    r@ pair-car !
+    r> ;
 
 : car ( pair -- lisp )
     pair-car @ ;
@@ -124,21 +125,22 @@ end-struct lisp-lambda
 : cdr ( pair -- lisp )
     pair-cdr @ ;
 
-: number { num -- lisp }
+: number ( num -- lisp )
     lisp-number %allocate throw
     dup number-tag lisp-number-tag swap !
-    dup number-num num swap ! ;
+    swap over number-num ! ;
 
-: builtin { xt -- lisp }
+: builtin ( xt -- lisp )
     lisp-builtin %allocate throw
     dup builtin-tag lisp-builtin-tag swap !
-    dup builtin-xt xt swap ! ;
+    swap over builtin-xt ! ;
 
-: symbol { namea nameu -- lisp }
-    lisp-symbol %allocate throw
-    dup symbol-tag lisp-symbol-tag swap !
-    dup symbol-namea namea swap !
-    dup symbol-nameu nameu swap ! ;
+: symbol ( namea nameu -- lisp )
+    lisp-symbol %allocate throw >r
+    r@ symbol-tag lisp-symbol-tag swap !
+    r@ symbol-nameu !
+    r@ symbol-namea !
+    r> ;
 
 : symbol-new ( namea nameu -- lisp )
     string-new symbol ;
@@ -147,10 +149,10 @@ end-struct lisp-lambda
    symbol
    dup symbol-tag lisp-string-tag swap ! ;
 
-: special { xt -- lisp }
+: special ( xt -- lisp )
     lisp-special %allocate throw
     dup special-tag lisp-special-tag swap !
-    dup special-xt xt swap ! ;
+    swap over special-xt ! ;
 
 0 constant lisp-false
 0 0 cons constant lisp-true
@@ -200,11 +202,12 @@ s" &rest" symbol-new constant &rest
   r> lambda-args !
 ;
 
-: lambda { args body -- lisp }
-    lisp-lambda %allocate throw
-    dup lambda-tag lisp-lambda-tag swap !
-    dup args set-lambda-args
-    dup lambda-body body swap ! ;
+: lambda ( args body -- lisp )
+    lisp-lambda %allocate throw >r
+    r@ lambda-tag lisp-lambda-tag swap !
+    r@ lambda-body !
+    r@ swap set-lambda-args
+    r> ;
 
 : macro ( args body -- lisp )
        lambda
