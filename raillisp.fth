@@ -44,13 +44,13 @@ drop
     repeat
     drop 2drop 0 ;
 
-: symtab-add { namea nameu lisp -- }
-    symtab %allocate throw
-    dup symtab-namea namea swap !
-    dup symtab-nameu nameu swap !
-    dup symtab-lisp lisp swap !
-    dup symtab-next symtab-first @ swap !
-    symtab-first ! ;
+: symtab-add ( namea nameu lisp -- )
+  symtab %allocate throw >r
+  r@ symtab-lisp !
+  r@ symtab-nameu !
+  r@ symtab-namea !
+  r@ symtab-next symtab-first @ swap !
+  r> symtab-first ! ;
 
 : symtab-save ( -- ptr )
     symtab-first @ ;
