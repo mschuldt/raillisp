@@ -13,36 +13,36 @@ variable exit-on-error
   dup >r rot cmove r> swap ;
 
 : string>num ( a u -- n )
-    0 swap 0 ?do
-	10 * over i + c@ [char] 0 - +
-    loop
-    nip ;
+  0 swap 0 ?do
+    10 * over i + c@ [char] 0 - +
+  loop
+  nip ;
 
 \ symbol table
 
 struct
-    cell% field symtab-namea
-    cell% field symtab-nameu
-    cell% field symtab-lisp
-    cell% field symtab-next
+cell% field symtab-namea
+cell% field symtab-nameu
+cell% field symtab-lisp
+cell% field symtab-next
 end-struct symtab
 
 0 variable symtab-first
 drop
 
 : symtab-lookup ( namea nameu -- symtab )
-    symtab-first @
-    begin
-        dup 0<>
-    while
-        >r
-        2dup r@ symtab-namea @ r@ symtab-nameu @ compare
-        0= if
-          2drop r> exit
-        then
-        r> symtab-next @
-    repeat
-    drop 2drop 0 ;
+  symtab-first @
+  begin
+    dup 0<>
+  while
+    >r
+    2dup r@ symtab-namea @ r@ symtab-nameu @ compare
+    0= if
+      2drop r> exit
+    then
+    r> symtab-next @
+  repeat
+  drop 2drop 0 ;
 
 : symtab-add ( namea nameu lisp -- )
   symtab %allocate throw >r
@@ -53,10 +53,10 @@ drop
   r> symtab-first ! ;
 
 : symtab-save ( -- ptr )
-    symtab-first @ ;
+  symtab-first @ ;
 
 : symtab-restore ( ptr -- )
-    symtab-first ! ;
+  symtab-first ! ;
 
 \ lisp interpreter
 
@@ -75,84 +75,84 @@ lisp-max-tag cells allocate throw constant display-dispatch
 lisp-max-tag cells allocate throw constant eq?-dispatch
 
 struct
-    cell% field lisp-tag
+cell% field lisp-tag
 end-struct lisp
 
 struct
-    cell% field pair-tag
-    cell% field pair-car
-    cell% field pair-cdr
+cell% field pair-tag
+cell% field pair-car
+cell% field pair-cdr
 end-struct lisp-pair
 
 struct
-    cell% field number-tag
-    cell% field number-num
+cell% field number-tag
+cell% field number-num
 end-struct lisp-number
 
 struct
-    cell% field builtin-tag
-    cell% field builtin-xt
+cell% field builtin-tag
+cell% field builtin-xt
 end-struct lisp-builtin
 
 struct
-    cell% field symbol-tag
-    cell% field symbol-namea
-    cell% field symbol-nameu
+cell% field symbol-tag
+cell% field symbol-namea
+cell% field symbol-nameu
 end-struct lisp-symbol
 
 struct
-    cell% field special-tag
-    cell% field special-xt
+cell% field special-tag
+cell% field special-xt
 end-struct lisp-special
 
 struct
-    cell% field lambda-tag
-    cell% field lambda-args
-    cell% field lambda-vararg
-    cell% field lambda-body
+cell% field lambda-tag
+cell% field lambda-args
+cell% field lambda-vararg
+cell% field lambda-body
 end-struct lisp-lambda
 
 : cons ( car cdr -- lisp )
-    lisp-pair %allocate throw >r
-    r@ pair-tag lisp-pair-tag swap !
-    r@ pair-cdr !
-    r@ pair-car !
-    r> ;
+  lisp-pair %allocate throw >r
+  r@ pair-tag lisp-pair-tag swap !
+  r@ pair-cdr !
+  r@ pair-car !
+  r> ;
 
 : car ( pair -- lisp )
-    pair-car @ ;
+  pair-car @ ;
 
 : cdr ( pair -- lisp )
-    pair-cdr @ ;
+  pair-cdr @ ;
 
 : number ( num -- lisp )
-    lisp-number %allocate throw
-    dup number-tag lisp-number-tag swap !
-    swap over number-num ! ;
+  lisp-number %allocate throw
+  dup number-tag lisp-number-tag swap !
+  swap over number-num ! ;
 
 : builtin ( xt -- lisp )
-    lisp-builtin %allocate throw
-    dup builtin-tag lisp-builtin-tag swap !
-    swap over builtin-xt ! ;
+  lisp-builtin %allocate throw
+  dup builtin-tag lisp-builtin-tag swap !
+  swap over builtin-xt ! ;
 
 : symbol ( namea nameu -- lisp )
-    lisp-symbol %allocate throw >r
-    r@ symbol-tag lisp-symbol-tag swap !
-    r@ symbol-nameu !
-    r@ symbol-namea !
-    r> ;
+  lisp-symbol %allocate throw >r
+  r@ symbol-tag lisp-symbol-tag swap !
+  r@ symbol-nameu !
+  r@ symbol-namea !
+  r> ;
 
 : symbol-new ( namea nameu -- lisp )
-    string-new symbol ;
+  string-new symbol ;
 
 : string ( namea nameu -- lisp )
-   symbol
-   dup symbol-tag lisp-string-tag swap ! ;
+  symbol
+  dup symbol-tag lisp-string-tag swap ! ;
 
 : special ( xt -- lisp )
-    lisp-special %allocate throw
-    dup special-tag lisp-special-tag swap !
-    swap over special-xt ! ;
+  lisp-special %allocate throw
+  dup special-tag lisp-special-tag swap !
+  swap over special-xt ! ;
 
 0 constant lisp-false
 0 0 cons constant lisp-true
@@ -161,17 +161,18 @@ s" t" string-new lisp-true symtab-add
 s" nil" string-new lisp-false symtab-add
 
 : lisp-eq?-symbol ( lisp1 lisp2 -- lisp )
-    dup symbol-namea @ swap symbol-nameu @
-    rot dup symbol-namea @ swap symbol-nameu @
-    compare 0= if
-	lisp-true
-    else
-	lisp-false
-    then ;
+  dup symbol-namea @ swap symbol-nameu @
+  rot dup symbol-namea @ swap symbol-nameu @
+  compare 0= if
+    lisp-true
+  else
+    lisp-false
+  then ;
 
 s" &rest" symbol-new constant &rest
 
-: get-vararg recursive ( arglist - vararg)
+: get-vararg
+  recursive ( arglist - vararg)
   \ return the vararg symbol and remove from arglist
   dup 0<> if
     dup cdr 0<> if
@@ -203,76 +204,76 @@ s" &rest" symbol-new constant &rest
 ;
 
 : lambda ( args body -- lisp )
-    lisp-lambda %allocate throw >r
-    r@ lambda-tag lisp-lambda-tag swap !
-    r@ lambda-body !
-    r@ swap set-lambda-args
-    r> ;
+  lisp-lambda %allocate throw >r
+  r@ lambda-tag lisp-lambda-tag swap !
+  r@ lambda-body !
+  r@ swap set-lambda-args
+  r> ;
 
 : macro ( args body -- lisp )
-       lambda
-       dup lambda-tag lisp-macro-tag swap ! ;
+  lambda
+  dup lambda-tag lisp-macro-tag swap ! ;
 
 : lisp-display ( lisp -- )
-    dup 0= if
-	drop [char] ( emit [char] ) emit
-    else
-	dup lisp-tag @ cells display-dispatch + @ execute
-    then ;
+  dup 0= if
+    drop [char] ( emit [char] ) emit
+  else
+    dup lisp-tag @ cells display-dispatch + @ execute
+  then ;
 
 : lisp-display-pair ( lisp -- )
-    [char] ( emit 32 emit
-    begin
-	dup car lisp-display 32 emit
-	cdr
-	dup 0=
-    until
-    drop
-    [char] ) emit ;
+  [char] ( emit 32 emit
+  begin
+    dup car lisp-display 32 emit
+    cdr
+    dup 0=
+  until
+  drop
+  [char] ) emit ;
 
 ' lisp-display-pair display-dispatch lisp-pair-tag cells + !
 
 : lisp-display-number ( lisp -- )
-    number-num @ . ;
+  number-num @ . ;
 
 ' lisp-display-number display-dispatch lisp-number-tag cells + !
 
 : lisp-display-builtin ( lisp -- )
-    [char] $ emit special-xt @ . ;
+  [char] $ emit special-xt @ . ;
 
 ' lisp-display-builtin display-dispatch lisp-builtin-tag cells + !
 
 : lisp-display-symbol ( lisp -- )
-    dup symbol-namea @ swap symbol-nameu @ type ;
+  dup symbol-namea @ swap symbol-nameu @ type ;
 
 ' lisp-display-symbol display-dispatch lisp-symbol-tag cells + !
 
 : lisp-display-string ( lisp -- )
-    [char] " dup emit
-    swap dup symbol-namea @ swap symbol-nameu @
-    type emit ;
+  [char] " dup emit
+  swap dup symbol-namea @ swap symbol-nameu @
+  type emit ;
 
 ' lisp-display-string display-dispatch lisp-string-tag cells + !
 
 : lisp-display-special ( lisp -- )
-    [char] # emit special-xt @ . ;
+  [char] # emit special-xt @ . ;
 
 ' lisp-display-special display-dispatch lisp-special-tag cells + !
 
 : lisp-display-lambda ( lisp -- )
-    [char] & emit lambda-body @ . ;
+  [char] & emit lambda-body @ . ;
 
 ' lisp-display-lambda display-dispatch lisp-lambda-tag cells + !
 
 : lisp-display-macro ( lisp -- )
-    [char] * emit lisp-display-lambda ;
+  [char] * emit lisp-display-lambda ;
 
 ' lisp-display-macro display-dispatch lisp-macro-tag cells + !
 
 : lisp-eval ( lisp -- lisp )
-    dup 0<> if
-	dup lisp-tag @ cells eval-dispatch + @ execute
-    then ;
+  dup 0<> if
+    dup lisp-tag @ cells eval-dispatch + @ execute
+  then ;
 
 : lisp-eval-body ( lisp -- lisp )
   \ evaluates a list, returning the result of the last form
@@ -284,54 +285,55 @@ s" &rest" symbol-new constant &rest
   repeat
   drop ;
 
-: lisp-eval-list recursive ( lisp -- lisp )
-    dup 0<> if
-	dup car lisp-eval swap cdr lisp-eval-list cons
-    then ;
+: lisp-eval-list
+  recursive ( lisp -- lisp )
+  dup 0<> if
+    dup car lisp-eval swap cdr lisp-eval-list cons
+  then ;
 
 : lisp-bind-var ( name value -- )
-    >r dup symbol-namea @ swap symbol-nameu @ r> symtab-add ;
+  >r dup symbol-namea @ swap symbol-nameu @ r> symtab-add ;
 
 : lisp-bind-vars ( names values -- )
-    swap
-    begin
-	dup 0<>
-    while
-	2dup car swap car lisp-bind-var
-	cdr swap cdr swap
-    repeat
-    drop ;
+  swap
+  begin
+    dup 0<>
+  while
+    2dup car swap car lisp-bind-var
+    cdr swap cdr swap
+  repeat
+  drop ;
 
 : lisp-apply-lambda ( func args -- lisp )
-    symtab-save >r
-    over lambda-args @ swap lisp-bind-vars
-    over lambda-vararg @ dup if
-      swap lisp-bind-var
-    else
-      2drop
-    then
-    lambda-body @ lisp-eval-body
-    r> symtab-restore ;
+  symtab-save >r
+  over lambda-args @ swap lisp-bind-vars
+  over lambda-vararg @ dup if
+    swap lisp-bind-var
+  else
+    2drop
+  then
+  lambda-body @ lisp-eval-body
+  r> symtab-restore ;
 
 : lisp-apply ( func args -- lisp )
-    >r dup lisp-tag @ lisp-builtin-tag = if
-	r> swap builtin-xt @ execute
-    else
-	r> lisp-apply-lambda
-    then ;
+  >r dup lisp-tag @ lisp-builtin-tag = if
+    r> swap builtin-xt @ execute
+  else
+    r> lisp-apply-lambda
+  then ;
 
 : lisp-eval-pair ( lisp -- lisp )
-    >r
-    r@ car lisp-eval
-    dup lisp-tag @ dup lisp-special-tag = if
-	drop r> cdr swap special-xt @ execute
+  >r
+  r@ car lisp-eval
+  dup lisp-tag @ dup lisp-special-tag = if
+    drop r> cdr swap special-xt @ execute
+  else
+    lisp-macro-tag = if
+      r> cdr lisp-apply-lambda lisp-eval
     else
-      lisp-macro-tag = if
-        r> cdr lisp-apply-lambda lisp-eval
-      else
-	r> cdr lisp-eval-list lisp-apply
-      then
-    then ;
+      r> cdr lisp-eval-list lisp-apply
+    then
+  then ;
 
 ' lisp-eval-pair eval-dispatch lisp-pair-tag cells + !
 
@@ -347,13 +349,13 @@ s" &rest" symbol-new constant &rest
   cr ." undefined value: " lisp-display cr maybe-bye ;
 
 : lisp-eval-symbol ( lisp -- lisp )
-    dup dup symbol-namea @ swap symbol-nameu @
-    symtab-lookup dup 0= if
-      drop error-undefined-value
-      else
-        symtab-lisp @
-        swap drop
-    then ;
+  dup dup symbol-namea @ swap symbol-nameu @
+  symtab-lookup dup 0= if
+    drop error-undefined-value
+  else
+    symtab-lisp @
+    swap drop
+  then ;
 
 : lisp-builtin-set ( lisp -- lisp )
   dup car dup
@@ -396,20 +398,20 @@ variable read-from-string
   \ Returns 0 if done reading, else c
   \ Used when reading from input streams
   dup 10 = if \ RET
-      paren-count @ 0 = if
-        drop 0 exit
-      else
-        ." :  "
-      then
+    paren-count @ 0 = if
+      drop 0 exit
     else
-      dup [char] ( = if
-        paren-count dup @ 1+ swap !
-      else
-        dup [char] ) = if
-          paren-count dup @ 1- swap !
-        then
+      ." :  "
+    then
+  else
+    dup [char] ( = if
+      paren-count dup @ 1+ swap !
+    else
+      dup [char] ) = if
+        paren-count dup @ 1- swap !
       then
-    then ;
+    then
+  then ;
 
 : lisp-char-from-input
   stdin-unread @ if
@@ -421,36 +423,36 @@ variable read-from-string
   then ;
 
 : lisp-read-char ( e a -- e a c )
-    read-from-string @ if
-      2dup <= if
-	0
-      else
-	dup c@ swap 1+ swap
-      then
+  read-from-string @ if
+    2dup <= if
+      0
     else
-      lisp-char-from-input
-    then ;
+      dup c@ swap 1+ swap
+    then
+  else
+    lisp-char-from-input
+  then ;
 
 : lisp-unread-char ( e a -- e a )
-    read-from-string @ if
-      1-
-    else
-      1 stdin-unread !
-    then ;
+  read-from-string @ if
+    1-
+  else
+    1 stdin-unread !
+  then ;
 
 : lisp-is-ws ( c -- flag )
-    dup 10 = swap dup 13 = swap dup 9 = swap 32 = or or or ;
+  dup 10 = swap dup 13 = swap dup 9 = swap 32 = or or or ;
 
 : lisp-skip-ws ( e a -- e a )
-    lisp-read-char
-    begin
-	dup 0<> over lisp-is-ws and
-    while
-	drop lisp-read-char
-    repeat
-    0<> if
-	lisp-unread-char
-    then ;
+  lisp-read-char
+  begin
+    dup 0<> over lisp-is-ws and
+  while
+    drop lisp-read-char
+  repeat
+  0<> if
+    lisp-unread-char
+  then ;
 
 : lisp-skip-line
   lisp-read-char
@@ -476,34 +478,35 @@ variable read-from-string
 128 allocate throw constant token-buffer
 
 : lisp-read-token ( e a -- e a a u )
-    lisp-skip
-    0 >r
-    lisp-read-char
-    begin
-	dup [char] ) <> over 0<> and over lisp-is-ws 0= and
-    while
-	token-buffer r@ + c! r> 1+ >r lisp-read-char
-    repeat
-    0<> if
-	lisp-unread-char
-    then
-    token-buffer r> ;
+  lisp-skip
+  0 >r
+  lisp-read-char
+  begin
+    dup [char] ) <> over 0<> and over lisp-is-ws 0= and
+  while
+    token-buffer r@ + c! r> 1+ >r lisp-read-char
+  repeat
+  0<> if
+    lisp-unread-char
+  then
+  token-buffer r> ;
 
 defer lisp-read-lisp
 
-: lisp-read-list recursive ( e a -- e a lisp )
-    lisp-skip lisp-read-char
-    dup [char] ) = swap 0 = or if
-	0
-    else
-	lisp-unread-char lisp-read-lisp >r lisp-read-list r> swap cons
-    then ;
+: lisp-read-list
+  recursive ( e a -- e a lisp )
+  lisp-skip lisp-read-char
+  dup [char] ) = swap 0 = or if
+    0
+  else
+    lisp-unread-char lisp-read-lisp >r lisp-read-list r> swap cons
+  then ;
 
 : lisp-read-number ( e a -- e a lisp )
-    lisp-read-token string>num number ;
+  lisp-read-token string>num number ;
 
 : lisp-read-symbol ( e a -- e a lisp )
-    lisp-read-token string-new symbol ;
+  lisp-read-token string-new symbol ;
 
 : lisp-read-quote ( e a -- e a lisp )
   lisp-read-lisp lisp-false cons
@@ -542,64 +545,64 @@ defer lisp-read-lisp
   string-new string ;
 
 : _lisp-read-lisp ( e a -- e a lisp )
-    lisp-skip lisp-read-char
-    dup 0= if
-	drop 0
+  lisp-skip lisp-read-char
+  dup 0= if
+    drop 0
+  else
+    dup [char] ( = if
+      drop lisp-read-list
     else
-	dup [char] ( = if
-	    drop lisp-read-list
-	else
-	    dup [char] 0 >= over [char] 9 <= and if
-		drop lisp-unread-char lisp-read-number
-	    else
-              dup [char] ' = if
-                drop lisp-read-quote
-              else
-                [char] " = if
-                  lisp-read-string
-                else
-		  lisp-unread-char lisp-read-symbol
-                then
-              then
-	    then
-	then
-    then ;
+      dup [char] 0 >= over [char] 9 <= and if
+	drop lisp-unread-char lisp-read-number
+      else
+        dup [char] ' = if
+          drop lisp-read-quote
+        else
+          [char] " = if
+            lisp-read-string
+          else
+	    lisp-unread-char lisp-read-symbol
+          then
+        then
+      then
+    then
+  then ;
 ' _lisp-read-lisp is lisp-read-lisp
 
 : lisp-load-from-string ( a u -- lisp )
-    1 read-from-string !
-    over + swap 0 >r
-    begin
-	lisp-skip 2dup >
-    while
-	r> drop lisp-read-lisp lisp-eval >r
-    repeat
-    2drop r> ;
+  1 read-from-string !
+  over + swap 0 >r
+  begin
+    lisp-skip 2dup >
+  while
+    r> drop lisp-read-lisp lisp-eval >r
+  repeat
+  2drop r> ;
 
 : lisp-read-from-string ( a u -- lisp )
-    1 read-from-string !
-    over + swap
-    lisp-skip lisp-read-lisp >r 2drop r> ;
+  1 read-from-string !
+  over + swap
+  lisp-skip lisp-read-lisp >r 2drop r> ;
 
 8192 allocate throw constant read-buffer
 
 : lisp-load-from-file ( a u -- lisp )
-    r/o open-file
+  r/o open-file
+  0<> if
+    drop 0
+  else
+    >r read-buffer 8192 r@ read-file
     0<> if
-	drop 0
+      r> 2drop 0
     else
-	>r read-buffer 8192 r@ read-file
-	0<> if
-	    r> 2drop 0
-	else
-	    r> close-file drop
-	    read-buffer swap lisp-load-from-string
-	then
-    then ;
+      r> close-file drop
+      read-buffer swap lisp-load-from-string
+    then
+  then ;
 
 : lisp-read-from-input
   0 read-from-string !
- -1 stdin-lastchar !
+  -1 stdin-lastchar !
   0 stdin-unread !
   0 paren-count !
   ." > " lisp-read-lisp
@@ -608,12 +611,12 @@ defer lisp-read-lisp
 \ specials
 
 : lisp-special-quote ( lisp -- lisp )
-    car ;
+  car ;
 
 s" quote" string-new ' lisp-special-quote special symtab-add
 
 : lisp-special-lambda ( lisp -- lisp )
-    dup car swap cdr lambda ;
+  dup car swap cdr lambda ;
 
 s" lambda" string-new ' lisp-special-lambda special symtab-add
 
@@ -623,18 +626,19 @@ s" lambda" string-new ' lisp-special-lambda special symtab-add
 s" macro" string-new ' lisp-special-macro special symtab-add
 
 : lisp-special-define ( lisp -- lisp )
-    dup car swap cdr car lisp-eval lisp-bind-var 0 ;
+  dup car swap cdr car lisp-eval lisp-bind-var 0 ;
 
 s" define" string-new ' lisp-special-define special symtab-add
 
-: lisp-special-cond recursive ( lisp -- lisp )
-    dup car car lisp-eval 0<> if
-	car cdr car lisp-eval
-    else
-	cdr dup 0<> if
-	    lisp-special-cond
-	then
-    then ;
+: lisp-special-cond ( lisp -- lisp )
+  recursive
+  dup car car lisp-eval 0<> if
+    car cdr car lisp-eval
+  else
+    cdr dup 0<> if
+      lisp-special-cond
+    then
+  then ;
 
 s" cond" string-new ' lisp-special-cond special symtab-add
 
@@ -711,43 +715,43 @@ s" let" string-new ' lisp-special-let special symtab-add
 \ builtins
 
 : lisp-builtin-+ ( lisp -- lisp )
-    0 swap
-    begin
-	dup 0<>
-    while
-	dup car number-num @ rot + swap cdr
-    repeat
-    drop number ;
+  0 swap
+  begin
+    dup 0<>
+  while
+    dup car number-num @ rot + swap cdr
+  repeat
+  drop number ;
 
 s" +" string-new ' lisp-builtin-+ builtin symtab-add
 
 : lisp-builtin-- ( lisp -- lisp )
-    dup car number-num @ swap cdr dup 0= if
-	drop negate number
-    else
-	swap
-	begin
-	    over car number-num @ - swap cdr swap
-	    over 0=
-	until
-	nip number
-    then ;
+  dup car number-num @ swap cdr dup 0= if
+    drop negate number
+  else
+    swap
+    begin
+      over car number-num @ - swap cdr swap
+      over 0=
+    until
+    nip number
+  then ;
 
 s" -" string-new ' lisp-builtin-- builtin symtab-add
 
 : lisp-builtin-* ( lisp -- lisp )
-    1 swap
-    begin
-	dup 0<>
-    while
-	dup car number-num @ rot * swap cdr
-    repeat
-    drop number ;
+  1 swap
+  begin
+    dup 0<>
+  while
+    dup car number-num @ rot * swap cdr
+  repeat
+  drop number ;
 
 s" *" string-new ' lisp-builtin-* builtin symtab-add
 
 : lisp-builtin-cons ( lisp -- lisp )
-    dup car swap cdr car cons ;
+  dup car swap cdr car cons ;
 
 s" cons" string-new ' lisp-builtin-cons builtin symtab-add
 
@@ -786,46 +790,46 @@ s" <=" string-new ' lisp-builtin-<= builtin symtab-add
 s" >=" string-new ' lisp-builtin->= builtin symtab-add
 
 : lisp-builtin-car ( lisp -- lisp )
-    car car ;
+  car car ;
 
 s" car" string-new ' lisp-builtin-car builtin symtab-add
 
 : lisp-builtin-cdr ( lisp -- lisp )
-    car cdr ;
+  car cdr ;
 
 s" cdr" string-new ' lisp-builtin-cdr builtin symtab-add
 
 : lisp-builtin-setcar ( lisp -- lisp )
-    dup car swap cdr car over pair-car ! ;
+  dup car swap cdr car over pair-car ! ;
 
 s" setcar" string-new ' lisp-builtin-setcar builtin symtab-add
 
 : lisp-builtin-setcdr ( lisp -- lisp )
-    dup car swap cdr car over pair-cdr ! ;
+  dup car swap cdr car over pair-cdr ! ;
 
 s" setcdr" string-new ' lisp-builtin-setcdr builtin symtab-add
 
 : lisp-builtin-eq? ( lisp -- lisp )
-    dup car swap cdr car 2dup = if
-	2drop lisp-true
+  dup car swap cdr car 2dup = if
+    2drop lisp-true
+  else
+    2dup lisp-tag @ swap lisp-tag @ <> if
+      2drop lisp-false
     else
-	2dup lisp-tag @ swap lisp-tag @ <> if
-	    2drop lisp-false
-	else
-	    dup lisp-tag @ cells eq?-dispatch + @ execute
-	then
-    then ;
+      dup lisp-tag @ cells eq?-dispatch + @ execute
+    then
+  then ;
 
 s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 
 ' lisp-false eq?-dispatch lisp-pair-tag cells + !
 
 : lisp-eq?-number ( lisp lisp -- lisp )
-    number-num @ swap number-num @ = if
-	lisp-true
-    else
-	lisp-false
-    then ;
+  number-num @ swap number-num @ = if
+    lisp-true
+  else
+    lisp-false
+  then ;
 
 ' lisp-eq?-number eq?-dispatch lisp-number-tag cells + !
 
@@ -836,7 +840,7 @@ s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 ' lisp-false eq?-dispatch lisp-lambda-tag cells + !
 
 : lisp-builtin-display ( lisp -- lisp )
-    car lisp-display 0 ;
+  car lisp-display 0 ;
 
 s" display" string-new ' lisp-builtin-display builtin symtab-add
 
@@ -879,6 +883,6 @@ s" lisp-type-tag" string-new ' lisp-type-tag builtin symtab-add
     lisp-read-from-input
     lisp-eval
     lisp-display cr
-  0 until ;
+    0 until ;
 
 s" raillisp.lsp" lisp-load-from-file drop
