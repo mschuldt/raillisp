@@ -86,3 +86,8 @@
 (defun utime ()
   (forth utime drop make-number))
 
+(defun mapcar (func list)
+  (if list
+      (cons (func (car list)) (mapcar func (cdr list)))
+    nil))
+
