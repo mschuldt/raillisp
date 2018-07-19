@@ -38,8 +38,9 @@
 
 (defun consp (obj) (= (lisp-type-tag obj) 0))
 (defun numberp (obj) (= (lisp-type-tag obj) 1))
-(defun symbolp (obj) (= (lisp-type-tag obj) 2))
-(defun functionp (obj) (= (lisp-type-tag obj) 5))
+(defun symbolp (obj) (= (lisp-type-tag obj) 3))
+(defun functionp (obj) (or (= (lisp-type-tag obj) 2)
+                           (= (lisp-type-tag obj) 5)))
 (defun macrop (obj) (= (lisp-type-tag obj) 6))
 (defun stringp (obj) (= (lisp-type-tag obj) 7))
 
@@ -47,8 +48,10 @@
   (let ((tag (lisp-type-tag obj)))
     (cond ((= tag 0) 'cons)
           ((= tag 1) 'number)
-          ((= tag 2) 'symbol)
-          ((= tag 70 'string)))))
+          ((= tag 3) 'symbol)
+          ((or (= tag 2) (= tag 5) 'function))
+          ((= tag 6) 'macro)
+          ((= tag 7) 'string))))
 
 (defmacro when (test &rest body)
   (list 'if test (cons 'progn body) nil))
