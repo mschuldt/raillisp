@@ -68,7 +68,7 @@ drop
 5 constant lisp-lambda-tag
 6 constant lisp-macro-tag
 7 constant lisp-string-tag
-7 constant lisp-max-tag
+8 constant lisp-max-tag
 
 lisp-max-tag cells allocate throw constant eval-dispatch
 lisp-max-tag cells allocate throw constant display-dispatch
