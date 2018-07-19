@@ -94,3 +94,9 @@
       (cons (func (car list)) (mapcar func (cdr list)))
     nil))
 
+(defun macroexpand (form)
+  (if (and (consp form)
+           (symbolp (car form)))
+      (apply-1 (eval (car form)) (cdr form))
+    form))
+
