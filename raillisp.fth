@@ -190,10 +190,14 @@ s" &rest" symbol-new constant &rest
   then ;
 
 : split-args ( arglist - args vararg)
-  dup car &rest lisp-eq?-symbol if
-    0 swap cdr car
+  dup 0<> if
+    dup car &rest lisp-eq?-symbol if
+      0 swap cdr car
+    else
+      dup get-vararg
+    then
   else
-    dup get-vararg
+    dup
   then ;
 
 : set-lambda-args ( lisp args - lisp )
