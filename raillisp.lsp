@@ -39,6 +39,8 @@
 (defun consp (obj) (= (lisp-type-tag obj) 0))
 (defun numberp (obj) (= (lisp-type-tag obj) 1))
 (defun symbolp (obj) (= (lisp-type-tag obj) 2))
+(defun functionp (obj) (= (lisp-type-tag obj) 5))
+(defun macrop (obj) (= (lisp-type-tag obj) 6))
 (defun stringp (obj) (= (lisp-type-tag obj) 7))
 
 (defun type-of (obj)
