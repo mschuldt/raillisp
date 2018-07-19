@@ -112,7 +112,7 @@ cell% field lambda-vararg
 cell% field lambda-body
 end-struct lisp-lambda
 
-: cons ( car cdr -- lisp )
+: make-cons ( car cdr -- lisp )
   lisp-pair %allocate throw >r
   r@ pair-tag lisp-pair-tag swap !
   r@ pair-cdr !
@@ -125,7 +125,7 @@ end-struct lisp-lambda
 : cdr ( pair -- lisp )
   pair-cdr @ ;
 
-: number ( num -- lisp )
+: make-number ( num -- lisp )
   lisp-number %allocate throw
   dup number-tag lisp-number-tag swap !
   swap over number-num ! ;
@@ -135,7 +135,7 @@ end-struct lisp-lambda
   dup builtin-tag lisp-builtin-tag swap !
   swap over builtin-xt ! ;
 
-: symbol ( namea nameu -- lisp )
+: make-symbol ( namea nameu -- lisp )
   lisp-symbol %allocate throw >r
   r@ symbol-tag lisp-symbol-tag swap !
   r@ symbol-nameu !
@@ -143,19 +143,19 @@ end-struct lisp-lambda
   r> ;
 
 : symbol-new ( namea nameu -- lisp )
-  string-new symbol ;
+  string-new make-symbol ;
 
-: string ( namea nameu -- lisp )
-  symbol
+: make-string ( namea nameu -- lisp )
+  make-symbol
   dup symbol-tag lisp-string-tag swap ! ;
 
-: special ( xt -- lisp )
+: make-special ( xt -- lisp )
   lisp-special %allocate throw
   dup special-tag lisp-special-tag swap !
   swap over special-xt ! ;
 
 0 constant lisp-false
-0 0 cons constant lisp-true
+0 0 make-cons constant lisp-true
 
 s" t" string-new lisp-true symtab-add
 s" nil" string-new lisp-false symtab-add
@@ -203,15 +203,15 @@ s" &rest" symbol-new constant &rest
   r> lambda-args !
 ;
 
-: lambda ( args body -- lisp )
+: make-lambda ( args body -- lisp )
   lisp-lambda %allocate throw >r
   r@ lambda-tag lisp-lambda-tag swap !
   r@ lambda-body !
   r@ swap set-lambda-args
   r> ;
 
-: macro ( args body -- lisp )
-  lambda
+: make-macro ( args body -- lisp )
+  make-lambda
   dup lambda-tag lisp-macro-tag swap ! ;
 
 : lisp-display ( lisp -- )
@@ -288,7 +288,7 @@ s" &rest" symbol-new constant &rest
 : lisp-eval-list
   recursive ( lisp -- lisp )
   dup 0<> if
-    dup car lisp-eval swap cdr lisp-eval-list cons
+    dup car lisp-eval swap cdr lisp-eval-list make-cons
   then ;
 
 : lisp-bind-var ( name value -- )
@@ -499,18 +499,18 @@ defer lisp-read-lisp
   dup [char] ) = swap 0 = or if
     0
   else
-    lisp-unread-char lisp-read-lisp >r lisp-read-list r> swap cons
+    lisp-unread-char lisp-read-lisp >r lisp-read-list r> swap make-cons
   then ;
 
 : lisp-read-number ( e a -- e a lisp )
-  lisp-read-token string>num number ;
+  lisp-read-token string>num make-number ;
 
 : lisp-read-symbol ( e a -- e a lisp )
-  lisp-read-token string-new symbol ;
+  lisp-read-token string-new make-symbol ;
 
 : lisp-read-quote ( e a -- e a lisp )
-  lisp-read-lisp lisp-false cons
-  s" quote" symbol-new swap cons ;
+  lisp-read-lisp lisp-false make-cons
+  s" quote" symbol-new swap make-cons ;
 
 : lisp-escape-char ( c - c )
   dup [char] n = if
@@ -542,7 +542,7 @@ defer lisp-read-lisp
     lisp-unread-char
   then
   token-buffer r>
-  string-new string ;
+  string-new make-string ;
 
 : _lisp-read-lisp ( e a -- e a lisp )
   lisp-skip lisp-read-char
@@ -613,22 +613,22 @@ defer lisp-read-lisp
 : lisp-special-quote ( lisp -- lisp )
   car ;
 
-s" quote" string-new ' lisp-special-quote special symtab-add
+s" quote" string-new ' lisp-special-quote make-special symtab-add
 
 : lisp-special-lambda ( lisp -- lisp )
-  dup car swap cdr lambda ;
+  dup car swap cdr make-lambda ;
 
-s" lambda" string-new ' lisp-special-lambda special symtab-add
+s" lambda" string-new ' lisp-special-lambda make-special symtab-add
 
 : lisp-special-macro ( lisp -- lisp )
-  dup car swap cdr macro ;
+  dup car swap cdr make-macro ;
 
-s" macro" string-new ' lisp-special-macro special symtab-add
+s" macro" string-new ' lisp-special-macro make-special symtab-add
 
 : lisp-special-define ( lisp -- lisp )
   dup car swap cdr car lisp-eval lisp-bind-var 0 ;
 
-s" define" string-new ' lisp-special-define special symtab-add
+s" define" string-new ' lisp-special-define make-special symtab-add
 
 : lisp-special-cond ( lisp -- lisp )
   recursive
@@ -640,7 +640,7 @@ s" define" string-new ' lisp-special-define special symtab-add
     then
   then ;
 
-s" cond" string-new ' lisp-special-cond special symtab-add
+s" cond" string-new ' lisp-special-cond make-special symtab-add
 
 : lisp-special-if ( lisp -- lisp )
   dup car lisp-eval 0<> if
@@ -651,7 +651,7 @@ s" cond" string-new ' lisp-special-cond special symtab-add
     then
   then ;
 
-s" if" string-new ' lisp-special-if special symtab-add
+s" if" string-new ' lisp-special-if make-special symtab-add
 
 : lisp-special-and  ( lisp -- lisp )
   lisp-true swap
@@ -665,7 +665,7 @@ s" if" string-new ' lisp-special-if special symtab-add
   repeat
   drop ;
 
-s" and" string-new ' lisp-special-and special symtab-add
+s" and" string-new ' lisp-special-and make-special symtab-add
 
 : lisp-special-or  ( lisp -- lisp )
   lisp-false swap
@@ -679,7 +679,7 @@ s" and" string-new ' lisp-special-and special symtab-add
   repeat
   drop ;
 
-s" or" string-new ' lisp-special-or special symtab-add
+s" or" string-new ' lisp-special-or make-special symtab-add
 
 : lisp-special-while ( lisp -- lisp )
   dup car swap cdr
@@ -690,9 +690,9 @@ s" or" string-new ' lisp-special-or special symtab-add
   repeat
   2drop 0 ;
 
-s" while" string-new ' lisp-special-while special symtab-add
+s" while" string-new ' lisp-special-while make-special symtab-add
 
-s" progn" string-new ' lisp-eval-body special symtab-add
+s" progn" string-new ' lisp-eval-body make-special symtab-add
 
 : lisp-special-let ( lisp -- lisp ) \ really let*
   symtab-save >r
@@ -710,7 +710,7 @@ s" progn" string-new ' lisp-eval-body special symtab-add
   r> symtab-restore
 ;
 
-s" let" string-new ' lisp-special-let special symtab-add
+s" let" string-new ' lisp-special-let make-special symtab-add
 
 variable forth-args
 
@@ -730,7 +730,7 @@ variable forth-args
     forth-args dup @ cdr swap !
   repeat ;
 
-s" forth" string-new ' lisp-special-forth special symtab-add
+s" forth" string-new ' lisp-special-forth make-special symtab-add
 
 \ builtins
 
@@ -741,20 +741,20 @@ s" forth" string-new ' lisp-special-forth special symtab-add
   while
     dup car number-num @ rot + swap cdr
   repeat
-  drop number ;
+  drop make-number ;
 
 s" +" string-new ' lisp-builtin-+ builtin symtab-add
 
 : lisp-builtin-- ( lisp -- lisp )
   dup car number-num @ swap cdr dup 0= if
-    drop negate number
+    drop negate make-number
   else
     swap
     begin
       over car number-num @ - swap cdr swap
       over 0=
     until
-    nip number
+    nip make-number
   then ;
 
 s" -" string-new ' lisp-builtin-- builtin symtab-add
@@ -766,12 +766,12 @@ s" -" string-new ' lisp-builtin-- builtin symtab-add
   while
     dup car number-num @ rot * swap cdr
   repeat
-  drop number ;
+  drop make-number ;
 
 s" *" string-new ' lisp-builtin-* builtin symtab-add
 
 : lisp-builtin-cons ( lisp -- lisp )
-  dup car swap cdr car cons ;
+  dup car swap cdr car make-cons ;
 
 s" cons" string-new ' lisp-builtin-cons builtin symtab-add
 
@@ -893,7 +893,7 @@ s" eval" string-new ' lisp-builtin-eval builtin symtab-add
 s" apply-1" string-new ' lisp-builtin-apply-1 builtin symtab-add
 
 : lisp-type-tag
-  car lisp-tag @ number ;
+  car lisp-tag @ make-number ;
 
 s" lisp-type-tag" string-new ' lisp-type-tag builtin symtab-add
 
