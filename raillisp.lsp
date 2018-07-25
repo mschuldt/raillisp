@@ -25,7 +25,6 @@
                    (list (car spec) nil))
         (list 'while '--dolist-tail--
               (list 'setq (car spec) '(car --dolist-tail--))
-              (list 'setq (car spec) '(car --dolist-tail--))
               (cons 'progn body)
               '(setq --dolist-tail-- (cdr --dolist-tail--)))))
 
