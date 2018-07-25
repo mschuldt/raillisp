@@ -110,3 +110,8 @@
           form))
     form))
 
+(defun macroexpand-all (form)
+  (if (and (consp form)
+           (not (eq? (car form) 'quote)))
+      (macroexpand (mapcar macroexpand-all form))
+    form))
