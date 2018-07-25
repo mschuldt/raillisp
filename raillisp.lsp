@@ -101,8 +101,12 @@
 
 
 (defun macroexpand (form)
-  (if (and (consp form)
-           (symbolp (car form)))
-      (apply (eval (car form)) (cdr form))
+  (if (consp form)
+      (let ((fn (car form)))
+        (if (and (symbolp fn)
+                 (boundp fn)
+                 (macrop (symbol-value fn)))
+            (apply (symbol-value fn) (cdr form))
+          form))
     form))
 
