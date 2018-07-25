@@ -99,6 +99,8 @@
       (cons (func (car lst)) (mapcar func (cdr lst)))
     lst))
 
+(defun identity (arg)
+  arg)
 
 (defun macroexpand (form)
   (if (consp form)
