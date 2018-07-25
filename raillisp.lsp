@@ -94,10 +94,11 @@
 (defun cr ()
   (forth cr lisp-false))
 
-(defun mapcar (func list)
-  (if list
-      (cons (func (car list)) (mapcar func (cdr list)))
-    nil))
+(defun mapcar (func lst)
+  (if lst
+      (cons (func (car lst)) (mapcar func (cdr lst)))
+    lst))
+
 
 (defun macroexpand (form)
   (if (and (consp form)
