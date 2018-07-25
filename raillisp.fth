@@ -991,12 +991,15 @@ s" interpret" string-new ' lisp-special-interpret make-special symtab-add
   then
   -rot 2drop ;
 
+variable macro-flag
+
 : lisp-interpret-pair ( lisp - )
   dup car
   lisp-find-symbol-word
   dup immediate? if
-    swap cdr swap name>int execute \ macro
-    lisp-interpret
+    0 macro-flag !
+    swap cdr swap name>int execute
+    macro-flag @ if lisp-interpret then
   else
     >r cdr lisp-interpret-list \ function
     r> name>int execute
