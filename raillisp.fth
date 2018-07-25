@@ -122,10 +122,10 @@ end-struct lisp-lambda
   r> ;
 
 : car ( pair -- lisp )
-  pair-car @ ;
+  dup 0<> if pair-car @ then ;
 
 : cdr ( pair -- lisp )
-  pair-cdr @ ;
+  dup 0<> if pair-cdr @ then ;
 
 : make-number ( num -- lisp )
   lisp-number %allocate throw
