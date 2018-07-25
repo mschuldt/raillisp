@@ -1020,6 +1020,8 @@ variable macro-flag
 
 ' lisp-interpret-number interpret-dispatch lisp-number-tag cells + !
 
+: set ( sv - v)
+  dup rot lisp-find-symbol-word name>int execute ! ;
 
 
 : repl
