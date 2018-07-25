@@ -99,6 +99,6 @@
 (defun macroexpand (form)
   (if (and (consp form)
            (symbolp (car form)))
-      (apply-1 (eval (car form)) (cdr form))
+      (apply (eval (car form)) (cdr form))
     form))
 
