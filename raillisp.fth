@@ -710,7 +710,7 @@ s" progn" string-new ' lisp-eval-body make-special symtab-add
     lisp-eval lisp-bind-var
     cdr
   repeat
-  drop cdr lisp-eval-list car
+  drop cdr lisp-eval-body
   r> symtab-restore
 ;
 
