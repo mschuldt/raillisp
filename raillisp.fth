@@ -940,10 +940,6 @@ s" lisp-type-tag" string-new ' lisp-type-tag builtin symtab-add
 variable lisp-state
 0 lisp-state !
 
-: :+ ( nn - n ) number-num @ swap number-num @ + make-number ;
-: cons make-cons ;
-: quote car ; immediate
-
 : lisp-interpret ( lisp - lisp )
   dup 0<> if
     dup lisp-tag @ cells
@@ -1012,6 +1008,9 @@ variable macro-flag
 
 ' lisp-interpret-number interpret-dispatch lisp-number-tag cells + !
 
+: :+ ( nn - n ) number-num @ swap number-num @ + make-number ;
+: cons make-cons ;
+: quote car ; immediate
 : set ( sv - v)
   dup rot lisp-find-symbol-word name>int execute ! ;
 
