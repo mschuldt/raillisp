@@ -66,7 +66,9 @@
       (setq prev args)
       (setq args (cdr args)))
     (when (consp (car args))
-      (setcdr prev (car args)))
+      (if prev
+          (setcdr prev (car args))
+        (setq head (car args))))
     (apply-1 fn head)))
 
 (defun funcall (fn &rest args)
