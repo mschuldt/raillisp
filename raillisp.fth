@@ -950,6 +950,7 @@ variable lisp-state
 : :cdr dup 0<> if pair-car @ then ;
 : :+ ( nn - n ) number-num @ swap number-num @ + make-number ;
 : cons make-cons ;
+: quote car ; immediate
 
 : lisp-interpret ( lisp - lisp )
   dup 0<> if
