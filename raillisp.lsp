@@ -107,7 +107,7 @@
         (if (and (symbolp fn)
                  (boundp fn)
                  (macrop (symbol-value fn)))
-            (apply (symbol-value fn) (cdr form))
+            (macroexpand (apply (symbol-value fn) (cdr form)))
           form))
     form))
 
