@@ -91,6 +91,9 @@
 (defun utime ()
   (forth utime drop make-number))
 
+(defun cr ()
+  (forth cr lisp-false))
+
 (defun mapcar (func list)
   (if list
       (cons (func (car list)) (mapcar func (cdr list)))
