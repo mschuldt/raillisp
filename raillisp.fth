@@ -894,6 +894,35 @@ s" eval" string-new ' lisp-builtin-eval builtin symtab-add
 : lisp-builtin-apply-1 ( lisp - lisp)
   dup car swap cdr car lisp-apply ;
 
+: lisp-symbol-value? ( lisp - lisp flag)
+  car dup symbol-namea @ swap symbol-nameu @
+  symtab-lookup dup 0= if
+    0
+  else
+    symtab-lisp @ 1
+  then ;
+
+: lisp-builtin-boundp
+  lisp-symbol-value? nip 0= if
+    lisp-false
+  else
+    lisp-true
+  then ;
+
+: lisp-builtin-symbol-value? \ returns the value or nil if unbound
+  lisp-symbol-value? 0= if
+    drop lisp-false
+  then ;
+
+s" boundp" string-new ' lisp-builtin-boundp builtin symtab-add
+
+s" symbol-value?" string-new ' lisp-builtin-symbol-value? builtin symtab-add
+
+: lisp-builtin-symbol-value
+   car lisp-eval-symbol ;
+
+s" symbol-value" string-new ' lisp-builtin-symbol-value builtin symtab-add
+
 s" apply-1" string-new ' lisp-builtin-apply-1 builtin symtab-add
 
 : lisp-type-tag
