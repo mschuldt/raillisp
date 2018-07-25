@@ -230,6 +230,11 @@ s" &rest" symbol-new constant &rest
   begin
     dup car lisp-display 32 emit
     cdr
+    dup 0<> if
+      dup pair-tag @ lisp-pair-tag <> if
+        [char] . emit 32 emit lisp-display 0
+      then
+    then
     dup 0=
   until
   drop
