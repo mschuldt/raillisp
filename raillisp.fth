@@ -1013,6 +1013,9 @@ variable macro-flag
 : quote car ; immediate
 : set ( sv - v)
   dup rot lisp-find-symbol-word name>int execute ! ;
+: create-var ( sv - v)
+  dup rot dup symbol-namea @ swap symbol-nameu @
+  ( gforth) nextname create , ;
 
 
 : repl
