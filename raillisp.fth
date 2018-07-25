@@ -1008,7 +1008,7 @@ s" interpret" string-new ' lisp-special-interpret make-special symtab-add
 ' lisp-interpret-pair interpret-dispatch lisp-pair-tag cells + !
 
 : lisp-interpret-symbol ( lisp - )
-;
+  lisp-find-symbol-word name>int execute @ ;
 
 ' lisp-interpret-symbol interpret-dispatch lisp-symbol-tag cells + !
 
