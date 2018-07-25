@@ -73,6 +73,8 @@ drop
 lisp-max-tag cells allocate throw constant eval-dispatch
 lisp-max-tag cells allocate throw constant display-dispatch
 lisp-max-tag cells allocate throw constant eq?-dispatch
+lisp-max-tag cells allocate throw constant interpret-dispatch
+lisp-max-tag cells allocate throw constant compile-dispatch
 
 struct
 cell% field lisp-tag
@@ -934,6 +936,86 @@ s" apply-1" string-new ' lisp-builtin-apply-1 builtin symtab-add
   car lisp-tag @ make-number ;
 
 s" lisp-type-tag" string-new ' lisp-type-tag builtin symtab-add
+
+variable lisp-state
+0 lisp-state !
+
+: :cons? ( lisp - flag)
+  dup 0<> if pair-tag @ lisp-pair-tag = then ;
+
+: :symbol?
+  dup 0<> if symbol-tag @ lisp-symbol-tag = then ;
+
+: :car dup 0<> if pair-car @ then ;
+: :cdr dup 0<> if pair-car @ then ;
+: :+ ( nn - n ) number-num @ swap number-num @ + make-number ;
+: cons make-cons ;
+
+: lisp-interpret ( lisp - lisp )
+  dup 0<> if
+    dup lisp-tag @ cells
+    lisp-state @
+    0= if interpret-dispatch else compile-dispatch then cr
+    + @ execute
+  then ;
+
+: lisp-special-interpret ( lisp - lisp )
+  car lisp-interpret ;
+
+s" interpret" string-new ' lisp-special-interpret make-special symtab-add
+
+: lisp-interpret-list ( lisp - a1...an )
+  begin
+    dup 0<>
+  while
+    dup car lisp-interpret
+    swap cdr
+  repeat
+  drop ;
+
+: lisp-compile-list ( lisp - )
+  recursive
+  dup 0<> if
+    dup car lisp-interpret drop ( todo: drop?) cdr lisp-compile-list
+  then drop ;
+
+: immediate?
+  cell+ @ immediate-mask and 0<> ;
+
+: lisp-find-symbol-word ( lisp - word)
+  dup symbol-namea @ swap symbol-nameu @
+  2dup find-name
+  dup 0= if
+    drop
+    ." ERROR: invalid word: " type cr bye
+  then
+  -rot 2drop ;
+
+: lisp-interpret-pair ( lisp - )
+  dup car
+  lisp-find-symbol-word
+  dup immediate? if
+    swap cdr swap name>int execute \ macro
+    lisp-interpret
+  else
+    >r cdr lisp-interpret-list \ function
+    r> name>int execute
+  then ;
+
+: lisp-compile-pair \ todo
+;
+
+' lisp-interpret-pair interpret-dispatch lisp-pair-tag cells + !
+
+: lisp-interpret-symbol ( lisp - )
+;
+
+' lisp-interpret-symbol interpret-dispatch lisp-symbol-tag cells + !
+
+: lisp-interpret-number ;
+
+' lisp-interpret-number interpret-dispatch lisp-number-tag cells + !
+
 
 
 : repl
