@@ -965,10 +965,13 @@ s" apply-1" string-new ' lisp-builtin-apply-1 builtin symtab-add
 
 s" lisp-type-tag" string-new ' lisp-type-tag builtin symtab-add
 
+\ interpreation words must return a single lisp value
+\ compilation words must return nothing
+
 variable lisp-state
 0 lisp-state !
 
-: lisp-interpret ( lisp - lisp )
+: lisp-interpret ( lisp - lisp? )
   dup 0<> if
     dup lisp-tag @ cells
     lisp-state @
@@ -993,7 +996,8 @@ s" interpret" string-new ' lisp-special-interpret make-special symtab-add
 : lisp-compile-list ( lisp - )
   recursive
   dup 0<> if
-    dup car lisp-interpret drop ( todo: drop?) cdr lisp-compile-list
+    dup car lisp-interpret
+    cdr lisp-compile-list dup
   then drop ;
 
 : immediate?
@@ -1010,31 +1014,57 @@ s" interpret" string-new ' lisp-special-interpret make-special symtab-add
 
 variable macro-flag
 
+: interpret-immediate
+  0 macro-flag !
+  swap cdr swap name>int execute
+  macro-flag @ if lisp-interpret then ;
+
+\ These can be combined
 : lisp-interpret-pair ( lisp - )
   dup car
   lisp-find-symbol-word
   dup immediate? if
-    0 macro-flag !
-    swap cdr swap name>int execute
-    macro-flag @ if lisp-interpret then
+    interpret-immediate
   else
     >r cdr lisp-interpret-list \ function
     r> name>int execute
   then ;
 
 : lisp-compile-pair \ todo
-;
+  dup car
+  lisp-find-symbol-word
+  dup immediate? if
+    interpret-immediate
+  else
+    >r cdr lisp-compile-list \ function
+    r> name>int compile,
+  then ;
 
 ' lisp-interpret-pair interpret-dispatch lisp-pair-tag cells + !
+' lisp-compile-pair compile-dispatch lisp-pair-tag cells + !
 
 : lisp-interpret-symbol ( lisp - )
   lisp-find-symbol-word name>int execute @ ;
 
+: lisp-compile-symbol ( lisp - )
+  lisp-find-symbol-word name>int compile,
+  [comp'] @ drop compile, ;
+
 ' lisp-interpret-symbol interpret-dispatch lisp-symbol-tag cells + !
+' lisp-compile-symbol compile-dispatch lisp-symbol-tag cells + !
 
 : lisp-interpret-number ;
 
+: lisp-compile-number
+  \ TODO: need a better/faster number representation
+  postpone literal
+;
+
 ' lisp-interpret-number interpret-dispatch lisp-number-tag cells + !
+' lisp-compile-number compile-dispatch lisp-number-tag cells + !
+
+
+( ( )( )( ) ( lisp words ) ( )( )( )
 
 : :+ ( nn - n ) number-num @ swap number-num @ + make-number ;
 : cons make-cons ;
