@@ -237,12 +237,15 @@ s" &rest" symbol-new constant &rest
 
 : lisp-display ( lisp -- )
   dup 0= if
-    drop [char] ( emit [char] ) emit
+    drop ." nil"
   else
     dup lisp-tag @ cells display-dispatch + @ execute
   then ;
 
 : lisp-display-pair ( lisp -- )
+  dup lisp-true = if
+    ." t" drop exit
+  then
   [char] ( emit 32 emit
   begin
     dup car lisp-display 32 emit
