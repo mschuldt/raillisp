@@ -1080,9 +1080,6 @@ variable frame
 
 : quote car ; immediate
 
-: set ( sv - v)
-  dup rot lisp-find-symbol-word name>int execute ! ;
-
 : create-var ( sv - v)
   dup rot symbol->string
   ( gforth) nextname create , ;
@@ -1183,6 +1180,29 @@ variable locals-count 0 locals-count !
 
 ' lisp-interpret-symbol interpret-dispatch lisp-symbol-tag cells + !
 ' lisp-compile-symbol compile-dispatch lisp-symbol-tag cells + !
+
+: set ( sv - v)
+  dup car swap cdr car \ [ symbol value
+  lisp-state @ 0= if \ interpret
+    swap lisp-interpret \ symbol
+    swap lisp-interpret \ value
+    dup rot
+    lisp-find-symbol-word name>int execute !
+  else \ compile
+    over locals @ assoc dup if \ setting local variable
+      swap lisp-interpret
+      cdr postpone literal
+      [comp'] set-local drop compile,
+      drop \ symbol
+    else \ global
+      \ todo: support for (set sexp value)
+      \        currently only (set symbol value) is supported
+      drop lisp-interpret \ compile value
+      lisp-find-symbol-word name>int compile,
+      [comp'] ! drop compile,
+    then
+  then
+; immediate
 
 
 : lisp-builtin-new-vector
