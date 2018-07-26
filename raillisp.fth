@@ -1019,34 +1019,25 @@ s" interpret" string-new ' lisp-special-interpret make-special symtab-add
 variable macro-flag
 : set-macro-flag 1 macro-flag ! ;
 
-: interpret-immediate
-  0 macro-flag !
-  swap cdr swap name>int execute
-  macro-flag @ if lisp-interpret then ;
-
-\ These can be combined
-: lisp-interpret-pair ( lisp - )
+: lisp-interpret-pair ( lisp - lisp?)
   dup car
   lisp-find-symbol-word
-  dup immediate? if
-    interpret-immediate
-  else
-    >r cdr lisp-interpret-list \ function
-    r> name>int execute
-  then ;
-
-: lisp-compile-pair \ todo
-  dup car
-  lisp-find-symbol-word
-  dup immediate? if
-    interpret-immediate
-  else
-    >r cdr lisp-compile-list \ function
-    r> name>int compile,
+  dup immediate? if \ special form or macro
+    0 macro-flag !
+    swap cdr swap name>int execute
+    macro-flag @ if lisp-interpret then \ macro
+  else \ function
+    lisp-state @ 0= if \ interpet
+      >r cdr lisp-interpret-list
+      r> name>int execute
+    else  \ compile
+      >r cdr lisp-compile-list
+      r> name>int compile,
+    then
   then ;
 
 ' lisp-interpret-pair interpret-dispatch lisp-pair-tag cells + !
-' lisp-compile-pair compile-dispatch lisp-pair-tag cells + !
+' lisp-interpret-pair compile-dispatch lisp-pair-tag cells + !
 
 : lisp-interpret-symbol ( lisp - )
   lisp-find-symbol-word name>int execute @ ;
@@ -1068,7 +1059,6 @@ variable macro-flag
 ' lisp-interpret-number interpret-dispatch lisp-number-tag cells + !
 ' lisp-compile-number compile-dispatch lisp-number-tag cells + !
 
-
 ( ( )( )( ) ( lisp words ) ( )( )( )
 
 : :+ ( nn - n ) number-num @ swap number-num @ + make-number ;
@@ -1084,15 +1074,19 @@ variable macro-flag
   dup rot symbol->string
   ( gforth) nextname create , ;
 
+: lisp-create ( ua - ) \ create new dictionary entry
+  ( gforth) nextname header reveal docol: cfa, ;
+
+: compile-def ( lisp - )
+  dup car symbol->string lisp-create
+  cdr cdr start-compile
+  lisp-compile-list ;
+
 : def ( lisp - lisp)
-  dup car symbol->string
-  \ create new dictionary entry
-  ( gforth) nextname header reveal docol: cfa,
-  cdr cdr
-  start-compile
-  lisp-compile-list
-  end-compile postpone exit
+  compile-def end-compile
+  postpone exit
   lisp-false ; immediate
+
 
 : lisp-builtin-new-vector
   car number-num @ make-vector ;
