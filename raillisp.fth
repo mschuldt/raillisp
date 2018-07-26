@@ -1035,17 +1035,16 @@ variable frame
 : set-local ( v n - )
   frame @ swap cells - ! ;
 
-: next-frame ( n - )
-  frame @ r> swap >r >r
-  1+ cells sp@ + frame !
+: next-frame ( nlocals - old-frame magic )
+  1+ cells sp@ + frame dup @ -rot !
   1112111 \ XXX magic number to help catch stack corruption
 ;
 
-: prev-frame ( n - )
+: prev-frame ( locals... nlocals old-frame magic ret - ret)
   >r
-  1112111 <> if ." error: magic frame number not found" cr .s 1 throw then
-  ndrop r> r> r> swap >r frame !
-;
+  1112111 <>
+  if ." error: magic frame number not found" cr .s 1 throw then
+  frame ! ndrop r> ;
 
 : lisp-interpret-pair ( lisp - lisp?)
   dup car
