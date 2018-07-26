@@ -154,6 +154,9 @@ end-struct lisp-vector
 : symbol-new ( namea nameu -- lisp )
   string-new make-symbol ;
 
+: symbol->string ( lisp -- namea nameu )
+  dup symbol-namea @ swap symbol-nameu @ ;
+
 : make-string ( namea nameu -- lisp )
   make-symbol
   dup symbol-tag lisp-string-tag swap ! ;
@@ -176,8 +179,7 @@ s" t" string-new lisp-true symtab-add
 s" nil" string-new lisp-false symtab-add
 
 : lisp-eq?-symbol ( lisp1 lisp2 -- lisp )
-  dup symbol-namea @ swap symbol-nameu @
-  rot dup symbol-namea @ swap symbol-nameu @
+  symbol->string rot symbol->string
   compare 0= if
     lisp-true
   else
@@ -268,13 +270,13 @@ s" &rest" symbol-new constant &rest
 ' lisp-display-builtin display-dispatch lisp-builtin-tag cells + !
 
 : lisp-display-symbol ( lisp -- )
-  dup symbol-namea @ swap symbol-nameu @ type ;
+  symbol->string type ;
 
 ' lisp-display-symbol display-dispatch lisp-symbol-tag cells + !
 
 : lisp-display-string ( lisp -- )
   [char] " dup emit
-  swap dup symbol-namea @ swap symbol-nameu @
+  swap symbol->string
   type emit ;
 
 ' lisp-display-string display-dispatch lisp-string-tag cells + !
@@ -331,7 +333,7 @@ s" &rest" symbol-new constant &rest
   then ;
 
 : lisp-bind-var ( name value -- )
-  >r dup symbol-namea @ swap symbol-nameu @ r> symtab-add ;
+  >r symbol->string r> symtab-add ;
 
 : lisp-bind-vars ( names values -- )
   swap
@@ -388,7 +390,7 @@ s" &rest" symbol-new constant &rest
   cr ." undefined value: " lisp-display cr maybe-bye ;
 
 : lisp-eval-symbol ( lisp -- lisp )
-  dup dup symbol-namea @ swap symbol-nameu @
+  dup symbol->string
   symtab-lookup dup 0= if
     drop error-undefined-value
   else
@@ -760,7 +762,7 @@ variable forth-args
   begin
     forth-args @ 0<>
   while
-    forth-args @ car dup symbol-namea @ swap symbol-nameu @
+    forth-args @ car symbol->string
     find-name dup 0= if
       ." ERROR: invalid word" cr
     else
@@ -915,7 +917,7 @@ s" exit" string-new ' bye builtin symtab-add
 s" not" string-new ' lisp-builtin-not builtin symtab-add
 
 : lisp-builtin-read ( lisp - lisp)
-  car dup symbol-namea @ swap symbol-nameu @
+  car symbol->string
   1 read-from-string !
   lisp-read-from-string ;
 
@@ -930,7 +932,7 @@ s" eval" string-new ' lisp-builtin-eval builtin symtab-add
   dup car swap cdr car lisp-apply ;
 
 : lisp-symbol-value? ( lisp - lisp flag)
-  car dup symbol-namea @ swap symbol-nameu @
+  car symbol->string
   symtab-lookup dup 0= if
     0
   else
@@ -1006,7 +1008,7 @@ s" interpret" string-new ' lisp-special-interpret make-special symtab-add
   cell+ @ immediate-mask and 0<> ;
 
 : lisp-find-symbol-word ( lisp - word)
-  dup symbol-namea @ swap symbol-nameu @
+  symbol->string
   2dup find-name
   dup 0= if
     drop
@@ -1078,11 +1080,11 @@ variable macro-flag
   dup rot lisp-find-symbol-word name>int execute ! ;
 
 : create-var ( sv - v)
-  dup rot dup symbol-namea @ swap symbol-nameu @
+  dup rot symbol->string
   ( gforth) nextname create , ;
 
 : def ( lisp - lisp)
-  dup car dup symbol-namea @ swap symbol-nameu @
+  dup car symbol->string
   \ create new dictionary entry
   ( gforth) nextname header reveal docol: cfa,
   cdr cdr
