@@ -1135,14 +1135,15 @@ variable frame
 : list-length lisp-list-length make-number ;
 
 : compile-def ( lisp - )
-  dup car symbol->string lisp-create
-  cdr dup car lisp-list-length
-  postpone literal
-  [comp'] dup drop compile,
-  [comp'] next-frame drop compile,
-  cdr start-compile
-  lisp-compile-list
-  [comp'] prev-frame drop compile,
+  \ lisp word format:
+  \  lit arg-count dup next-frame [body...] prev-frame exit
+  dup car symbol->string lisp-create \ create dictionary header
+  cdr dup car lisp-list-length \ length of argument list
+  postpone literal \ lisp word: arg length
+  [comp'] dup drop compile, \  lisp word: dup arg length
+  [comp'] next-frame drop compile, \ lisp word: start frame
+  cdr start-compile lisp-compile-list \ compile function body
+  [comp'] prev-frame drop compile, \ lisp word: end frame
 ;
 
 : def ( lisp - lisp)
