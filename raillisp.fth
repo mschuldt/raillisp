@@ -870,8 +870,8 @@ s" setcar" string-new ' lisp-builtin-setcar builtin symtab-add
 
 s" setcdr" string-new ' lisp-builtin-setcdr builtin symtab-add
 
-: lisp-builtin-eq? ( lisp -- lisp )
-  dup car swap cdr car 2dup = if
+: eq? ( lisp lisp - lisp )
+  2dup = if
     2drop lisp-true
   else
     2dup lisp-tag @ swap lisp-tag @ <> if
@@ -880,6 +880,9 @@ s" setcdr" string-new ' lisp-builtin-setcdr builtin symtab-add
       dup lisp-tag @ cells eq?-dispatch + @ execute
     then
   then ;
+
+: lisp-builtin-eq? ( lisp -- lisp )
+  dup car swap cdr car eq? ;
 
 s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 
