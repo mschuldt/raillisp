@@ -1019,6 +1019,21 @@ s" interpret" string-new ' lisp-special-interpret make-special symtab-add
 variable macro-flag
 : set-macro-flag 1 macro-flag ! ;
 
+variable frame
+: ndrop ( n - )
+  begin dup 0> while swap drop 1- repeat drop ;
+
+: get-local ( n - v )
+  frame @ swap cells - @ ;
+: set-local ( v n - )
+  frame @ swap cells - ! ;
+
+: next-frame ( n - )
+  frame @ r> swap >r >r
+  1+ cells sp@ + frame ! ;
+
+: prev-frame ( n - )
+  >r ndrop r> r> r> swap >r frame ! ;
 : lisp-interpret-pair ( lisp - lisp?)
   dup car
   lisp-find-symbol-word
@@ -1087,8 +1102,14 @@ variable macro-flag
 
 : compile-def ( lisp - )
   dup car symbol->string lisp-create
-  cdr cdr start-compile
-  lisp-compile-list ;
+  cdr dup car lisp-list-length
+  postpone literal
+  [comp'] dup drop compile,
+  [comp'] next-frame drop compile,
+  cdr start-compile
+  lisp-compile-list
+  [comp'] prev-frame drop compile,
+;
 
 : def ( lisp - lisp)
   compile-def end-compile
