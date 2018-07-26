@@ -969,7 +969,9 @@ s" lisp-type-tag" string-new ' lisp-type-tag builtin symtab-add
 \ compilation words must return nothing
 
 variable lisp-state
-0 lisp-state !
+: start-compile 1 lisp-state ! ;
+: end-compile 0 lisp-state ! ;
+end-compile
 
 : lisp-interpret ( lisp - lisp? )
   dup 0<> if
@@ -1067,14 +1069,27 @@ variable macro-flag
 ( ( )( )( ) ( lisp words ) ( )( )( )
 
 : :+ ( nn - n ) number-num @ swap number-num @ + make-number ;
+
 : cons make-cons ;
+
 : quote car ; immediate
+
 : set ( sv - v)
   dup rot lisp-find-symbol-word name>int execute ! ;
+
 : create-var ( sv - v)
   dup rot dup symbol-namea @ swap symbol-nameu @
   ( gforth) nextname create , ;
 
+: def ( lisp - lisp)
+  dup car dup symbol-namea @ swap symbol-nameu @
+  \ create new dictionary entry
+  ( gforth) nextname header reveal docol: cfa,
+  cdr cdr
+  start-compile
+  lisp-compile-list
+  end-compile postpone exit
+  lisp-false ; immediate
 
 : lisp-builtin-new-vector
   car number-num @ make-vector ;
