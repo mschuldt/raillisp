@@ -900,6 +900,7 @@ s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 ' lisp-false eq?-dispatch lisp-builtin-tag cells + !
 
 ' lisp-eq?-symbol eq?-dispatch lisp-symbol-tag cells + !
+' lisp-eq?-symbol eq?-dispatch lisp-string-tag cells + !
 
 ' lisp-false eq?-dispatch lisp-lambda-tag cells + !
 
