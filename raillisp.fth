@@ -172,18 +172,17 @@ end-struct lisp-vector
   dup r@ vector-len !
   allocate throw r@ vector-vec ! r> ;
 
-0 constant lisp-false
 0 0 make-cons constant lisp-true
 
 s" t" string-new lisp-true symtab-add
-s" nil" string-new lisp-false symtab-add
+s" nil" string-new nil symtab-add
 
 : lisp-eq?-symbol ( lisp1 lisp2 -- lisp )
   symbol->string rot symbol->string
   compare 0= if
     lisp-true
   else
-    lisp-false
+    nil
   then ;
 
 s" &rest" symbol-new constant &rest
@@ -553,7 +552,7 @@ defer lisp-read-lisp
   lisp-read-token string-new make-symbol ;
 
 : lisp-read-quote ( e a -- e a lisp )
-  lisp-read-lisp lisp-false make-cons
+  lisp-read-lisp nil make-cons
   s" quote" symbol-new swap make-cons ;
 
 : lisp-escape-char ( c - c )
@@ -712,13 +711,13 @@ s" if" string-new ' lisp-special-if make-special symtab-add
 s" and" string-new ' lisp-special-and make-special symtab-add
 
 : lisp-special-or  ( lisp -- lisp )
-  lisp-false swap
+  nil swap
   begin
     dup 0<>
   while
     nip dup car lisp-eval swap cdr
     over 0<> if
-      drop lisp-false
+      drop nil
     then
   repeat
   drop ;
@@ -825,31 +824,31 @@ s" cons" string-new ' lisp-builtin-cons builtin symtab-add
 
 : lisp-builtin-= ( lisp -- lisp )
   lisp-get-arg-numbers
-  = if lisp-true else lisp-false then ;
+  = if lisp-true else nil then ;
 
 s" =" string-new ' lisp-builtin-= builtin symtab-add
 
 : lisp-builtin-> ( lisp -- lisp )
   lisp-get-arg-numbers
-  > if lisp-true else lisp-false then ;
+  > if lisp-true else nil then ;
 
 s" >" string-new ' lisp-builtin-> builtin symtab-add
 
 : lisp-builtin-< ( lisp -- lisp )
   lisp-get-arg-numbers
-  < if lisp-true else lisp-false then ;
+  < if lisp-true else nil then ;
 
 s" <" string-new ' lisp-builtin-< builtin symtab-add
 
 : lisp-builtin-<= ( lisp -- lisp )
   lisp-get-arg-numbers
-  <= if lisp-true else lisp-false then ;
+  <= if lisp-true else nil then ;
 
 s" <=" string-new ' lisp-builtin-<= builtin symtab-add
 
 : lisp-builtin->= ( lisp -- lisp )
   lisp-get-arg-numbers
-  >= if lisp-true else lisp-false then ;
+  >= if lisp-true else nil then ;
 
 s" >=" string-new ' lisp-builtin->= builtin symtab-add
 
@@ -878,7 +877,7 @@ s" setcdr" string-new ' lisp-builtin-setcdr builtin symtab-add
     2drop lisp-true
   else
     2dup lisp-tag @ swap lisp-tag @ <> if
-      2drop lisp-false
+      2drop nil
     else
       dup lisp-tag @ cells eq?-dispatch + @ execute
     then
@@ -889,23 +888,23 @@ s" setcdr" string-new ' lisp-builtin-setcdr builtin symtab-add
 
 s" eq?" string-new ' lisp-builtin-eq? builtin symtab-add
 
-' lisp-false eq?-dispatch lisp-pair-tag cells + !
+' nil eq?-dispatch lisp-pair-tag cells + !
 
 : lisp-eq?-number ( lisp lisp -- lisp )
   number-num @ swap number-num @ = if
     lisp-true
   else
-    lisp-false
+    nil
   then ;
 
 ' lisp-eq?-number eq?-dispatch lisp-number-tag cells + !
 
-' lisp-false eq?-dispatch lisp-builtin-tag cells + !
+' nil eq?-dispatch lisp-builtin-tag cells + !
 
 ' lisp-eq?-symbol eq?-dispatch lisp-symbol-tag cells + !
 ' lisp-eq?-symbol eq?-dispatch lisp-string-tag cells + !
 
-' lisp-false eq?-dispatch lisp-lambda-tag cells + !
+' nil eq?-dispatch lisp-lambda-tag cells + !
 
 : lisp-builtin-display ( lisp -- lisp )
   car lisp-display 0 ;
@@ -918,7 +917,7 @@ s" exit" string-new ' bye builtin symtab-add
   car 0= if
     lisp-true
   else
-    lisp-false
+    nil
   then ;
 
 s" not" string-new ' lisp-builtin-not builtin symtab-add
@@ -948,14 +947,14 @@ s" eval" string-new ' lisp-builtin-eval builtin symtab-add
 
 : lisp-builtin-boundp
   lisp-symbol-value? nip 0= if
-    lisp-false
+    nil
   else
     lisp-true
   then ;
 
 : lisp-builtin-symbol-value? \ returns the value or nil if unbound
   lisp-symbol-value? 0= if
-    drop lisp-false
+    drop nil
   then ;
 
 s" boundp" string-new ' lisp-builtin-boundp builtin symtab-add
@@ -1148,7 +1147,8 @@ variable frame
 : def ( lisp - lisp)
   compile-def end-compile
   postpone exit
-  lisp-false ; immediate
+  nil ; immediate
+
 
 
 : lisp-builtin-new-vector

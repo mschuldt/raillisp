@@ -91,7 +91,8 @@
   (forth utime drop make-number))
 
 (defun cr ()
-  (forth cr lisp-false))
+  (forth cr nil))
+
 
 (defun mapcar (func lst)
   (if lst
