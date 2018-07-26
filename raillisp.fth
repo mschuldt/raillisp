@@ -1104,6 +1104,33 @@ variable frame
     swap 1+ swap cdr
   repeat drop ;
 
+: member ( key list - list )
+  begin
+    dup 0<> if
+      2dup car eq? 0=
+    else 0 then
+  while
+    cdr
+  repeat
+  nip ;
+
+: consp dup 0<> if lisp-tag @ lisp-pair-tag = then ;
+
+: assoc ( key list - list )
+  begin
+    2dup car
+    dup consp if
+      car eq? if
+        car nip exit
+      then
+    else
+      2drop
+    then
+    cdr dup 0= until
+  nip ;
+
+: list-length lisp-list-length make-number ;
+
 : compile-def ( lisp - )
   dup car symbol->string lisp-create
   cdr dup car lisp-list-length
