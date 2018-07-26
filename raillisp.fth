@@ -1041,6 +1041,7 @@ variable frame
 
 : prev-frame ( n - )
   >r ndrop r> r> r> swap >r frame ! ;
+
 : lisp-interpret-pair ( lisp - lisp?)
   dup car
   lisp-find-symbol-word
@@ -1060,16 +1061,6 @@ variable frame
 
 ' lisp-interpret-pair interpret-dispatch lisp-pair-tag cells + !
 ' lisp-interpret-pair compile-dispatch lisp-pair-tag cells + !
-
-: lisp-interpret-symbol ( lisp - )
-  lisp-find-symbol-word name>int execute @ ;
-
-: lisp-compile-symbol ( lisp - )
-  lisp-find-symbol-word name>int compile,
-  [comp'] @ drop compile, ;
-
-' lisp-interpret-symbol interpret-dispatch lisp-symbol-tag cells + !
-' lisp-compile-symbol compile-dispatch lisp-symbol-tag cells + !
 
 : lisp-interpret-number ;
 
@@ -1134,15 +1125,40 @@ variable frame
 
 : list-length lisp-list-length make-number ;
 
+\ locals is an alist of (name . index) pairs.
+\  index is a forth integer so this list cannot be printed as lisp
+variable locals nil locals !
+variable locals-count 0 locals-count !
+
+: push-local-names ( list - )
+  recursive
+  dup 0<> if
+    dup car locals-count @ cons
+    locals @ cons
+    locals !
+    locals-count dup @ 1+ swap !
+    cdr push-local-names
+  else drop then ;
+
+: pop-local-names ( n - )
+  recursive
+  dup 0> if
+    locals dup @ cdr swap !
+    locals-count dup @ 1- swap !
+    1- pop-local-names
+  else drop then ;
+
 : compile-def ( lisp - )
   \ lisp word format:
   \  lit arg-count dup next-frame [body...] prev-frame exit
   dup car symbol->string lisp-create \ create dictionary header
-  cdr dup car lisp-list-length \ length of argument list
-  postpone literal \ lisp word: arg length
+  cdr dup car dup push-local-names
+  lisp-list-length \ length of argument list
+  dup postpone literal \ lisp word: arg length
   [comp'] dup drop compile, \  lisp word: dup arg length
   [comp'] next-frame drop compile, \ lisp word: start frame
-  cdr start-compile lisp-compile-list \ compile function body
+  swap cdr start-compile lisp-compile-list \ compile function body
+  pop-local-names
   [comp'] prev-frame drop compile, \ lisp word: end frame
 ;
 
@@ -1151,6 +1167,22 @@ variable frame
   postpone exit
   nil ; immediate
 
+
+: lisp-interpret-symbol ( lisp - )
+  lisp-find-symbol-word name>int execute @ ;
+
+: lisp-compile-symbol ( lisp - )
+  dup locals @ assoc dup if \ local variable reference
+    cdr postpone literal
+    [comp'] get-local drop compile,
+    drop
+  else \ compile dicationary variable lookup
+    drop lisp-find-symbol-word name>int compile,
+    [comp'] @ drop compile,
+  then ;
+
+' lisp-interpret-symbol interpret-dispatch lisp-symbol-tag cells + !
+' lisp-compile-symbol compile-dispatch lisp-symbol-tag cells + !
 
 
 : lisp-builtin-new-vector
