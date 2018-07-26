@@ -1017,6 +1017,7 @@ s" interpret" string-new ' lisp-special-interpret make-special symtab-add
   -rot 2drop ;
 
 variable macro-flag
+: set-macro-flag 1 macro-flag ! ;
 
 : interpret-immediate
   0 macro-flag !
