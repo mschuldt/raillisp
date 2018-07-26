@@ -765,9 +765,10 @@ variable forth-args
     forth-args @ 0<>
   while
     forth-args @ car symbol->string
-    find-name dup 0= if
-      ." ERROR: invalid word" cr
+    2dup find-name dup 0= if
+      ." ERROR: invalid word: " drop type cr
     else
+      >r 2drop r>
       name>int execute
     then
     forth-args dup @ cdr swap !
