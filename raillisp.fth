@@ -6,7 +6,7 @@ variable exit-on-error
 1 exit-on-error !
 
 : maybe-bye
-  exit-on-error @ if bye then ;
+  exit-on-error @ if 1 throw then ;
 
 : string-new ( a u -- a u )
   dup rot over allocate drop
@@ -960,7 +960,7 @@ s" boundp" string-new ' lisp-builtin-boundp builtin symtab-add
 s" symbol-value?" string-new ' lisp-builtin-symbol-value? builtin symtab-add
 
 : lisp-builtin-symbol-value
-   car lisp-eval-symbol ;
+  car lisp-eval-symbol ;
 
 s" symbol-value" string-new ' lisp-builtin-symbol-value builtin symtab-add
 
