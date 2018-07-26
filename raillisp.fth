@@ -1037,10 +1037,15 @@ variable frame
 
 : next-frame ( n - )
   frame @ r> swap >r >r
-  1+ cells sp@ + frame ! ;
+  1+ cells sp@ + frame !
+  1112111 \ XXX magic number to help catch stack corruption
+;
 
 : prev-frame ( n - )
-  >r ndrop r> r> r> swap >r frame ! ;
+  >r
+  1112111 <> if ." error: magic frame number not found" cr .s 1 throw then
+  ndrop r> r> r> swap >r frame !
+;
 
 : lisp-interpret-pair ( lisp - lisp?)
   dup car
