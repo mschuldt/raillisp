@@ -1077,6 +1077,14 @@ variable macro-flag
 : lisp-create ( ua - ) \ create new dictionary entry
   ( gforth) nextname header reveal docol: cfa, ;
 
+: lisp-list-length ( list - n )
+  0 swap
+  begin
+    dup 0<>
+  while
+    swap 1+ swap cdr
+  repeat drop ;
+
 : compile-def ( lisp - )
   dup car symbol->string lisp-create
   cdr cdr start-compile
