@@ -68,7 +68,8 @@ drop
 5 constant lisp-lambda-tag
 6 constant lisp-macro-tag
 7 constant lisp-string-tag
-8 constant lisp-max-tag
+8 constant lisp-vector-tag
+9 constant lisp-max-tag
 
 lisp-max-tag cells allocate throw constant eval-dispatch
 lisp-max-tag cells allocate throw constant display-dispatch
@@ -114,6 +115,12 @@ cell% field lambda-vararg
 cell% field lambda-body
 end-struct lisp-lambda
 
+struct
+cell% field vector-tag
+cell% field vector-len
+cell% field vector-vec
+end-struct lisp-vector
+
 : make-cons ( car cdr -- lisp )
   lisp-pair %allocate throw >r
   r@ pair-tag lisp-pair-tag swap !
@@ -155,6 +162,12 @@ end-struct lisp-lambda
   lisp-special %allocate throw
   dup special-tag lisp-special-tag swap !
   swap over special-xt ! ;
+
+: make-vector ( length -- lisp )
+  lisp-vector %allocate throw >r
+  r@ vector-tag lisp-vector-tag swap !
+  dup r@ vector-len !
+  allocate throw r@ vector-vec ! r> ;
 
 0 constant lisp-false
 0 0 make-cons constant lisp-true
@@ -265,6 +278,21 @@ s" &rest" symbol-new constant &rest
   type emit ;
 
 ' lisp-display-string display-dispatch lisp-string-tag cells + !
+
+: do-display-vector ( vec len -- )
+  recursive
+  1- dup 0< if
+    2dup + @ lisp-display do-display-vector
+  else
+    2drop
+  then ;
+
+: lisp-display-vector ( lisp -- )
+  [char] [ emit
+  dup vector-vec @ swap vector-len @ do-display-vector
+  [char] ] emit ;
+
+' lisp-display-vector display-dispatch lisp-vector-tag cells + !
 
 : lisp-display-special ( lisp -- )
   [char] # emit special-xt @ . ;
@@ -1016,6 +1044,31 @@ variable macro-flag
 : create-var ( sv - v)
   dup rot dup symbol-namea @ swap symbol-nameu @
   ( gforth) nextname create , ;
+
+
+: lisp-builtin-new-vector
+  car number-num @ make-vector ;
+
+\ vectors returned by new-vector are undefined so must not be printed
+s" new-vector" string-new ' lisp-builtin-new-vector builtin symtab-add
+
+: lisp-builtin-aset
+  \ array index newelt
+  dup car vector-vec @
+  swap cdr dup car number-num @
+  rot + swap cdr car swap ! ;
+
+s" aset" string-new ' lisp-builtin-aset builtin symtab-add
+
+: lisp-builtin-aref
+  dup car swap cdr car + @ ;
+
+s" aref" string-new ' lisp-builtin-aref builtin symtab-add
+
+: lisp-builtin-vector-length
+  car vector-len @ make-number ;
+
+s" vector-length" string-new ' lisp-builtin-vector-length builtin symtab-add
 
 
 : repl

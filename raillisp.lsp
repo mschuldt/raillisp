@@ -116,3 +116,30 @@
            (not (eq? (car form) 'quote)))
       (macroexpand (mapcar macroexpand-all form))
     form))
+
+(defun make-vector (len init)
+  (let ((v (new-vector len)))
+    (dotimes (i len)
+      (aset v i init))
+    v))
+
+(defun list-length (lst)
+  (let ((len 0))
+    (while lst
+      (setq len (+ len 1))
+      (setq lst (cdr lst)))
+    len))
+
+(defun list->vector (lst)
+  (let ((n (list-length lst))
+        (v (new-vector n))
+        (i 0))
+    (while lst
+      (aset v i (car lst))
+      (setq i (+ i 1))
+      (setq lst (cdr lst)))
+    v))
+
+(defun vector (&rest args)
+  (list->vector args))
+
