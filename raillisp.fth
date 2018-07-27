@@ -1131,13 +1131,15 @@ variable frame
 variable locals nil locals !
 variable locals-count 0 locals-count !
 
+: push-local-name ( symbol - )
+  locals-count @ cons
+  locals @ cons locals !
+  locals-count dup @ 1+ swap !   ;
+
 : push-local-names ( list - )
   recursive
   dup 0<> if
-    dup car locals-count @ cons
-    locals @ cons
-    locals !
-    locals-count dup @ 1+ swap !
+    dup car push-local-name
     cdr push-local-names
   else drop then ;
 
