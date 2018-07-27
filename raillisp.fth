@@ -1084,6 +1084,40 @@ variable frame
 
 : quote car ; immediate
 
+\ locals is an alist of (name . index) pairs.
+\  index is a forth integer so this list cannot be printed as lisp
+variable locals nil locals !
+variable locals-count 0 locals-count !
+
+: push-local-name ( symbol - )
+  locals-count @ cons
+  locals @ cons locals !
+  locals-count dup @ 1+ swap !   ;
+
+: push-local-names ( list - )
+  recursive
+  dup 0<> if
+    dup car push-local-name
+    cdr push-local-names
+  else drop then ;
+
+: pop-local-names ( n - )
+  recursive
+  dup 0> if
+    locals dup @ cdr swap !
+    locals-count dup @ 1- swap !
+    1- pop-local-names
+  else drop then ;
+
+
+: compile-local-var ( symbol value - )
+  drop ++locals
+  swap push-local-name
+  lisp-interpret \ compile value
+  locals-count @ 1- postpone literal
+  [comp'] set-local drop compile,
+;
+
 : create-var ( sv - v)
   dup rot symbol->string
   ( gforth) nextname create , ;
@@ -1126,30 +1160,6 @@ variable frame
 
 : list-length lisp-list-length make-number ;
 
-\ locals is an alist of (name . index) pairs.
-\  index is a forth integer so this list cannot be printed as lisp
-variable locals nil locals !
-variable locals-count 0 locals-count !
-
-: push-local-name ( symbol - )
-  locals-count @ cons
-  locals @ cons locals !
-  locals-count dup @ 1+ swap !   ;
-
-: push-local-names ( list - )
-  recursive
-  dup 0<> if
-    dup car push-local-name
-    cdr push-local-names
-  else drop then ;
-
-: pop-local-names ( n - )
-  recursive
-  dup 0> if
-    locals dup @ cdr swap !
-    locals-count dup @ 1- swap !
-    1- pop-local-names
-  else drop then ;
 
 : compile-def ( lisp - )
   \ lisp word format:
