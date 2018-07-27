@@ -974,7 +974,7 @@ s" apply-1" string-new ' lisp-builtin-apply-1 builtin symtab-add
 
 s" lisp-type-tag" string-new ' lisp-type-tag builtin symtab-add
 
-\ interpreation words must return a single lisp value
+\ interpretation words must return a single lisp value
 \ compilation words must return nothing
 
 variable lisp-state
@@ -1232,6 +1232,13 @@ s" aref" string-new ' lisp-builtin-aref builtin symtab-add
   car vector-len @ make-number ;
 
 s" vector-length" string-new ' lisp-builtin-vector-length builtin symtab-add
+
+: list-length-builtin car lisp-list-length make-number ;
+
+s" list-length" string-new ' list-length-builtin builtin symtab-add
+
+: list-assoc-builtin dup car swap cdr car assoc ;
+s" assoc" string-new ' list-assoc-builtin builtin symtab-add
 
 
 : repl
