@@ -1229,6 +1229,19 @@ variable locals-count 0 locals-count !
   then
 ; immediate
 
+: let* ( lisp - )   \ todo: interpret
+  dup car 0 >r
+  begin
+    dup 0<>
+  while
+    dup car
+    dup car swap cdr car compile-local-var
+    r> 1+ >r cdr
+  repeat
+  drop cdr lisp-compile-list
+  r> pop-local-names
+; immediate
+
 
 : lisp-builtin-new-vector
   car number-num @ make-vector ;
