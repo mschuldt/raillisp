@@ -93,6 +93,8 @@
 (defun cr ()
   (forth cr nil))
 
+(defun forth-shell ()
+  (forth quit))
 
 (defun mapcar (func lst)
   (if lst
