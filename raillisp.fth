@@ -1035,8 +1035,8 @@ variable frame
 : set-local ( v n - )
   frame @ swap cells - ! ;
 
-: next-frame ( nlocals - old-frame magic )
-  1+ cells sp@ + frame dup @ -rot !
+: next-frame ( nlocals - nlocals old-frame magic )
+  dup 1+ cells sp@ + frame dup @ -rot !
   1112111 \ XXX magic number to help catch stack corruption
 ;
 
@@ -1156,7 +1156,6 @@ variable locals-count 0 locals-count !
   cdr dup car dup push-local-names
   lisp-list-length \ length of argument list
   dup postpone literal \ lisp word: arg length
-  [comp'] dup drop compile, \  lisp word: dup arg length
   [comp'] next-frame drop compile, \ lisp word: start frame
   swap cdr start-compile lisp-compile-list \ compile function body
   pop-local-names
