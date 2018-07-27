@@ -1117,8 +1117,8 @@ variable locals-count 0 locals-count !
   else drop then ;
 
 : compile-local-var ( symbol value - )
-  ++locals swap push-local-name
   lisp-interpret \ compile initial value
+  ++locals push-local-name
   locals-count @ 1- postpone literal
   [comp'] set-local drop compile, ;
 
