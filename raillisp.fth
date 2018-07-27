@@ -1117,19 +1117,16 @@ variable locals-count 0 locals-count !
   else drop then ;
 
 : compile-local-var ( symbol value - )
-  ++locals swap cdr car push-local-name
+  ++locals swap push-local-name
   lisp-interpret \ compile initial value
   locals-count @ 1- postpone literal
-  [comp'] set-local drop compile,
-;
+  [comp'] set-local drop compile, ;
 
-: create-var ( sv - v)
+: var ( sv - v)
   dup car swap cdr car \ symbol value
-  lisp-state @ 0= if \ interpret
-    swap lisp-interpret \ symbol
-    swap lisp-interpret \ value
-    dup rot symbol->string
-    ( gforth) nextname create ,
+  lisp-state @ 0= if
+    lisp-interpret dup rot symbol->string
+    nextname create ,
   else
     compile-local-var
   then
@@ -1195,7 +1192,6 @@ variable locals-count 0 locals-count !
   postpone exit
   nil ; immediate
 
-
 : lisp-interpret-symbol ( lisp - )
   lisp-find-symbol-word name>int execute @ ;
 
@@ -1226,8 +1222,6 @@ variable locals-count 0 locals-count !
       [comp'] set-local drop compile,
       drop \ symbol
     else \ global
-      \ todo: support for (set sexp value)
-      \        currently only (set symbol value) is supported
       drop lisp-interpret \ compile value
       lisp-find-symbol-word name>int compile,
       [comp'] ! drop compile,
