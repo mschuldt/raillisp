@@ -1029,13 +1029,16 @@ variable macro-flag
 variable frame
 : ndrop ( n - )
   begin dup 0> while swap drop 1- repeat drop ;
+: stack-space ( n - ) \ adds n things to the stack
+  begin dup 0> while dup swap 1- repeat drop ;
 
 : get-local ( n - v )
   frame @ swap cells - @ ;
 : set-local ( v n - )
   frame @ swap cells - ! ;
 
-: next-frame ( nlocals - nlocals old-frame magic )
+: next-frame (  nargs nlocals - nlocals... nargs+nlocals old-frame magic )
+  swap over + >r stack-space r>
   dup 1+ cells sp@ + frame dup @ -rot !
   1112111 \ XXX magic number to help catch stack corruption
 ;
@@ -1084,10 +1087,14 @@ variable frame
 
 : quote car ; immediate
 
+variable locals-counter
 \ locals is an alist of (name . index) pairs.
 \  index is a forth integer so this list cannot be printed as lisp
 variable locals nil locals !
 variable locals-count 0 locals-count !
+
+: ++locals
+  locals-counter @ dup @ 1+ swap ! ;
 
 : push-local-name ( symbol - )
   locals-count @ cons
@@ -1109,18 +1116,24 @@ variable locals-count 0 locals-count !
     1- pop-local-names
   else drop then ;
 
-
 : compile-local-var ( symbol value - )
-  drop ++locals
-  swap push-local-name
-  lisp-interpret \ compile value
+  ++locals swap cdr car push-local-name
+  lisp-interpret \ compile initial value
   locals-count @ 1- postpone literal
   [comp'] set-local drop compile,
 ;
 
 : create-var ( sv - v)
-  dup rot symbol->string
-  ( gforth) nextname create , ;
+  dup car swap cdr car \ symbol value
+  lisp-state @ 0= if \ interpret
+    swap lisp-interpret \ symbol
+    swap lisp-interpret \ value
+    dup rot symbol->string
+    ( gforth) nextname create ,
+  else
+    compile-local-var
+  then
+; immediate
 
 : lisp-create ( ua - ) \ create new dictionary entry
   ( gforth) nextname header reveal docol: cfa, ;
@@ -1168,8 +1181,11 @@ variable locals-count 0 locals-count !
   cdr dup car dup push-local-names
   lisp-list-length \ length of argument list
   dup postpone literal \ lisp word: arg length
+  here 1 cells + locals-counter ! \ set location of locals count
+  0 postpone literal \ lisp word: locals count
   [comp'] next-frame drop compile, \ lisp word: start frame
   swap cdr start-compile lisp-compile-list \ compile function body
+  locals-counter @ @ + \ nlocals+nargs
   pop-local-names
   [comp'] prev-frame drop compile, \ lisp word: end frame
 ;
