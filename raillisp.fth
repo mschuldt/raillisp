@@ -766,7 +766,7 @@ variable forth-args
   while
     forth-args @ car symbol->string
     2dup find-name dup 0= if
-      ." ERROR: invalid word: " drop type cr
+      ." ERROR: invalid word: " drop type 1 throw
     else
       >r 2drop r>
       name>int execute
@@ -1019,7 +1019,7 @@ s" interpret" string-new ' lisp-special-interpret make-special symtab-add
   2dup find-name
   dup 0= if
     drop
-    ." ERROR: invalid word: " type cr bye
+    ." ERROR: invalid word: " type cr 1 throw
   then
   -rot 2drop ;
 
