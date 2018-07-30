@@ -1264,8 +1264,10 @@ variable let-bound-names
 
 : defcode ( lisp - lisp)
   \  postpone def
-  compile-def end-compile
-  postpone exit set-func-xt
+  compile-def
+  \ TODO: temp workaround - discard the return value
+  [comp'] drop drop compile,
+  end-compile postpone exit set-func-xt
   immediate nil ; special
 
 : defmacro ( lisp - lisp)
