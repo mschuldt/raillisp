@@ -306,6 +306,9 @@ end-compile
     cdr lisp-compile-list dup
   then drop ;
 
+: compile lisp-interpret ;
+: compile-list lisp-compile-list ;
+
 : special?
   cell+ @ immediate-mask and 0<> ;
 
@@ -809,12 +812,6 @@ variable let-bound-names
 : if, postpone if ;
 : else, postpone else ;
 : then, postpone then ;
-
-: :if ( lisp - )
-  dup >r car lisp-interpret if,
-  r> cdr dup >r car lisp-interpret else,
-  r> cdr lisp-compile-list then,
-; special
 
 : :> ( lisp - )
   dup car lisp-interpret [comp'] number-num drop compile,
