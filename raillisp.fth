@@ -1232,14 +1232,17 @@ variable next-local-index 0 cells next-local-index !
 \ before the end of the function definition
 variable let-bound-names
 
+: handle-args ( arglist - len )
+  dup push-local-names
+  lisp-list-length dup set-func-args ;
+
 : compile-def ( lisp - )
   \ lisp word format:
   \  num-args num-locals next-frame [body...] prev-frame exit
   new-function
   0 let-bound-names !
   dup car symbol->string lisp-create \ create dictionary header
-  cdr dup car dup push-local-names
-  lisp-list-length dup set-func-args \ length of argument list
+  cdr dup car handle-args
   dup postpone literal \ lisp word: arg length
   here 1 cells + locals-counter ! \ set location of locals count
   0 postpone literal \ lisp word: locals count
