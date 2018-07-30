@@ -1011,7 +1011,7 @@ s" interpret" string-new ' lisp-special-interpret make-special symtab-add
     cdr lisp-compile-list dup
   then drop ;
 
-: immediate?
+: special?
   cell+ @ immediate-mask and 0<> ;
 
 : lisp-find-symbol-word ( lisp - word)
@@ -1052,7 +1052,7 @@ variable frame
 : lisp-interpret-pair ( lisp - lisp?)
   dup car
   lisp-find-symbol-word
-  dup immediate? if \ special form or macro
+  dup special? if \ special form or macro
     0 macro-flag !
     swap cdr swap name>int execute
     macro-flag @ if lisp-interpret then \ macro
@@ -1085,7 +1085,7 @@ variable frame
 
 : cons make-cons ;
 
-: quote car ; immediate
+: quote car ; special
 
 variable locals-counter
 \ locals is an alist of (name . index) pairs.
@@ -1130,7 +1130,7 @@ variable locals-count 0 locals-count !
   else
     compile-local-var
   then
-; immediate
+; special
 
 : lisp-create ( ua - ) \ create new dictionary entry
   ( gforth) nextname header reveal docol: cfa, ;
@@ -1190,7 +1190,7 @@ variable locals-count 0 locals-count !
 : def ( lisp - lisp)
   compile-def end-compile
   postpone exit
-  nil ; immediate
+  nil ; special
 
 : lisp-interpret-symbol ( lisp - )
   lisp-find-symbol-word name>int execute @ ;
@@ -1227,7 +1227,8 @@ variable locals-count 0 locals-count !
       [comp'] ! drop compile,
     then
   then
-; immediate
+; special
+
 
 : let* ( lisp - )   \ todo: interpret
   dup car 0 >r
@@ -1240,7 +1241,7 @@ variable locals-count 0 locals-count !
   repeat
   drop cdr lisp-compile-list
   r> pop-local-names
-; immediate
+; special
 
 
 : lisp-builtin-new-vector
