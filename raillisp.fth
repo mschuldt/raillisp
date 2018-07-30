@@ -1069,10 +1069,8 @@ variable frame
 : stack-space ( n - ) \ adds n things to the stack
   begin dup 0> while dup swap 1- repeat drop ;
 
-: get-local ( n - v )
-  frame @ swap cells - @ ;
-: set-local ( v n - )
-  frame @ swap cells - ! ;
+: get-local ( n - v ) frame @ swap - @ ;
+: set-local ( v n - ) frame @ swap - ! ;
 
 : next-frame (  nargs nlocals - nlocals... nargs+nlocals old-frame magic )
   swap over + >r stack-space r>
@@ -1126,19 +1124,22 @@ variable frame
 
 : quote car ; special
 
+\ locals-counter is a pointer to the locals count in
+\ the word currently being compiled
 variable locals-counter
 \ locals is an alist of (name . index) pairs.
 \  index is a forth integer so this list cannot be printed as lisp
 variable locals nil locals !
-variable locals-count 0 locals-count !
-
-: ++locals
-  locals-counter @ dup @ 1+ swap ! ;
+: ++locals locals-counter @ dup @ 1+ swap ! ;
+\ next-local-index is the offset from the frame pointer
+variable next-local-index 0 cells next-local-index !
+: ++local-index next-local-index dup @ 1 cells + swap ! ;
+: --local-index next-local-index dup @ 1 cells - swap ! ;
 
 : push-local-name ( symbol - )
-  locals-count @ cons
+  next-local-index @ cons
   locals @ cons locals !
-  locals-count dup @ 1+ swap !   ;
+  ++local-index ;
 
 : push-local-names ( list - )
   recursive
@@ -1151,14 +1152,14 @@ variable locals-count 0 locals-count !
   recursive
   dup 0> if
     locals dup @ cdr swap !
-    locals-count dup @ 1- swap !
+    --local-index
     1- pop-local-names
   else drop then ;
 
 : compile-local-var ( symbol value - )
   lisp-interpret \ compile initial value
   ++locals push-local-name
-  locals-count @ 1- postpone literal
+  next-local-index @ 1 cells - postpone literal
   [comp'] set-local drop compile, ;
 
 : var ( sv - v)
