@@ -469,226 +469,6 @@ s" set" string-new ' lisp-builtin-set builtin symtab-add
 ' lisp-eval-macro eval-dispatch lisp-macro-tag cells + !
 
 
-\ the reader
-
-variable paren-count
-variable stdin-lastchar
-variable stdin-unread
-variable read-from-string
-
-: check-char ( c - c )
-  \ Returns 0 if done reading, else c
-  \ Used when reading from input streams
-  dup 10 = if \ RET
-    paren-count @ 0 = if
-      drop 0 exit
-    else
-      ." :  "
-    then
-  else
-    dup [char] ( = if
-      paren-count dup @ 1+ swap !
-    else
-      dup [char] ) = if
-        paren-count dup @ 1- swap !
-      then
-    then
-  then ;
-
-: lisp-char-from-input
-  stdin-unread @ if
-    0 stdin-unread !
-    stdin-lastchar @
-  else
-    xkey check-char
-    dup stdin-lastchar !
-  then ;
-
-: lisp-read-char ( e a -- e a c )
-  read-from-string @ if
-    2dup <= if
-      0
-    else
-      dup c@ swap 1+ swap
-    then
-  else
-    lisp-char-from-input
-  then ;
-
-: lisp-unread-char ( e a -- e a )
-  read-from-string @ if
-    1-
-  else
-    1 stdin-unread !
-  then ;
-
-: lisp-is-ws ( c -- flag )
-  dup 10 = swap dup 13 = swap dup 9 = swap 32 = or or or ;
-
-: lisp-skip-ws ( e a -- e a )
-  lisp-read-char
-  begin
-    dup 0<> over lisp-is-ws and
-  while
-    drop lisp-read-char
-  repeat
-  0<> if
-    lisp-unread-char
-  then ;
-
-: lisp-skip-line
-  lisp-read-char
-  begin
-    dup 0<> over 10 <> and \ 10 = \n
-  while
-    drop lisp-read-char
-  repeat
-  0<> if
-    lisp-unread-char
-  then ;
-
-: lisp-skip
-  lisp-skip-ws
-  lisp-read-char
-  59 = if \ 59 = ;
-    lisp-skip-line
-  else
-    lisp-unread-char
-  then
-  lisp-skip-ws ;
-
-128 allocate throw constant token-buffer
-
-: lisp-read-token ( e a -- e a a u )
-  lisp-skip
-  0 >r
-  lisp-read-char
-  begin
-    dup [char] ) <> over 0<> and over lisp-is-ws 0= and
-  while
-    token-buffer r@ + c! r> 1+ >r lisp-read-char
-  repeat
-  0<> if
-    lisp-unread-char
-  then
-  token-buffer r> ;
-
-defer lisp-read-lisp
-
-: lisp-read-list
-  recursive ( e a -- e a lisp )
-  lisp-skip lisp-read-char
-  dup [char] ) = swap 0 = or if
-    0
-  else
-    lisp-unread-char lisp-read-lisp >r lisp-read-list r> swap make-cons
-  then ;
-
-: lisp-read-number ( e a -- e a lisp )
-  lisp-read-token string>num make-number ;
-
-: lisp-read-symbol ( e a -- e a lisp )
-  lisp-read-token string-new make-symbol ;
-
-: lisp-read-quote ( e a -- e a lisp )
-  lisp-read-lisp nil make-cons
-  s" quote" symbol-new swap make-cons ;
-
-: lisp-escape-char ( c - c )
-  dup [char] n = if
-    drop 10
-  else
-    dup [char] \ = if \ todo: move escape codes to lisp
-      drop [char] \
-    else
-      dup [char] " = if
-        drop [char] "
-      else
-        cr ." invalid escape code: " emit cr maybe-bye
-      then
-    then
-  then ;
-
-: lisp-read-string
-  0 >r
-  lisp-read-char
-  begin
-    dup 0<> over [char] " <> and
-  while
-    dup [char] \ = if
-      drop lisp-read-char lisp-escape-char
-    then
-    token-buffer r@ + c! r> 1+ >r lisp-read-char
-  repeat
-  dup 0<> swap [char] " <> and if
-    lisp-unread-char
-  then
-  token-buffer r>
-  string-new make-string ;
-
-: _lisp-read-lisp ( e a -- e a lisp )
-  lisp-skip lisp-read-char
-  dup 0= if
-    drop 0
-  else
-    dup [char] ( = if
-      drop lisp-read-list
-    else
-      dup [char] 0 >= over [char] 9 <= and if
-	drop lisp-unread-char lisp-read-number
-      else
-        dup [char] ' = if
-          drop lisp-read-quote
-        else
-          [char] " = if
-            lisp-read-string
-          else
-	    lisp-unread-char lisp-read-symbol
-          then
-        then
-      then
-    then
-  then ;
-' _lisp-read-lisp is lisp-read-lisp
-
-: lisp-load-from-string ( a u -- lisp )
-  1 read-from-string !
-  over + swap 0 >r
-  begin
-    lisp-skip 2dup >
-  while
-    r> drop lisp-read-lisp lisp-eval >r
-  repeat
-  2drop r> ;
-
-: lisp-read-from-string ( a u -- lisp )
-  1 read-from-string !
-  over + swap
-  lisp-skip lisp-read-lisp >r 2drop r> ;
-
-8192 allocate throw constant read-buffer
-
-: lisp-load-from-file ( a u -- lisp )
-  r/o open-file
-  0<> if
-    drop 0
-  else
-    >r read-buffer 8192 r@ read-file
-    0<> if
-      r> 2drop 0
-    else
-      r> close-file drop
-      read-buffer swap lisp-load-from-string
-    then
-  then ;
-
-: lisp-read-from-input
-  0 read-from-string !
-  -1 stdin-lastchar !
-  0 stdin-unread !
-  0 paren-count !
-  ." > " lisp-read-lisp
-;
 
 \ specials
 
@@ -1085,6 +865,227 @@ variable frame
   1112111 <>
   if ." error: magic frame number not found" cr .s 1 throw then
   frame ! ndrop r> ;
+
+\ the reader
+
+variable paren-count
+variable stdin-lastchar
+variable stdin-unread
+variable read-from-string
+
+: check-char ( c - c )
+  \ Returns 0 if done reading, else c
+  \ Used when reading from input streams
+  dup 10 = if \ RET
+    paren-count @ 0 = if
+      drop 0 exit
+    else
+      ." :  "
+    then
+  else
+    dup [char] ( = if
+      paren-count dup @ 1+ swap !
+    else
+      dup [char] ) = if
+        paren-count dup @ 1- swap !
+      then
+    then
+  then ;
+
+: lisp-char-from-input
+  stdin-unread @ if
+    0 stdin-unread !
+    stdin-lastchar @
+  else
+    xkey check-char
+    dup stdin-lastchar !
+  then ;
+
+: lisp-read-char ( e a -- e a c )
+  read-from-string @ if
+    2dup <= if
+      0
+    else
+      dup c@ swap 1+ swap
+    then
+  else
+    lisp-char-from-input
+  then ;
+
+: lisp-unread-char ( e a -- e a )
+  read-from-string @ if
+    1-
+  else
+    1 stdin-unread !
+  then ;
+
+: lisp-is-ws ( c -- flag )
+  dup 10 = swap dup 13 = swap dup 9 = swap 32 = or or or ;
+
+: lisp-skip-ws ( e a -- e a )
+  lisp-read-char
+  begin
+    dup 0<> over lisp-is-ws and
+  while
+    drop lisp-read-char
+  repeat
+  0<> if
+    lisp-unread-char
+  then ;
+
+: lisp-skip-line
+  lisp-read-char
+  begin
+    dup 0<> over 10 <> and \ 10 = \n
+  while
+    drop lisp-read-char
+  repeat
+  0<> if
+    lisp-unread-char
+  then ;
+
+: lisp-skip
+  lisp-skip-ws
+  lisp-read-char
+  59 = if \ 59 = ;
+    lisp-skip-line
+  else
+    lisp-unread-char
+  then
+  lisp-skip-ws ;
+
+128 allocate throw constant token-buffer
+
+: lisp-read-token ( e a -- e a a u )
+  lisp-skip
+  0 >r
+  lisp-read-char
+  begin
+    dup [char] ) <> over 0<> and over lisp-is-ws 0= and
+  while
+    token-buffer r@ + c! r> 1+ >r lisp-read-char
+  repeat
+  0<> if
+    lisp-unread-char
+  then
+  token-buffer r> ;
+
+defer lisp-read-lisp
+
+: lisp-read-list
+  recursive ( e a -- e a lisp )
+  lisp-skip lisp-read-char
+  dup [char] ) = swap 0 = or if
+    0
+  else
+    lisp-unread-char lisp-read-lisp >r lisp-read-list r> swap make-cons
+  then ;
+
+: lisp-read-number ( e a -- e a lisp )
+  lisp-read-token string>num make-number ;
+
+: lisp-read-symbol ( e a -- e a lisp )
+  lisp-read-token string-new make-symbol ;
+
+: lisp-read-quote ( e a -- e a lisp )
+  lisp-read-lisp nil make-cons
+  s" quote" symbol-new swap make-cons ;
+
+: lisp-escape-char ( c - c )
+  dup [char] n = if
+    drop 10
+  else
+    dup [char] \ = if \ todo: move escape codes to lisp
+      drop [char] \
+    else
+      dup [char] " = if
+        drop [char] "
+      else
+        cr ." invalid escape code: " emit cr maybe-bye
+      then
+    then
+  then ;
+
+: lisp-read-string
+  0 >r
+  lisp-read-char
+  begin
+    dup 0<> over [char] " <> and
+  while
+    dup [char] \ = if
+      drop lisp-read-char lisp-escape-char
+    then
+    token-buffer r@ + c! r> 1+ >r lisp-read-char
+  repeat
+  dup 0<> swap [char] " <> and if
+    lisp-unread-char
+  then
+  token-buffer r>
+  string-new make-string ;
+
+: _lisp-read-lisp ( e a -- e a lisp )
+  lisp-skip lisp-read-char
+  dup 0= if
+    drop 0
+  else
+    dup [char] ( = if
+      drop lisp-read-list
+    else
+      dup [char] 0 >= over [char] 9 <= and if
+	drop lisp-unread-char lisp-read-number
+      else
+        dup [char] ' = if
+          drop lisp-read-quote
+        else
+          [char] " = if
+            lisp-read-string
+          else
+	    lisp-unread-char lisp-read-symbol
+          then
+        then
+      then
+    then
+  then ;
+' _lisp-read-lisp is lisp-read-lisp
+
+: lisp-load-from-string ( a u -- lisp )
+  1 read-from-string !
+  over + swap 0 >r
+  begin
+    lisp-skip 2dup >
+  while
+    r> drop lisp-read-lisp lisp-eval >r
+  repeat
+  2drop r> ;
+
+: lisp-read-from-string ( a u -- lisp )
+  1 read-from-string !
+  over + swap
+  lisp-skip lisp-read-lisp >r 2drop r> ;
+
+8192 allocate throw constant read-buffer
+
+: lisp-load-from-file ( a u -- lisp )
+  r/o open-file
+  0<> if
+    drop 0
+  else
+    >r read-buffer 8192 r@ read-file
+    0<> if
+      r> 2drop 0
+    else
+      r> close-file drop
+      read-buffer swap lisp-load-from-string
+    then
+  then ;
+
+: lisp-read-from-input
+  0 read-from-string !
+  -1 stdin-lastchar !
+  0 stdin-unread !
+  0 paren-count !
+  ." > " lisp-read-lisp
+;
 
 : special immediate ;
 
