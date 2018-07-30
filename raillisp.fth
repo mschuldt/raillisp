@@ -82,9 +82,8 @@ variable curr-func
   2drop 0 ;
 
 : find-function ( xt - ) function-lookup curr-func ! ;
-: curr-args ( - )
-            curr-func @ dup 0<> if func-args @ then ;
-
+: curr-args ( - n ) curr-func @ dup 0<> if func-args @ then ;
+: curr-&rest ( - x ) curr-func @ dup 0<> if func-&rest @ then ;
 
 : new-function
   func %allocate throw
@@ -94,6 +93,7 @@ variable curr-func
 \ todo: latest won't work for recursive functions
 : set-func-xt ( - ) latest name>int function-first @ func-xt ! ;
 : set-func-args ( n - ) function-first @ func-args ! ;
+: set-func-&rest ( x - ) function-first @ func-&rest ! ;
 : get-n-args ( xt - n) function-lookup dup 0<> if func-args @ then ;
 : get-n-locals ( xt - n) function-lookup dup 0<> if func-locals @ then ;
 
@@ -1104,13 +1104,14 @@ variable frame
     cdr ( dup check-arg-count )
     curr-func @ 0<> if
       curr-args dup 0> if
-        >r
+        curr-&rest if
+          1- 0 >r else 1 >r then >r
         begin r@ 0> while
           dup car
           swap cdr r> 1- >r
         repeat
-        r> drop \ count
-        drop \ nil  todo: &rest
+        r> ( count) drop
+        r> ( &rest flag) if drop then
       else
         drop
       then
@@ -1233,8 +1234,10 @@ variable next-local-index 0 cells next-local-index !
 variable let-bound-names
 
 : handle-args ( arglist - len )
-  dup push-local-names
-  lisp-list-length dup set-func-args ;
+  split-args swap dup push-local-names
+  lisp-list-length swap dup set-func-&rest
+  dup 0<> if push-local-name 1+ else drop then
+  dup set-func-args ;
 
 : compile-def ( lisp - )
   \ lisp word format:
