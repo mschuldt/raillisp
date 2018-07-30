@@ -1211,9 +1211,15 @@ variable next-local-index 0 cells next-local-index !
 : list-length lisp-list-length make-number ;
 
 
+\ counts the number of let bound names in the current word
+\ or other names that have been cleaned up with pop-local-names
+\ before the end of the function definition
+variable let-bound-names
+
 : compile-def ( lisp - )
   \ lisp word format:
   \  lit arg-count dup next-frame [body...] prev-frame exit
+  0 let-bound-names !
   dup car symbol->string lisp-create \ create dictionary header
   cdr dup car dup push-local-names
   lisp-list-length \ length of argument list
@@ -1223,6 +1229,7 @@ variable next-local-index 0 cells next-local-index !
   [comp'] next-frame drop compile, \ lisp word: start frame
   swap cdr start-compile lisp-compile-list \ compile function body
   locals-counter @ @ + \ nlocals+nargs
+  let-bound-names @ -
   pop-local-names
   [comp'] prev-frame drop compile, \ lisp word: end frame
 ;
@@ -1280,7 +1287,9 @@ variable next-local-index 0 cells next-local-index !
     r> 1+ >r cdr
   repeat
   drop cdr lisp-compile-list
-  r> pop-local-names
+  r> dup pop-local-names
+  let-bound-names dup @ rot + swap !
+
 ; special
 
 
