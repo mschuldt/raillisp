@@ -1343,10 +1343,6 @@ variable let-bound-names
   dup car lisp-interpret [comp'] number-num drop compile,
   cdr car lisp-interpret [comp'] number-num drop compile,
   [comp'] > drop compile, [comp'] make-number drop compile, ;
-    r> cdr lisp-compile-list
-    postpone then
-; special
-
 
 : lisp-builtin-new-vector
   car number-num @ make-vector ;
@@ -1378,7 +1374,6 @@ s" list-length" string-new ' list-length-builtin builtin symtab-add
 
 : list-assoc-builtin dup car swap cdr car assoc ;
 s" assoc" string-new ' list-assoc-builtin builtin symtab-add
-
 
 : repl
   begin
