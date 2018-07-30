@@ -58,6 +58,43 @@ drop
 : symtab-restore ( ptr -- )
   symtab-first ! ;
 
+\ function meta data
+struct
+cell% field func-xt
+cell% field func-args
+cell% field func-locals
+cell% field func-&rest
+cell% field func-next
+end-struct func
+
+variable function-first
+
+: function-lookup ( xt -- function )
+  function-first @
+  begin
+    dup 0<>
+  while
+    2dup func-xt @
+    = if nip exit then
+    func-next @
+  repeat
+  2drop 0 ;
+
+: function-add ( xt args locals &rest -- )
+  func %allocate throw >r
+  r@ func-&rest !
+  r@ func-locals !
+  r@ func-args !
+  r@ func-xt !
+  r@ func-next function-first @ swap !
+  r> function-first ! ;
+
+: get-n-args ( xt - args)
+  function-lookup dup 0<> if func-args @ then ;
+
+: get-n-locals ( xt - args)
+  function-lookup dup 0<> if func-locals @ then ;
+
 \ lisp interpreter
 
 0 constant lisp-pair-tag
@@ -1048,6 +1085,8 @@ variable frame
   1112111 <>
   if ." error: magic frame number not found" cr .s 1 throw then
   frame ! ndrop r> ;
+
+: special immediate ;
 
 : lisp-interpret-pair ( lisp - lisp?)
   dup car
