@@ -68,6 +68,7 @@ cell% field func-next
 end-struct func
 
 variable function-first
+variable curr-func
 
 : function-lookup ( xt -- function )
   function-first @
@@ -80,20 +81,21 @@ variable function-first
   repeat
   2drop 0 ;
 
-: function-add ( xt args locals &rest -- )
-  func %allocate throw >r
-  r@ func-&rest !
-  r@ func-locals !
-  r@ func-args !
-  r@ func-xt !
-  r@ func-next function-first @ swap !
-  r> function-first ! ;
+: find-function ( xt - ) function-lookup curr-func ! ;
+: curr-args ( - )
+            curr-func @ dup 0<> if func-args @ then ;
 
-: get-n-args ( xt - args)
-  function-lookup dup 0<> if func-args @ then ;
 
-: get-n-locals ( xt - args)
-  function-lookup dup 0<> if func-locals @ then ;
+: new-function
+  func %allocate throw
+  dup func-next function-first @ swap !
+  function-first ! ;
+
+\ todo: latest won't work for recursive functions
+: set-func-xt ( - ) latest name>int function-first @ func-xt ! ;
+: set-func-args ( n - ) function-first @ func-args ! ;
+: get-n-args ( xt - n) function-lookup dup 0<> if func-args @ then ;
+: get-n-locals ( xt - n) function-lookup dup 0<> if func-locals @ then ;
 
 \ lisp interpreter
 
@@ -1086,12 +1088,34 @@ variable frame
 
 : special immediate ;
 
+: lisp-list-length ( list - n )
+  0 swap
+  begin
+    dup 0<>
+  while
+    swap 1+ swap cdr
+  repeat drop ;
+
 : lisp-interpret-pair ( lisp - lisp?)
-  dup car
-  lisp-find-symbol-word
+  dup car lisp-find-symbol-word
   dup special? if \ special form or macro
     0 macro-flag !
-    swap cdr swap name>int execute
+    name>int dup find-function >r
+    cdr ( dup check-arg-count )
+    curr-func @ 0<> if
+      curr-args dup 0> if
+        >r
+        begin r@ 0> while
+          dup car
+          swap cdr r> 1- >r
+        repeat
+        r> drop \ count
+        drop \ nil  todo: &rest
+      else
+        drop
+      then
+    then
+    r> execute
     macro-flag @ if lisp-interpret then \ macro
   else \ function
     lisp-state @ 0= if \ interpet
@@ -1175,14 +1199,6 @@ variable next-local-index 0 cells next-local-index !
 : lisp-create ( ua - ) \ create new dictionary entry
   ( gforth) nextname header reveal docol: cfa, ;
 
-: lisp-list-length ( list - n )
-  0 swap
-  begin
-    dup 0<>
-  while
-    swap 1+ swap cdr
-  repeat drop ;
-
 : member ( key list - list )
   begin
     dup 0<> if
@@ -1218,11 +1234,12 @@ variable let-bound-names
 
 : compile-def ( lisp - )
   \ lisp word format:
-  \  lit arg-count dup next-frame [body...] prev-frame exit
+  \  num-args num-locals next-frame [body...] prev-frame exit
+  new-function
   0 let-bound-names !
   dup car symbol->string lisp-create \ create dictionary header
   cdr dup car dup push-local-names
-  lisp-list-length \ length of argument list
+  lisp-list-length dup set-func-args \ length of argument list
   dup postpone literal \ lisp word: arg length
   here 1 cells + locals-counter ! \ set location of locals count
   0 postpone literal \ lisp word: locals count
@@ -1236,7 +1253,7 @@ variable let-bound-names
 
 : def ( lisp - lisp)
   compile-def end-compile
-  postpone exit
+  postpone exit set-func-xt
   nil ; special
 
 : lisp-interpret-symbol ( lisp - )
