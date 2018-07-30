@@ -1054,7 +1054,7 @@ defer lisp-read-lisp
   begin
     lisp-skip 2dup >
   while
-    r> drop lisp-read-lisp lisp-eval >r
+    r> drop lisp-read-lisp lisp-interpret >r
   repeat
   2drop r> ;
 
