@@ -54,8 +54,6 @@ variable curr-func
 : set-func-xt ( - ) latest name>int function-first @ func-xt ! ;
 : set-func-args ( n - ) function-first @ func-args ! ;
 : set-func-&rest ( x - ) function-first @ func-&rest ! ;
-: get-n-args ( xt - n) function-lookup dup 0<> if func-args @ then ;
-: get-n-locals ( xt - n) function-lookup dup 0<> if func-locals @ then ;
 
 \ lisp interpreter
 
