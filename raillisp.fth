@@ -1339,6 +1339,10 @@ variable let-bound-names
   r> cdr lisp-compile-list then,
 ; special
 
+: :> ( lisp - )
+  dup car lisp-interpret [comp'] number-num drop compile,
+  cdr car lisp-interpret [comp'] number-num drop compile,
+  [comp'] > drop compile, [comp'] make-number drop compile, ;
     r> cdr lisp-compile-list
     postpone then
 ; special
