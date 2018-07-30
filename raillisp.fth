@@ -1262,6 +1262,11 @@ variable let-bound-names
   postpone exit set-func-xt
   nil ; special
 
+: defcode ( lisp - lisp)
+  \  postpone def
+  compile-def end-compile
+  postpone exit set-func-xt
+  immediate nil ; special
 : lisp-interpret-symbol ( lisp - )
   lisp-find-symbol-word name>int execute @ ;
 
