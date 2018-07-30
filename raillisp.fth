@@ -1117,7 +1117,7 @@ variable frame
       then
     then
     r> execute
-    macro-flag @ if lisp-interpret then \ macro
+    macro-flag @ if lisp-interpret then
   else \ function
     lisp-state @ 0= if \ interpet
       >r cdr lisp-interpret-list
@@ -1267,6 +1267,13 @@ variable let-bound-names
   compile-def end-compile
   postpone exit set-func-xt
   immediate nil ; special
+
+: defmacro ( lisp - lisp)
+  compile-def end-compile
+  [comp'] set-macro-flag drop compile,
+  postpone exit set-func-xt
+  immediate nil ; special
+
 : lisp-interpret-symbol ( lisp - )
   lisp-find-symbol-word name>int execute @ ;
 
