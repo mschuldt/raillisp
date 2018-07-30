@@ -1328,11 +1328,17 @@ variable let-bound-names
   let-bound-names dup @ rot + swap !
 
 ; special
+
+: if, postpone if ;
+: else, postpone else ;
+: then, postpone then ;
+
 : :if ( lisp - )
-  dup >r car lisp-interpret
-  postpone if
-    r> cdr dup >r car lisp-interpret
-    postpone else
+  dup >r car lisp-interpret if,
+  r> cdr dup >r car lisp-interpret else,
+  r> cdr lisp-compile-list then,
+; special
+
     r> cdr lisp-compile-list
     postpone then
 ; special
