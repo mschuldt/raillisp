@@ -1314,6 +1314,14 @@ variable let-bound-names
   let-bound-names dup @ rot + swap !
 
 ; special
+: :if ( lisp - )
+  dup >r car lisp-interpret
+  postpone if
+    r> cdr dup >r car lisp-interpret
+    postpone else
+    r> cdr lisp-compile-list
+    postpone then
+; special
 
 
 : lisp-builtin-new-vector
