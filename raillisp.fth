@@ -45,8 +45,9 @@ variable curr-func
 : curr-args ( - n ) curr-func @ dup 0<> if func-args @ then ;
 : curr-&rest ( - x ) curr-func @ dup 0<> if func-&rest @ then ;
 
+: check-alloc dup 1 and if ." lsb bit is set" 1 throw then ;
 : new-function
-  func %allocate throw
+  func %allocate throw check-alloc
   dup func-next function-first @ swap !
   function-first ! ;
 
@@ -80,11 +81,6 @@ cell% field pair-cdr
 end-struct lisp-pair
 
 struct
-cell% field number-tag
-cell% field number-num
-end-struct lisp-number
-
-struct
 cell% field symbol-tag
 cell% field symbol-namea
 cell% field symbol-nameu
@@ -96,8 +92,15 @@ cell% field vector-len
 cell% field vector-vec
 end-struct lisp-vector
 
+: get-lisp-tag ( lisp - type )
+  dup 1 and if
+    drop lisp-number-tag
+  else
+    lisp-tag @
+  then ;
+
 : make-cons ( car cdr -- lisp )
-  lisp-pair %allocate throw >r
+  lisp-pair %allocate throw check-alloc >r
   r@ pair-tag lisp-pair-tag swap !
   r@ pair-cdr !
   r@ pair-car !
@@ -109,13 +112,14 @@ end-struct lisp-vector
 : cdr ( pair -- lisp )
   dup 0<> if pair-cdr @ then ;
 
+: <<1 1 lshift ;
+: >>1 1 rshift ;
+
 : make-number ( num -- lisp )
-  lisp-number %allocate throw
-  dup number-tag lisp-number-tag swap !
-  swap over number-num ! ;
+  <<1 1 or ;
 
 : make-symbol ( namea nameu -- lisp )
-  lisp-symbol %allocate throw >r
+  lisp-symbol %allocate throw check-alloc >r
   r@ symbol-tag lisp-symbol-tag swap !
   r@ symbol-nameu !
   r@ symbol-namea !
@@ -132,7 +136,7 @@ end-struct lisp-vector
   dup symbol-tag lisp-string-tag swap ! ;
 
 : make-vector ( length -- lisp )
-  lisp-vector %allocate throw >r
+  lisp-vector %allocate throw check-alloc >r
   r@ vector-tag lisp-vector-tag swap !
   dup r@ vector-len !
   allocate throw r@ vector-vec ! r> ;
@@ -182,7 +186,7 @@ s" &rest" symbol-new constant &rest
   dup 0= if
     drop ." nil"
   else
-    dup lisp-tag @ cells display-dispatch + @ execute
+    dup get-lisp-tag cells display-dispatch + @ execute
   then ;
 
 : lisp-display-pair ( lisp -- )
@@ -206,7 +210,7 @@ s" &rest" symbol-new constant &rest
 ' lisp-display-pair display-dispatch lisp-pair-tag cells + !
 
 : lisp-display-number ( lisp -- )
-  number-num @ . ;
+  >>1 . ;
 
 ' lisp-display-number display-dispatch lisp-number-tag cells + !
 
@@ -247,14 +251,14 @@ s" &rest" symbol-new constant &rest
     2dup lisp-tag @ swap lisp-tag @ <> if
       2drop nil
     else
-      dup lisp-tag @ cells eq?-dispatch + @ execute
+      dup get-lisp-tag cells eq?-dispatch + @ execute
     then
   then ;
 
 ' nil eq?-dispatch lisp-pair-tag cells + !
 
 : lisp-eq?-number ( lisp lisp -- lisp )
-  number-num @ swap number-num @ = if
+  = if
     lisp-true
   else
     nil
@@ -282,7 +286,7 @@ end-compile
 
 : lisp-interpret ( lisp - lisp? )
   dup 0<> if
-    dup lisp-tag @ cells
+    dup get-lisp-tag cells
     lisp-state @
     0= if interpret-dispatch else compile-dispatch then
     + @ execute
@@ -621,7 +625,7 @@ defer lisp-read-lisp
 
 ( ( )( )( ) ( lisp words ) ( )( )( )
 
-: :+ ( nn - n ) number-num @ swap number-num @ + make-number ;
+: :+ ( nn - n ) >>1 swap >>1 + make-number ;
 
 : cons make-cons ;
 
@@ -688,7 +692,7 @@ variable next-local-index 0 cells next-local-index !
   repeat
   nip ;
 
-: consp dup 0<> if lisp-tag @ lisp-pair-tag = then ;
+: consp dup 0<> if get-lisp-tag lisp-pair-tag = then ;
 
 : assoc ( key list - list )
   begin
@@ -812,8 +816,8 @@ variable let-bound-names
 : then, postpone then ;
 
 : :> ( lisp - )
-  dup car lisp-interpret [comp'] number-num drop compile,
-  cdr car lisp-interpret [comp'] number-num drop compile,
+  dup car lisp-interpret [comp'] >>1 drop compile,
+  cdr car lisp-interpret [comp'] >>1 drop compile,
   [comp'] > drop compile, [comp'] make-number drop compile, ;
 
 s" raillisp.lsp" lisp-load-from-file drop
