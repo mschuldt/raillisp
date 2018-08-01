@@ -1,9 +1,8 @@
 
 (defcode if (test true &rest false)
-  (compile test)
+  (compile-r test)
   (if,)
   (compile true)
   (else,)
-  (compile-list false)
-  (then,)
-  1)
+  (progn false)
+  (then,))

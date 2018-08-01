@@ -284,6 +284,10 @@ variable lisp-state
 : end-compile 0 lisp-state ! ;
 end-compile
 
+\ Used by the compiler to signal when the current
+\ form should leave a return value on the stack.
+variable return-context \ 1 if currently in a return context
+
 : lisp-interpret ( lisp - lisp? )
   dup 0<> if
     dup get-lisp-tag cells
@@ -301,6 +305,10 @@ end-compile
   repeat
   drop ;
 
+: lisp-interpret-r ( lisp - lisp?)
+  return-context @ >r 1 return-context !
+  lisp-interpret r> return-context ! ;
+
 : lisp-compile-list ( lisp - )
   recursive
   dup 0<> if
@@ -308,8 +316,23 @@ end-compile
     cdr lisp-compile-list dup
   then drop ;
 
-: compile lisp-interpret ;
-: compile-list lisp-compile-list ;
+: compile-progn ( lisp - )
+  return-context @ swap
+  0 return-context !
+  begin
+    dup 0<>
+  while
+    dup cdr 0= if
+      swap return-context !
+    then
+    dup car lisp-interpret cdr
+  repeat
+  drop ;
+
+: compile lisp-interpret t ;
+: compile-r lisp-interpret-r t ;
+: compile-list lisp-compile-list t ;
+: progn compile-progn t ;
 
 : special?
   cell+ @ immediate-mask and 0<> ;
@@ -578,6 +601,15 @@ defer lisp-read-lisp
     swap 1+ swap cdr
   repeat drop ;
 
+: maybe-drop \ compile a call to drop if not in return context
+  return-context @ 0= if
+    lisp-state @ 0= if
+      \ drop
+    else
+      [comp'] drop drop compile,
+    then
+  then ;
+
 : lisp-interpret-pair ( lisp - lisp?)
   dup car lisp-find-symbol-word
   dup special? if \ special form or macro
@@ -602,12 +634,19 @@ defer lisp-read-lisp
     macro-flag @ if lisp-interpret then
   else \ function
     lisp-state @ 0= if \ interpet
-      >r cdr lisp-interpret-list
+      >r
+      return-context @ >r 1 return-context !
+      cdr lisp-interpret-list
+      r> return-context !
       r> name>int execute
     else  \ compile
-      >r cdr lisp-compile-list
+      >r
+      return-context @ 1 return-context !
+      swap cdr lisp-compile-list
+      return-context !
       r> name>int compile,
     then
+    maybe-drop
   then ;
 
 ' lisp-interpret-pair interpret-dispatch lisp-pair-tag cells + !
@@ -725,6 +764,7 @@ variable let-bound-names
   \ lisp word format:
   \  num-args num-locals next-frame [body...] prev-frame exit
   new-function
+  1 return-context !
   0 let-bound-names !
   dup car symbol->string lisp-create \ create dictionary header
   cdr dup car handle-args
@@ -732,11 +772,12 @@ variable let-bound-names
   here 1 cells + locals-counter ! \ set location of locals count
   0 postpone literal \ lisp word: locals count
   [comp'] next-frame drop compile, \ lisp word: start frame
-  swap cdr start-compile lisp-compile-list \ compile function body
+  swap cdr start-compile compile-progn \ compile function body
   locals-counter @ @ + \ nlocals+nargs
   let-bound-names @ -
   pop-local-names
   [comp'] prev-frame drop compile, \ lisp word: end frame
+  0 return-context !
 ;
 
 : def ( lisp - lisp)
@@ -781,14 +822,17 @@ variable let-bound-names
     lisp-find-symbol-word name>int execute !
   else \ compile
     over locals @ assoc dup if \ setting local variable
-      swap lisp-interpret
+      swap lisp-interpret-r
       cdr postpone literal
       [comp'] set-local drop compile,
       drop \ symbol
     else \ global
-      drop lisp-interpret \ compile value
+      drop lisp-interpret-r \ compile value
       lisp-find-symbol-word name>int compile,
       [comp'] ! drop compile,
+    then
+    return-context @ if
+      0 postpone literal \ TODO: return value instead
     then
   then
 ; special
@@ -809,9 +853,9 @@ variable let-bound-names
 
 ; special
 
-: if, postpone if ;
-: else, postpone else ;
-: then, postpone then ;
+: if, postpone if t ;
+: else, postpone else t ;
+: then, postpone then t ;
 
 : :> ( lisp - )
   dup car lisp-interpret [comp'] >>1 drop compile,
