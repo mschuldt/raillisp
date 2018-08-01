@@ -259,7 +259,8 @@ s" &rest" symbol-new constant &rest
     then
   then ;
 
-' nil eq?-dispatch lisp-pair-tag cells + !
+: cons-not-eq 2drop nil ;
+' cons-not-eq eq?-dispatch lisp-pair-tag cells + !
 
 : lisp-eq?-number ( lisp lisp -- lisp )
   = if
