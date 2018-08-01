@@ -4,7 +4,7 @@
   (if,)
   (compile true)
   (else,)
-  (progn false)
+  (compile-progn false)
   (then,))
 
 (defcode while (test &rest body)

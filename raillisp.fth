@@ -323,11 +323,10 @@ variable return-context \ 1 if currently in a return context
     cdr lisp-compile-list dup
   then drop ;
 
-
 : lisp-interpret-r ( lisp - lisp?) 1 rcontext{ lisp-interpret }rcontext ;
 : lisp-compile-list-nr 0 rcontext{ lisp-compile-list }rcontext ;
 
-: compile-progn ( lisp - )
+: lisp-compile-progn ( lisp - )
   return-context @ swap
   0 return-context !
   begin
@@ -340,14 +339,18 @@ variable return-context \ 1 if currently in a return context
   repeat
   drop ;
 
+: special immediate ;
+: special?
+  cell+ @ immediate-mask and 0<> ;
+
 : compile lisp-interpret t ;
 : compile-r lisp-interpret-r t ;
 : compile-list lisp-compile-list t ;
 : compile-list-nr lisp-compile-list-nr t ;
-: progn compile-progn t ;
 
-: special?
-  cell+ @ immediate-mask and 0<> ;
+: compile-progn lisp-compile-progn t ;
+: progn lisp-compile-progn ; special
+
 
 : lisp-find-symbol-word ( lisp - word)
   symbol->string
@@ -603,7 +606,6 @@ defer lisp-read-lisp
   ." > " lisp-read-lisp
 ;
 
-: special immediate ;
 
 : lisp-list-length ( list - n )
   0 swap
@@ -795,7 +797,7 @@ variable let-bound-names
   here 1 cells + locals-counter ! \ set location of locals count
   0 postpone literal \ lisp word: locals count
   [comp'] next-frame drop compile, \ lisp word: start frame
-  swap cdr start-compile compile-progn \ compile function body
+  swap cdr start-compile lisp-compile-progn \ compile function body
   locals-counter @ @ + \ nlocals+nargs
   let-bound-names @ -
   pop-local-names
