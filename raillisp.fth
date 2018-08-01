@@ -274,13 +274,6 @@ s" &rest" symbol-new constant &rest
 ' lisp-eq?-symbol eq?-dispatch lisp-symbol-tag cells + !
 ' lisp-eq?-symbol eq?-dispatch lisp-string-tag cells + !
 
-: lisp-not
-  car 0= if
-    lisp-true
-  else
-    nil
-  then ;
-
 \ interpretation words must return a single lisp value
 \ compilation words must return nothing
 
@@ -908,6 +901,8 @@ variable let-bound-names
 : < < if lisp-true else nil then ;
 : <= <= if lisp-true else nil then ;
 : >= >= if lisp-true else nil then ;
+
+: not 0= if lisp-true else nil then ;
 
 : cr cr t ;
 
