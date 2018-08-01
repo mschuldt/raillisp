@@ -876,10 +876,6 @@ variable let-bound-names
 : while, postpone while t ;
 : repeat, postpone repeat t ;
 
-: :> ( lisp - )
-  dup car lisp-interpret [comp'] >>1 drop compile,
-  cdr car lisp-interpret [comp'] >>1 drop compile,
-  [comp'] > drop compile, [comp'] make-number drop compile, ;
 : 1+ ( n - n ) 2 + ;
 : 1- ( n - n ) 2 - ;
 : + ( nn - n ) >>1 swap >>1 + make-number ;
@@ -887,6 +883,11 @@ variable let-bound-names
 : * ( nn - n ) >>1 swap >>1 * make-number ;
 : / ( nn - n ) >>1 swap >>1 / make-number ;
 
+: = = if lisp-true else nil then ;
+: > > if lisp-true else nil then ;
+: < < if lisp-true else nil then ;
+: <= <= if lisp-true else nil then ;
+: >= >= if lisp-true else nil then ;
 
 : cr cr t ;
 
