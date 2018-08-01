@@ -673,6 +673,13 @@ defer lisp-read-lisp
 ' lisp-interpret-number interpret-dispatch lisp-number-tag cells + !
 ' lisp-compile-number compile-dispatch lisp-number-tag cells + !
 
+: lisp-compile-string
+  postpone literal \ todo: compile it into the dictionary
+;
+
+' lisp-interpret-number interpret-dispatch lisp-string-tag cells + !
+' lisp-compile-string compile-dispatch lisp-string-tag cells + !
+
 ( ( )( )( ) ( lisp words ) ( )( )( )
 
 : cons make-cons ;
