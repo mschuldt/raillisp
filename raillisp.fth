@@ -202,7 +202,7 @@ s" &rest" symbol-new constant &rest
     dup car lisp-display 32 emit
     cdr
     dup 0<> if
-      dup pair-tag @ lisp-pair-tag <> if
+      dup get-lisp-tag lisp-pair-tag <> if
         [char] . emit 32 emit lisp-display 0
       then
     then
