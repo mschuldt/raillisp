@@ -865,6 +865,9 @@ variable let-bound-names
 : if, postpone if t ;
 : else, postpone else t ;
 : then, postpone then t ;
+: begin, postpone begin t ;
+: while, postpone while t ;
+: repeat, postpone repeat t ;
 
 : :> ( lisp - )
   dup car lisp-interpret [comp'] >>1 drop compile,

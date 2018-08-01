@@ -6,3 +6,12 @@
   (else,)
   (progn false)
   (then,))
+
+(defcode while (test &rest body)
+  (begin,)
+  (compile-r test)
+  (while,)
+  (compile-list-nr body)
+  (repeat,)
+  (maybe-ret))
+
