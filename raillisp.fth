@@ -675,8 +675,6 @@ defer lisp-read-lisp
 
 ( ( )( )( ) ( lisp words ) ( )( )( )
 
-: :+ ( nn - n ) >>1 swap >>1 + make-number ;
-
 : cons make-cons ;
 
 : quote car ; special
@@ -875,6 +873,10 @@ variable let-bound-names
   dup car lisp-interpret [comp'] >>1 drop compile,
   cdr car lisp-interpret [comp'] >>1 drop compile,
   [comp'] > drop compile, [comp'] make-number drop compile, ;
+: + ( nn - n ) >>1 swap >>1 + make-number ;
+: - ( nn - n ) >>1 swap >>1 - make-number ;
+: * ( nn - n ) >>1 swap >>1 * make-number ;
+: / ( nn - n ) >>1 swap >>1 / make-number ;
 
 : cr cr t ;
 
