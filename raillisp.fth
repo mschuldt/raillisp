@@ -144,6 +144,7 @@ end-struct lisp-vector
   allocate throw r@ vector-vec ! r> ;
 
 0 0 make-cons constant lisp-true
+variable t lisp-true t !
 
 : lisp-eq?-symbol ( lisp1 lisp2 -- lisp )
   symbol->string rot symbol->string
@@ -905,5 +906,7 @@ variable let-bound-names
 : not 0= if lisp-true else nil then ;
 
 : cr cr t ;
+
+variable nil 0 nil !
 
 s" raillisp.lsp" lisp-load-from-file drop
