@@ -873,10 +873,13 @@ variable let-bound-names
   dup car lisp-interpret [comp'] >>1 drop compile,
   cdr car lisp-interpret [comp'] >>1 drop compile,
   [comp'] > drop compile, [comp'] make-number drop compile, ;
+: 1+ ( n - n ) 2 + ;
+: 1- ( n - n ) 2 - ;
 : + ( nn - n ) >>1 swap >>1 + make-number ;
 : - ( nn - n ) >>1 swap >>1 - make-number ;
 : * ( nn - n ) >>1 swap >>1 * make-number ;
 : / ( nn - n ) >>1 swap >>1 / make-number ;
+
 
 : cr cr t ;
 
