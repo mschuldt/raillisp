@@ -878,6 +878,17 @@ variable let-bound-names
 
 ; special
 
+
+: list ( lisp - lisp )
+  recursive
+  dup 0<> if
+    dup car lisp-interpret cdr list
+    [comp'] cons drop compile,
+  else
+    postpone literal
+  then
+; special
+
 : if, postpone if t ;
 : else, postpone else t ;
 : then, postpone then t ;
