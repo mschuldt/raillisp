@@ -684,7 +684,13 @@ defer lisp-read-lisp
 
 : cons make-cons ;
 
-: quote car ; special
+: quote
+  lisp-state @ 0= if
+    car
+  else
+    car postpone literal
+  then
+; special
 
 \ locals-counter is a pointer to the locals count in
 \ the word currently being compiled
