@@ -15,3 +15,7 @@
   (repeat,)
   (maybe-ret))
 
+(def println (obj)
+     (print obj)
+     (cr))
+

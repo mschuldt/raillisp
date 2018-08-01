@@ -191,6 +191,8 @@ s" &rest" symbol-new constant &rest
     dup get-lisp-tag cells display-dispatch + @ execute
   then ;
 
+: print ( lisp -- lisp ) dup lisp-display ;
+
 : lisp-display-pair ( lisp -- )
   dup lisp-true = if
     ." t" drop exit
@@ -873,5 +875,7 @@ variable let-bound-names
   dup car lisp-interpret [comp'] >>1 drop compile,
   cdr car lisp-interpret [comp'] >>1 drop compile,
   [comp'] > drop compile, [comp'] make-number drop compile, ;
+
+: cr cr t ;
 
 s" raillisp.lsp" lisp-load-from-file drop
