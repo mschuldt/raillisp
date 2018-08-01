@@ -252,7 +252,7 @@ s" &rest" symbol-new constant &rest
   2dup = if
     2drop lisp-true
   else
-    2dup lisp-tag @ swap lisp-tag @ <> if
+    2dup get-lisp-tag swap get-lisp-tag <> if
       2drop nil
     else
       dup get-lisp-tag cells eq?-dispatch + @ execute
