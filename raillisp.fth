@@ -197,13 +197,13 @@ s" &rest" symbol-new constant &rest
   dup lisp-true = if
     ." t" drop exit
   then
-  [char] ( emit 32 emit
+  [char] ( emit ( 32 emit)
   begin
     dup car lisp-display 32 emit
     cdr
     dup 0<> if
       dup get-lisp-tag lisp-pair-tag <> if
-        [char] . emit 32 emit lisp-display 0
+        [char] . emit ( 32  emit) lisp-display 0
       then
     then
     dup 0=
