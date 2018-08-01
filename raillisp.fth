@@ -2,6 +2,8 @@
 
 \ utilities
 
+0 warnings !
+
 variable exit-on-error
 1 exit-on-error !
 
