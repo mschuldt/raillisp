@@ -777,9 +777,7 @@ variable let-bound-names
 : set ( sv - v)
   dup car swap cdr car \ [ symbol value
   lisp-state @ 0= if \ interpret
-    swap lisp-interpret \ symbol
-    swap lisp-interpret \ value
-    dup rot
+    lisp-interpret dup rot
     lisp-find-symbol-word name>int execute !
   else \ compile
     over locals @ assoc dup if \ setting local variable
