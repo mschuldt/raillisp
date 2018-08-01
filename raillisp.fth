@@ -290,6 +290,12 @@ end-compile
 \ form should leave a return value on the stack.
 variable return-context \ 1 if currently in a return context
 
+: rcontext{ ( v - ) return-context @ r> swap >r >r return-context ! ;
+: }rcontext ( v - ) r> r> swap >r return-context ! ;
+
+: maybe-ret ( - t ) \ used to return nil if in return context
+  return-context @ if 0 postpone literal then t ;
+
 : lisp-interpret ( lisp - lisp? )
   dup 0<> if
     dup get-lisp-tag cells
@@ -307,16 +313,16 @@ variable return-context \ 1 if currently in a return context
   repeat
   drop ;
 
-: lisp-interpret-r ( lisp - lisp?)
-  return-context @ >r 1 return-context !
-  lisp-interpret r> return-context ! ;
-
 : lisp-compile-list ( lisp - )
   recursive
   dup 0<> if
     dup car lisp-interpret
     cdr lisp-compile-list dup
   then drop ;
+
+
+: lisp-interpret-r ( lisp - lisp?) 1 rcontext{ lisp-interpret }rcontext ;
+: lisp-compile-list-nr 0 rcontext{ lisp-compile-list }rcontext ;
 
 : compile-progn ( lisp - )
   return-context @ swap
@@ -334,6 +340,7 @@ variable return-context \ 1 if currently in a return context
 : compile lisp-interpret t ;
 : compile-r lisp-interpret-r t ;
 : compile-list lisp-compile-list t ;
+: compile-list-nr lisp-compile-list-nr t ;
 : progn compile-progn t ;
 
 : special?
