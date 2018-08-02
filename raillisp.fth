@@ -225,9 +225,9 @@ s" &rest" symbol-new constant &rest
 ' lisp-display-symbol display-dispatch lisp-symbol-tag cells + !
 
 : lisp-display-string ( lisp -- )
-  [char] " dup emit
+  ( [char] " dup emit )
   swap symbol->string
-  type emit ;
+  type ( emit ) ;
 
 ' lisp-display-string display-dispatch lisp-string-tag cells + !
 
