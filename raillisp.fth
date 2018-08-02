@@ -726,7 +726,7 @@ variable next-local-index 0 cells next-local-index !
   else drop then ;
 
 : compile-local-var ( symbol value - )
-  lisp-interpret \ compile initial value
+  lisp-interpret-r \ compile initial value
   ++locals push-local-name
   next-local-index @ 1 cells - postpone literal
   [comp'] set-local drop compile, ;
@@ -870,7 +870,7 @@ variable let-bound-names
     dup car swap cdr car compile-local-var
     r> 1+ >r cdr
   repeat
-  drop cdr lisp-compile-list
+  drop cdr lisp-compile-progn
   r> dup pop-local-names
   let-bound-names dup @ rot + swap !
 
