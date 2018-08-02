@@ -893,6 +893,7 @@ variable let-bound-names
 : begin, postpone begin t ;
 : while, postpone while t ;
 : repeat, postpone repeat t ;
+: lit, postpone literal t ;
 
 \ TODO: rename to 1+ and 1- after parser is fixed
 : +1 ( n - n ) 2 + ;
