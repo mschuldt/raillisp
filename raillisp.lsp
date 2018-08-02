@@ -15,7 +15,15 @@
   (repeat,)
   (maybe-ret))
 
+(defmacro dolist (spec &rest body)
+  (list 'let* (list (list '--tail-- (car (cdr spec)))
+                    (list (car spec) 'nil))
+        (list 'while '--tail--
+              (list 'set (car spec) '(car --tail--))
+              '(set --tail-- (cdr --tail--))
+              (cons 'progn body))))
+
+
 (def println (obj)
      (print obj)
      (cr))
-
