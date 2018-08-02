@@ -204,7 +204,7 @@ s" &rest" symbol-new constant &rest
     cdr
     dup 0<> if
       dup get-lisp-tag lisp-pair-tag <> if
-        [char] . emit ( 32  emit) lisp-display 0
+        [char] . emit 32 emit lisp-display 0
       then
     then
     dup 0=
