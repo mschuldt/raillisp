@@ -23,7 +23,16 @@
               '(set --tail-- (cdr --tail--))
               (cons 'progn body))))
 
+(defcode cond (&rest forms)
+  (dolist (x forms)
+    (compile-r (car x))
+    (if,)
+    (compile-progn (cdr x))
+    (else,))
+  (dolist (x forms)
+    (then,)))
 
 (def println (obj)
      (print obj)
      (cr))
+
