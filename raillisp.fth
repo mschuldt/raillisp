@@ -894,8 +894,9 @@ variable let-bound-names
 : while, postpone while t ;
 : repeat, postpone repeat t ;
 
-: 1+ ( n - n ) 2 + ;
-: 1- ( n - n ) 2 - ;
+\ TODO: rename to 1+ and 1- after parser is fixed
+: +1 ( n - n ) 2 + ;
+: -1 ( n - n ) 2 - ;
 : + ( nn - n ) >>1 swap >>1 + make-number ;
 : - ( nn - n ) >>1 swap >>1 - make-number ;
 : * ( nn - n ) >>1 swap >>1 * make-number ;
