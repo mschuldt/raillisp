@@ -41,4 +41,10 @@
 (test "car" (eq? (car (cons 3 4)) 3))
 (test "cdr" (eq? (cdr (cons 3 4)) 4))
 (test "cdr 2" (eq? (cdr nil) nil))
+(test "number?" (number? 2))
+(test "number? 2" (not (number? 'symbol)))
+(test "symbol?" (symbol? 'symbol))
+(test "symbol? 2" (not (symbol? 1)))
+(test "string?" (string? "s"))
+(test "string? 2" (not (string? 1)))
 

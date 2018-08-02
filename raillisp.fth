@@ -910,6 +910,13 @@ variable let-bound-names
 
 : not 0= if lisp-true else nil then ;
 
+: type-of dup 0<> if get-lisp-tag make-number then ; \ todo: return symbol
+: number? 1 and ;
+: cons? dup 0<> if get-lisp-tag lisp-pair-tag = then ;
+: symbol? dup 0<> if get-lisp-tag lisp-symbol-tag = then ;
+: string? dup 0<> if get-lisp-tag lisp-string-tag = then ;
+: vector? dup 0<> if get-lisp-tag lisp-vector-tag = then ;
+
 : cr cr t ;
 
 variable nil 0 nil !
