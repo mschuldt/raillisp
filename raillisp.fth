@@ -902,6 +902,7 @@ variable let-bound-names
 : while, postpone while t ;
 : repeat, postpone repeat t ;
 : lit, postpone literal t ;
+: drop, [comp'] drop drop compile, t ;
 
 \ TODO: rename to 1+ and 1- after parser is fixed
 : +1 ( n - n ) 2 + ;
@@ -916,6 +917,7 @@ variable let-bound-names
 : < < if lisp-true else nil then ;
 : <= <= if lisp-true else nil then ;
 : >= >= if lisp-true else nil then ;
+: zero? 0= if lisp-true else nil then ;
 
 : not 0= if lisp-true else nil then ;
 
@@ -927,6 +929,7 @@ variable let-bound-names
 : vector? dup 0<> if get-lisp-tag lisp-vector-tag = then ;
 
 : cr cr t ;
+: exit bye ;
 
 variable nil 0 nil !
 
