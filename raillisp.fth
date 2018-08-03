@@ -153,6 +153,16 @@ variable t lisp-true t !
     nil
   then ;
 
+: intern ( lisp - lisp )
+  \ Intern a string into the dictionary. Return a symbol
+  dup >r symbol->string 2dup find-name dup if
+    -rot 2drop
+  else
+    drop nextname header reveal latest
+  then
+  name>string r@ symbol-nameu ! r@ symbol-namea !
+  lisp-symbol-tag r@ symbol-tag ! r> ;
+
 : string-equal? ( lisp1 lisp2 -- lisp )
   symbol->string rot symbol->string
   compare 0= if
