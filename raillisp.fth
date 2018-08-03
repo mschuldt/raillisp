@@ -68,7 +68,7 @@ variable curr-func
 5 constant lisp-max-tag
 
 lisp-max-tag cells allocate throw constant display-dispatch
-lisp-max-tag cells allocate throw constant eq?-dispatch
+lisp-max-tag cells allocate throw constant equal?-dispatch
 lisp-max-tag cells allocate throw constant interpret-dispatch
 lisp-max-tag cells allocate throw constant compile-dispatch
 
@@ -146,13 +146,51 @@ end-struct lisp-vector
 0 0 make-cons constant lisp-true
 variable t lisp-true t !
 
-: lisp-eq?-symbol ( lisp1 lisp2 -- lisp )
+: eq? ( lisp lisp -- lisp )
+  = if
+    lisp-true
+  else
+    nil
+  then ;
+
+: string-equal? ( lisp1 lisp2 -- lisp )
   symbol->string rot symbol->string
   compare 0= if
     lisp-true
   else
     nil
   then ;
+
+: symbol-equal? string-equal? ; \ TODO: symbol interning
+
+: equal? ( lisp lisp - lisp )
+  2dup = if
+    2drop lisp-true
+  else
+    2dup 1 and swap 1 and or if
+      2drop nil \ number
+    else
+      2dup 0= swap 0= or if
+        2drop nil \ nil
+      else
+        2dup get-lisp-tag swap get-lisp-tag <> if
+          2drop nil
+        else
+          dup get-lisp-tag cells equal?-dispatch + @ execute
+        then
+      then
+    then
+  then ;
+
+: cons-equal? ( lisp lisp - lisp )
+  \ todo: non recursive version
+  2dup car swap car equal?
+  -rot cdr swap cdr equal?
+  and ;
+
+' string-equal? equal?-dispatch lisp-symbol-tag cells + !
+' string-equal? equal?-dispatch lisp-string-tag cells + !
+' cons-equal? equal?-dispatch lisp-pair-tag cells + !
 
 s" &rest" symbol-new constant &rest
 
@@ -161,7 +199,7 @@ s" &rest" symbol-new constant &rest
   \ return the vararg symbol and remove from arglist
   dup 0<> if
     dup cdr 0<> if
-      dup cdr car &rest lisp-eq?-symbol if
+      dup cdr car &rest symbol-equal? if
         dup cdr cdr car  \ vararg
         swap pair-cdr 0 swap !
       else
@@ -176,7 +214,7 @@ s" &rest" symbol-new constant &rest
 
 : split-args ( arglist - args vararg)
   dup 0<> if
-    dup car &rest lisp-eq?-symbol if
+    dup car &rest symbol-equal? if
       0 swap cdr car
     else
       dup get-vararg
@@ -248,36 +286,6 @@ s" &rest" symbol-new constant &rest
 
 : error-undefined-value
   cr ." undefined value: " lisp-display cr maybe-bye ;
-
-: eq? ( lisp lisp - lisp )
-  2dup = if
-    2drop lisp-true
-  else
-    2dup 0= swap 0= or if
-      2drop nil
-    else
-      2dup get-lisp-tag swap get-lisp-tag <> if
-        2drop nil
-      else
-        dup get-lisp-tag cells eq?-dispatch + @ execute
-      then
-    then
-  then ;
-
-: cons-not-eq 2drop nil ;
-' cons-not-eq eq?-dispatch lisp-pair-tag cells + !
-
-: lisp-eq?-number ( lisp lisp -- lisp )
-  = if
-    lisp-true
-  else
-    nil
-  then ;
-
-' lisp-eq?-number eq?-dispatch lisp-number-tag cells + !
-
-' lisp-eq?-symbol eq?-dispatch lisp-symbol-tag cells + !
-' lisp-eq?-symbol eq?-dispatch lisp-string-tag cells + !
 
 \ interpretation words must return a single lisp value
 \ compilation words must return nothing
@@ -747,7 +755,7 @@ variable next-local-index 0 cells next-local-index !
 : member ( key list - list )
   begin
     dup 0<> if
-      2dup car eq? 0=
+      2dup car equal? 0=
     else 0 then
   while
     cdr
@@ -760,7 +768,7 @@ variable next-local-index 0 cells next-local-index !
   begin
     2dup car
     dup consp if
-      car eq? if
+      car equal? if
         car nip exit
       then
     else

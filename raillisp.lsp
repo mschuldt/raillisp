@@ -42,14 +42,6 @@
     (lit, nil)
     (then,)))
 
-(def equal? (a b)
-     (cond
-      ((eq? a b) t)
-      ((cons? a)
-       (and (cons? b)
-            (equal? (car a) (car b))
-            (equal? (cdr a) (cdr b))))
-      (t nil)))
 
 (def println (obj)
      (print obj)

@@ -13,7 +13,7 @@
 (test "eq? 4" (eq? (eq? nil t) nil))
 (test "+" (eq? (+ 1 1) 2))
 (test "-" (eq? (- 5 4) 1))
-;(test "- 2" (eq? (- 5 10) -5))
+;;(test "- 2" (eq? (- 5 10) -5))
 (test "*" (eq? (* 5 4) 20))
 (test "/" (eq? (/ 50 2) 25))
 (test "+1" (eq? (+1 3) 4))
@@ -131,9 +131,9 @@
            (t "default")))
 
 (def test-cond ()
-     (test "cond 1" (eq? (cond-x 1) "one"))
-     (test "cond 2" (eq? (cond-x 2) "two"))
-     (test "cond 3" (eq? (cond-x 32) "default"))
+     (test "cond 1" (equal? (cond-x 1) "one"))
+     (test "cond 2" (equal? (cond-x 2) "two"))
+     (test "cond 3" (equal? (cond-x 32) "default"))
      ;;(test "cond 4" (eq? (cond ((= 1 2) t)) nil)) ; TODO
      (var x nil)
      (cond (t
