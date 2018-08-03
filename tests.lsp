@@ -4,7 +4,8 @@
          (progn (print "FAILED TEST: ")
                 (println name)
                 (bye))
-         (println name)))
+       (println name)))
+
 
 (test "eq?" (eq? (eq? 1 1) t))
 (test "eq? 2" (eq? (eq? 1 3) nil))
@@ -56,13 +57,15 @@
      (test "equal? 5" (not (equal? nil (cons 1 2))))
      (test "equal? 6" (equal? (list 1 2 3) (list 1 2 3)))
      (test "equal? 7" (not (equal? (list 1 2 3) (list 1 2 3 1))))
-     (test "equal? 8" (equal? nil nil)))
+     (test "equal? 8" (equal? nil nil))
+     (test "equal? 9" (equal? "s" "s"))
+     (test "equal? 10" (not (equal? "s" "ss"))))
 (test-equal?)
 
 (def test-if ()
      (test "if 1" (eq? (if (eq? 1 1) 1 2) 1))
      (test "if 2" (eq? (if (eq? 1 2) 1 2) 2))
-     ;(test "if 3" (eq? (if (eq? 1 2) 1 2 3 4) 4)) ; TODO
+     ;;(test "if 3" (eq? (if (eq? 1 2) 1 2 3 4) 4)) ; TODO
      (var x 1)
      (test "if 4" (eq? (if (eq? 1 1) (progn (set x 2) 4) 6) 4))
      (test "if 5" (eq? x 2))
@@ -127,7 +130,7 @@
 
 (def cond-x (x)
      (cond ((= x 1) "one")
-           ((= x 2)"two")
+           ((= x 2) "two")
            (t "default")))
 
 (def test-cond ()
@@ -144,3 +147,6 @@
      (test "cond 5" (eq? x 4)))
 
 (test-cond)
+
+;; (def func-with-no-body ()) ; TODO
+
