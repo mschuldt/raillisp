@@ -98,7 +98,11 @@ end-struct lisp-vector
   dup 1 and if
     drop lisp-number-tag
   else
-    lisp-tag @
+    dup 0= if
+      drop lisp-number-tag
+    else
+      lisp-tag @
+    then
   then ;
 
 : make-cons ( car cdr -- lisp )
@@ -931,12 +935,12 @@ variable let-bound-names
 
 : not 0= if lisp-true else nil then ;
 
-: type-of dup 0<> if get-lisp-tag make-number then ; \ todo: return symbol
+: type-of get-lisp-tag make-number ; \ todo: return symbol
 : number? 1 and ;
-: cons? dup 0<> if get-lisp-tag lisp-pair-tag = then ;
-: symbol? dup 0<> if get-lisp-tag lisp-symbol-tag = then ;
-: string? dup 0<> if get-lisp-tag lisp-string-tag = then ;
-: vector? dup 0<> if get-lisp-tag lisp-vector-tag = then ;
+: cons? get-lisp-tag lisp-pair-tag  = ;
+: symbol? get-lisp-tag lisp-symbol-tag = ;
+: string? get-lisp-tag lisp-string-tag =  ;
+: vector? get-lisp-tag lisp-vector-tag  = ;
 
 : cr cr t ;
 : exit bye ;
