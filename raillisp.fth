@@ -98,7 +98,7 @@ end-struct lisp-vector
   dup 1 and if
     drop lisp-number-tag
   else
-    dup 0= if
+    dup 0= over -1 = or if
       drop lisp-number-tag
     else
       lisp-tag @
@@ -147,7 +147,7 @@ end-struct lisp-vector
   dup r@ vector-len !
   allocate throw r@ vector-vec ! r> ;
 
-0 0 make-cons constant lisp-true
+-1 constant lisp-true
 variable t lisp-true t !
 
 : eq? ( lisp lisp -- lisp )
@@ -184,8 +184,8 @@ variable t lisp-true t !
     2dup 1 and swap 1 and or if
       2drop nil \ number
     else
-      2dup 0= swap 0= or if
-        2drop nil \ nil
+      2dup 2dup 0= swap 0= or -rot -1 = swap -1 = or or if
+        2drop nil \ nil or t
       else
         2dup get-lisp-tag swap get-lisp-tag <> if
           2drop nil
@@ -238,8 +238,8 @@ s" &rest" symbol-new constant &rest
   then ;
 
 : lisp-display ( lisp -- )
-  dup 0= if
-    drop ." nil"
+  dup 0= over -1 = or if
+    .
   else
     dup get-lisp-tag cells display-dispatch + @ execute
   then ;
@@ -247,9 +247,6 @@ s" &rest" symbol-new constant &rest
 : print ( lisp -- lisp ) dup lisp-display ;
 
 : lisp-display-pair ( lisp -- )
-  dup lisp-true = if
-    ." t" drop exit
-  then
   [char] ( emit ( 32 emit)
   begin
     dup car lisp-display 32 emit
