@@ -1,5 +1,6 @@
 
 (set start-time (utime))
+(set start-here (here))
 
 (defcode if (test true &rest false)
   (compile-r test)
@@ -50,3 +51,4 @@
      (cr))
 
 (var lisp-init-time (- (utime) start-time))
+(var lisp-dict-space (/ (- (here) start-here) (cells 1)))

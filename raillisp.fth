@@ -4,7 +4,9 @@
 
 0 warnings !
 variable start-time
+variable start-here
 utime drop start-time !
+here start-here !
 
 variable exit-on-error
 1 exit-on-error !
@@ -935,6 +937,10 @@ variable let-bound-names
 variable nil 0 nil !
 
 variable forth-init-time
+variable forth-dict-space
 utime start-time @ - make-number forth-init-time !
+here start-here @ - 1 cells / make-number forth-dict-space !
+
+: cells cells make-number ;
 
 s" raillisp.lsp" lisp-load-from-file drop

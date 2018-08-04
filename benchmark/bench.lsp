@@ -164,6 +164,8 @@
 
 (print forth-init-time) (print " ")
 (print lisp-init-time) (print " ")
+(print forth-dict-space) (print " ")
+(print lisp-dict-space) (print " ")
 (print (runbench-loop)) (print " ")
 (print (runbench-tak)) (print " ")
 (print (runbench-fib)) (print " ")

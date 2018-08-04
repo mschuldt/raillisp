@@ -158,3 +158,7 @@
 (println lisp-init-time)
 (print "--test time: ")
 (println (- (utime) start-time))
+(print "--forth dict space: ")
+(println forth-dict-space)
+(print "--lisp dict space: ")
+(println lisp-dict-space)
