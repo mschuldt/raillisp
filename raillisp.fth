@@ -94,17 +94,6 @@ cell% field vector-len
 cell% field vector-vec
 end-struct lisp-vector
 
-: get-lisp-tag ( lisp - type )
-  dup 1 and if
-    drop lisp-number-tag
-  else
-    dup 0= over -1 = or if
-      drop lisp-number-tag
-    else
-      lisp-tag @
-    then
-  then ;
-
 : make-cons ( car cdr -- lisp )
   lisp-pair %allocate throw check-alloc >r
   r@ pair-tag lisp-pair-tag swap !
@@ -146,6 +135,24 @@ end-struct lisp-vector
   r@ vector-tag lisp-vector-tag swap !
   dup r@ vector-len !
   allocate throw r@ vector-vec ! r> ;
+
+: get-lisp-tag ( lisp - type )
+  dup 1 and if
+    drop lisp-number-tag
+  else
+    dup 0= over -1 = or if
+      drop lisp-number-tag
+    else
+      lisp-tag @
+    then
+  then ;
+
+: type-of get-lisp-tag make-number ; \ todo: return symbol
+: number? 1 and ;
+: cons? get-lisp-tag lisp-pair-tag  = ;
+: symbol? get-lisp-tag lisp-symbol-tag = ;
+: string? get-lisp-tag lisp-string-tag =  ;
+: vector? get-lisp-tag lisp-vector-tag  = ;
 
 -1 constant lisp-true
 variable t lisp-true t !
@@ -768,12 +775,10 @@ variable next-local-index 0 cells next-local-index !
   repeat
   nip ;
 
-: consp dup 0<> if get-lisp-tag lisp-pair-tag = then ;
-
 : assoc ( key list - list )
   begin
     2dup car
-    dup consp if
+    dup cons? if
       car equal? if
         car nip exit
       then
@@ -918,13 +923,6 @@ variable let-bound-names
 : * ( nn - n ) >>1 swap >>1 * make-number ;
 : / ( nn - n ) >>1 swap >>1 swap / make-number ;
 
-
-: type-of get-lisp-tag make-number ; \ todo: return symbol
-: number? 1 and ;
-: cons? get-lisp-tag lisp-pair-tag  = ;
-: symbol? get-lisp-tag lisp-symbol-tag = ;
-: string? get-lisp-tag lisp-string-tag =  ;
-: vector? get-lisp-tag lisp-vector-tag  = ;
 : zero? 0= ;
 : not 0=  ;
 
