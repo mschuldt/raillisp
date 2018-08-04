@@ -163,12 +163,17 @@ variable t lisp-true t !
 
 : eq? = ;
 
+wordlist constant symbols
+
 : intern ( lisp - lisp )
   \ Intern a string into the dictionary. Return a symbol
-  dup >r symbol->string 2dup find-name dup if
+  dup >r symbol->string 2dup
+  symbols >order find-name previous
+  dup if
     -rot 2drop
   else
-    drop nextname header reveal latest
+    drop get-current -rot symbols set-current
+    nextname header reveal set-current latest
   then
   name>string r@ symbol-nameu ! r@ symbol-namea !
   lisp-symbol-tag r@ symbol-tag ! r> ;
