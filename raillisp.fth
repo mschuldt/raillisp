@@ -928,7 +928,6 @@ variable let-bound-names
 : +1 ( n - n ) 2 + ;
 : -1 ( n - n ) 2 - ;
 : + ( nn - n ) >>1 swap >>1 + make-number ;
-: - ( nn - n ) >>1 swap >>1 swap - make-number ;
 : * ( nn - n ) >>1 swap >>1 * make-number ;
 : / ( nn - n ) >>1 swap >>1 swap / make-number ;
 
@@ -939,13 +938,15 @@ variable let-bound-names
 : exit bye ;
 : utime utime drop ;
 : sleep-ms ( ms - ) ms t ;
+: cells cells make-number ;
+
 variable nil 0 nil !
 
 variable forth-init-time
 variable forth-dict-space
 utime start-time @ - make-number forth-init-time !
-here start-here @ - 1 cells / make-number forth-dict-space !
-
-: cells cells make-number ;
+here start-here @ - make-number forth-dict-space !
+\ - needs to come after the time and space calculation
+: - ( nn - n ) >>1 swap >>1 swap - make-number ;
 
 s" raillisp.lsp" lisp-load-from-file drop

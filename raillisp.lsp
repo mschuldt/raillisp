@@ -51,4 +51,4 @@
      (cr))
 
 (var lisp-init-time (- (utime) start-time))
-(var lisp-dict-space (/ (- (here) start-here) (cells 1)))
+(var lisp-dict-space (- (here) start-here))
