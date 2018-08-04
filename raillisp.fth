@@ -150,12 +150,7 @@ end-struct lisp-vector
 -1 constant lisp-true
 variable t lisp-true t !
 
-: eq? ( lisp lisp -- lisp )
-  = if
-    lisp-true
-  else
-    nil
-  then ;
+: eq? = ;
 
 : intern ( lisp - lisp )
   \ Intern a string into the dictionary. Return a symbol
@@ -923,14 +918,6 @@ variable let-bound-names
 : * ( nn - n ) >>1 swap >>1 * make-number ;
 : / ( nn - n ) >>1 swap >>1 swap / make-number ;
 
-: = = if lisp-true else nil then ;
-: > > if lisp-true else nil then ;
-: < < if lisp-true else nil then ;
-: <= <= if lisp-true else nil then ;
-: >= >= if lisp-true else nil then ;
-: zero? 0= if lisp-true else nil then ;
-
-: not 0= if lisp-true else nil then ;
 
 : type-of get-lisp-tag make-number ; \ todo: return symbol
 : number? 1 and ;
@@ -938,6 +925,8 @@ variable let-bound-names
 : symbol? get-lisp-tag lisp-symbol-tag = ;
 : string? get-lisp-tag lisp-string-tag =  ;
 : vector? get-lisp-tag lisp-vector-tag  = ;
+: zero? 0= ;
+: not 0=  ;
 
 : cr cr t ;
 : exit bye ;
