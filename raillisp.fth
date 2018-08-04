@@ -217,7 +217,7 @@ wordlist constant symbols
 ' string-equal? equal?-dispatch lisp-string-tag cells + !
 ' cons-equal? equal?-dispatch lisp-pair-tag cells + !
 
-s" &rest" symbol-new constant &rest
+s" &rest" symbol-new intern constant &rest
 
 : get-vararg
   recursive ( arglist - vararg)
