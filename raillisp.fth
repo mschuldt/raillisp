@@ -935,6 +935,6 @@ variable let-bound-names
 variable nil 0 nil !
 
 variable forth-init-time
-utime start-time @ - forth-init-time !
+utime start-time @ - make-number forth-init-time !
 
 s" raillisp.lsp" lisp-load-from-file drop
