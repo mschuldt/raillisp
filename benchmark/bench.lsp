@@ -1,4 +1,6 @@
 
+;; prints: forth-init lisp-init bench1 bench2 bench3
+
 (def bench1 ()
      (var n 0)
      (var start (utime))
@@ -59,6 +61,8 @@
        (set n (+1 n)))
      time)
 
+(print forth-init-time) (print " ")
+(print lisp-init-time) (print " ")
 (print (runbench1)) (print " ")
 (print (runbench2)) (print " ")
 (print (runbench3))
