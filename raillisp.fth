@@ -928,7 +928,8 @@ variable let-bound-names
 
 : cr cr t ;
 : exit bye ;
-
+: utime utime drop ;
+: sleep-ms ( ms - ) ms t ;
 variable nil 0 nil !
 
 s" raillisp.lsp" lisp-load-from-file drop
