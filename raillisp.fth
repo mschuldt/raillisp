@@ -801,6 +801,7 @@ variable next-local-index 0 cells next-local-index !
 
 : list-length lisp-list-length make-number ;
 
+: string-length ( lisp - lisp ) symbol-nameu @ make-number ;
 
 \ counts the number of let bound names in the current word
 \ or other names that have been cleaned up with pop-local-names
