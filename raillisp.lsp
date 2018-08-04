@@ -1,4 +1,6 @@
 
+(set start-time (utime))
+
 (defcode if (test true &rest false)
   (compile-r test)
   (if,)
@@ -47,3 +49,4 @@
      (print obj)
      (cr))
 
+(var lisp-init-time (- (utime) start-time))

@@ -1,4 +1,6 @@
 
+(var start-time (utime))
+
 (def test (name check)
      (if (not check)
          (progn (print "FAILED TEST: ")
@@ -150,3 +152,9 @@
 
 ;; (def func-with-no-body ()) ; TODO
 
+(print "forth init:")
+(println forth-init-time)
+(print "lisp init:")
+(println lisp-init-time)
+(print "test time: ")
+(println (- (utime) start-time))

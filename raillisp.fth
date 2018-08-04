@@ -3,6 +3,8 @@
 \ utilities
 
 0 warnings !
+variable start-time
+utime drop start-time !
 
 variable exit-on-error
 1 exit-on-error !
@@ -931,5 +933,8 @@ variable let-bound-names
 : utime utime drop ;
 : sleep-ms ( ms - ) ms t ;
 variable nil 0 nil !
+
+variable forth-init-time
+utime start-time @ - forth-init-time !
 
 s" raillisp.lsp" lisp-load-from-file drop
