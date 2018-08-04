@@ -8,7 +8,6 @@
                 (bye))
        (println name)))
 
-
 (test "eq?" (eq? (eq? 1 1) t))
 (test "eq? 2" (eq? (eq? 1 3) nil))
 (test "eq? 3" (eq? (eq? (cons 1 2) (cons 1 2)) nil))
@@ -171,13 +170,13 @@
 
 ;; (def func-with-no-body ()) ; TODO
 
-(print "--forth init: ")
+(print "--forth init time: ")
 (println forth-init-time)
-(print "--lisp init: ")
+(print "--lisp init time: ")
 (println lisp-init-time)
-(print "--test time: ")
-(println (- (utime) start-time))
 (print "--forth dict space: ")
 (println forth-dict-space)
 (print "--lisp dict space: ")
 (println lisp-dict-space)
+(print "--test time: ")
+(println (- (utime) start-time))
