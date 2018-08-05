@@ -921,9 +921,8 @@ variable let-bound-names
 : lit, postpone literal t ;
 : drop, [comp'] drop drop compile, t ;
 
-\ TODO: rename to 1+ and 1- after parser is fixed
-: +1 ( n - n ) 2 + ;
-: -1 ( n - n ) 2 - ;
+: 1+ ( n - n ) 2 + ;
+: 1- ( n - n ) 2 - ;
 : + ( nn - n ) >>1 swap >>1 + make-number ;
 : - ( nn - n ) >>1 swap >>1 swap - make-number ;
 : * ( nn - n ) >>1 swap >>1 * make-number ;

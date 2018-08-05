@@ -5,16 +5,16 @@
      (var n 0)
      (var start (utime))
      (while (< n 4000000)
-       (set n (+1 n)))
+       (set n (1+ n)))
      (- (utime) start))
 
 (def tak (x y z)
      (if (not (< y x))
          z
        (tak
-        (tak (-1 x) y z)
-        (tak (-1 y) z x)
-        (tak (-1 z) x y))))
+        (tak (1- x) y z)
+        (tak (1- y) z x)
+        (tak (1- z) x y))))
 
 (def fib (n)
      (if (< n 3) 1
@@ -107,7 +107,7 @@
      (var start (utime))
      (while (< n 70000)
        (locals 1 2 3 4 5 6)
-       (set n (+1 n)))
+       (set n (1+ n)))
      (- (utime) start))
 
 (def bench-tak ()
@@ -127,7 +127,7 @@
      (var time (bench-loop))
      (while (< n 20)
        (set time (min time (bench-loop)))
-       (set n (+1 n)))
+       (set n (1+ n)))
      time)
 
 (def runbench-tak ()
@@ -135,7 +135,7 @@
      (var time (bench-tak))
      (while (< n 20)
        (set time (min time (bench-tak)))
-       (set n (+1 n)))
+       (set n (1+ n)))
      time)
 
 (def runbench-fib ()
@@ -143,7 +143,7 @@
      (var time (bench-fib))
      (while (< n 20)
        (set time (min time (bench-fib)))
-       (set n (+1 n)))
+       (set n (1+ n)))
      time)
 
 (def runbench-calls ()
@@ -151,7 +151,7 @@
      (var time (bench-calls))
      (while (< n 20)
        (set time (min time (bench-calls)))
-       (set n (+1 n)))
+       (set n (1+ n)))
      time)
 
 (def runbench-locals ()
@@ -159,7 +159,7 @@
      (var time (bench-locals))
      (while (< n 20)
        (set time (min time (bench-locals)))
-       (set n (+1 n)))
+       (set n (1+ n)))
      time)
 
 (print forth-init-time) (print " ")
