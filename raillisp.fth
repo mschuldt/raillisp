@@ -165,13 +165,16 @@ wordlist constant symbols
   symbols >order find-name previous
   dup if
     \ the symbol already exits
-    -rot 2drop name>int execute @
-    r> drop \ todo: free memory from this string if not eq to new one
+    -rot 2drop name>int execute @ r> drop
   else
     \ create a new variable in the symbols wordlist
     drop get-current -rot symbols set-current
     nextname header reveal dovar: cfa, r@ , set-current
-    lisp-symbol-tag r@ symbol-tag ! r>
+    \ set symbol string to point to header string
+    latest name>string drop r@ symbol-namea !
+    \ change type to symbol
+    lisp-symbol-tag r@ symbol-tag !
+    r>
   then ;
 
 : string-equal? ( lisp1 lisp2 -- lisp )
