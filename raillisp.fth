@@ -18,14 +18,52 @@ variable exit-on-error
   dup rot over allocate drop
   dup >r rot cmove r> swap ;
 
+0 constant lisp-pair-tag
+1 constant lisp-number-tag
+2 constant lisp-symbol-tag
+3 constant lisp-string-tag
+4 constant lisp-vector-tag
+5 constant lisp-max-tag
+
+lisp-max-tag cells allocate throw constant display-dispatch
+lisp-max-tag cells allocate throw constant equal?-dispatch
+lisp-max-tag cells allocate throw constant interpret-dispatch
+lisp-max-tag cells allocate throw constant compile-dispatch
+
+\ lisp structs. The forth struct feature is not used for portability
+
+\ struct
+\ cell% field pair-tag
+\ cell% field pair-car
+\ cell% field pair-cdr
+\ end-struct lisp-pair
+
+\ translates to:
+
+\ : pair-tag 0 + ;
+: pair-car [ 1 cells ] literal + ;
+: pair-cdr [ 2 cells ] literal + ;
+2 cells constant sizeof-pair
+
+\ : symbol-tag 0 + ;
+: symbol-namea [ 1 cells ] literal + ;
+: symbol-nameu [ 2 cells ] literal + ;
+2 cells constant sizeof-symbol
+
+\ : vector-tag 0 + ;
+: vector-tag [ 1 cells ] literal + ;
+: vector-len [ 2 cells ] literal + ;
+: vector-vec [ 3 cells ] literal + ;
+3 cells constant sizeof-vector
+
 \ function meta data
-struct
-cell% field func-xt
-cell% field func-args
-cell% field func-locals
-cell% field func-&rest
-cell% field func-next
-end-struct func
+: func-xt ;
+: func-xt [ 1 cells ] literal + ;
+: func-args [ 2 cells ] literal + ;
+: func-locals [ 3 cells ] literal + ;
+: func-&rest [ 4 cells ] literal + ;
+: func-next [ 5 cells ] literal + ;
+6 cells constant sizeof-func
 
 variable function-first
 variable curr-func
@@ -47,7 +85,7 @@ variable curr-func
 
 : check-alloc dup 1 and if ." lsb bit is set" 1 throw then ;
 : new-function
-  func %allocate throw check-alloc
+  sizeof-func allocate throw check-alloc
   dup func-next function-first @ swap !
   function-first ! ;
 
@@ -56,45 +94,9 @@ variable curr-func
 : set-func-args ( n - ) function-first @ func-args ! ;
 : set-func-&rest ( x - ) function-first @ func-&rest ! ;
 
-\ lisp interpreter
-
-0 constant lisp-pair-tag
-1 constant lisp-number-tag
-2 constant lisp-symbol-tag
-3 constant lisp-string-tag
-4 constant lisp-vector-tag
-5 constant lisp-max-tag
-
-lisp-max-tag cells allocate throw constant display-dispatch
-lisp-max-tag cells allocate throw constant equal?-dispatch
-lisp-max-tag cells allocate throw constant interpret-dispatch
-lisp-max-tag cells allocate throw constant compile-dispatch
-
-struct
-cell% field lisp-tag
-end-struct lisp
-
-struct
-cell% field pair-tag
-cell% field pair-car
-cell% field pair-cdr
-end-struct lisp-pair
-
-struct
-cell% field symbol-tag
-cell% field symbol-namea
-cell% field symbol-nameu
-end-struct lisp-symbol
-
-struct
-cell% field vector-tag
-cell% field vector-len
-cell% field vector-vec
-end-struct lisp-vector
-
 : make-cons ( car cdr -- lisp )
-  lisp-pair %allocate throw check-alloc >r
-  r@ pair-tag lisp-pair-tag swap !
+  sizeof-pair allocate throw check-alloc >r
+  r@ ( pair-tag) lisp-pair-tag swap !
   r@ pair-cdr !
   r@ pair-car !
   r> ;
@@ -112,8 +114,8 @@ end-struct lisp-vector
   <<1 1 or ;
 
 : make-symbol ( namea nameu -- lisp )
-  lisp-symbol %allocate throw check-alloc >r
-  r@ symbol-tag lisp-symbol-tag swap !
+  sizeof-symbol allocate throw check-alloc >r
+  r@ ( symbol-tag) lisp-symbol-tag swap !
   r@ symbol-nameu !
   r@ symbol-namea !
   r> ;
@@ -126,10 +128,10 @@ end-struct lisp-vector
 
 : make-string ( namea nameu -- lisp )
   make-symbol
-  dup symbol-tag lisp-string-tag swap ! ;
+  dup ( symbol-tag) lisp-string-tag swap ! ;
 
 : make-vector ( length -- lisp )
-  lisp-vector %allocate throw check-alloc >r
+  sizeof-vector allocate throw check-alloc >r
   r@ vector-tag lisp-vector-tag swap !
   dup r@ vector-len !
   allocate throw r@ vector-vec ! r> ;
@@ -141,7 +143,7 @@ end-struct lisp-vector
     dup 0= over -1 = or if
       drop lisp-number-tag
     else
-      lisp-tag @
+      ( lisp-tag) @
     then
   then ;
 
@@ -173,7 +175,7 @@ wordlist constant symbols
     \ set symbol string to point to header string
     latest name>string drop r@ symbol-namea !
     \ change type to symbol
-    lisp-symbol-tag r@ symbol-tag !
+    lisp-symbol-tag r@ ( symbol-tag) !
     r>
   then ;
 
