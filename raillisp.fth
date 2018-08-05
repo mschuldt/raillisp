@@ -18,12 +18,6 @@ variable exit-on-error
   dup rot over allocate drop
   dup >r rot cmove r> swap ;
 
-: string>num ( a u -- n )
-  0 swap 0 ?do
-    10 * over i + c@ [char] 0 - +
-  loop
-  nip ;
-
 \ function meta data
 struct
 cell% field func-xt
@@ -530,11 +524,15 @@ defer lisp-read-lisp
     lisp-unread-char lisp-read-lisp >r lisp-read-list r> swap make-cons
   then ;
 
-: lisp-read-number ( e a -- e a lisp )
-  lisp-read-token string>num make-number ;
+: string->number ( lisp - lisp )
+  symbol->string s>number? if drop make-number else nil then ;
 
 : lisp-read-symbol ( e a -- e a lisp )
-  lisp-read-token string-new make-symbol ;
+  lisp-read-token 2dup s>number? if
+    drop make-number nip nip
+  else
+    drop drop string-new make-symbol
+  then ;
 
 : lisp-read-quote ( e a -- e a lisp )
   lisp-read-lisp nil make-cons
@@ -580,17 +578,13 @@ defer lisp-read-lisp
     dup [char] ( = if
       drop lisp-read-list
     else
-      dup [char] 0 >= over [char] 9 <= and if
-	drop lisp-unread-char lisp-read-number
+      dup [char] ' = if
+        drop lisp-read-quote
       else
-        dup [char] ' = if
-          drop lisp-read-quote
+        [char] " = if
+          lisp-read-string
         else
-          [char] " = if
-            lisp-read-string
-          else
-	    lisp-unread-char lisp-read-symbol
-          then
+	  lisp-unread-char lisp-read-symbol
         then
       then
     then
