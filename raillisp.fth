@@ -887,25 +887,37 @@ variable let-bound-names
 ' lisp-interpret-symbol interpret-dispatch lisp-symbol-tag cells + !
 ' lisp-compile-symbol compile-dispatch lisp-symbol-tag cells + !
 
+: set-interpret ( symbol value - )
+  lisp-interpret dup rot
+  lisp-find-symbol-word name>int execute ! ;
+
+: set-compile-local ( symbol value indexcons - )
+  swap lisp-interpret-r
+  cdr postpone literal
+  [comp'] set-local drop compile,
+  drop ; \ symbol
+
+: set-compile-global ( symbol value  - )
+  lisp-interpret-r \ compile value
+  lisp-find-symbol-word name>int compile,
+  [comp'] ! drop compile, ;
+
+: set-compile ( symbol value - )
+  over locals @ assoc dup if
+    set-compile-local
+  else
+    drop set-compile-global
+  then
+  return-context @ if
+    0 postpone literal \ TODO: return value instead
+  then ;
+
 : set ( sv - v)
   dup car swap cdr car \ [ symbol value
-  lisp-state @ 0= if \ interpret
-    lisp-interpret dup rot
-    lisp-find-symbol-word name>int execute !
-  else \ compile
-    over locals @ assoc dup if \ setting local variable
-      swap lisp-interpret-r
-      cdr postpone literal
-      [comp'] set-local drop compile,
-      drop \ symbol
-    else \ global
-      drop lisp-interpret-r \ compile value
-      lisp-find-symbol-word name>int compile,
-      [comp'] ! drop compile,
-    then
-    return-context @ if
-      0 postpone literal \ TODO: return value instead
-    then
+  lisp-state @ 0= if
+    set-interpret
+  else
+    set-compile
   then
 ; special
 
