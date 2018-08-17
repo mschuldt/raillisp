@@ -59,5 +59,12 @@
      (print obj)
      (cr))
 
+(defmacro dotimes (spec &rest body)
+  (list 'let* (list (list '--dotimes-limit-- (car (cdr spec)))
+                    (list (car spec) 0))
+        (list 'while (list '< (car spec) '--dotimes-limit--)
+              (cons 'progn body)
+              (list 'set (car spec) (list '+ (car spec) 1)))))
+
 (var lisp-init-time (- (utime) start-time))
 (var lisp-dict-space (- (here) start-here))
