@@ -764,6 +764,17 @@ variable next-local-index 0 cells next-local-index !
     1- pop-local-names
   else drop then ;
 
+: list-index ( elem list - index )
+  0 >r
+  begin
+    dup 0<> if
+      2dup car equal? 0=
+    else 0 then
+  while
+    cdr r> 1+ >r
+  repeat
+  if drop r> else r> 2drop -1 then ;
+
 : compile-local-var ( symbol value - )
   lisp-interpret-r \ compile initial value
   ++locals push-local-name
@@ -949,6 +960,7 @@ variable let-bound-names
 : utime utime drop make-number ;
 : sleep-ms ( ms - ) >>1 ms t ;
 : here here make-number ;
+: list-index list-index make-number ;
 
 variable nil 0 nil !
 
