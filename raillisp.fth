@@ -328,6 +328,10 @@ variable return-context \ 1 if currently in a return context
 : maybe-ret ( - t ) \ used to return nil if in return context
   return-context @ if 0 postpone literal then t ;
 
+\ return-lit used in defcode to return a value from the form
+: return-lit ( n - )
+  return-context @ if postpone literal else drop then t ;
+
 : lisp-interpret ( lisp - lisp? )
   dup 0<> if
     dup get-lisp-tag cells
@@ -675,6 +679,10 @@ defer lisp-read-lisp
     then
     r> execute
     macro-flag @ if lisp-interpret then
+    \ can't call 'maybe-drop' for special forms here
+    \ because special forms defined in forth don't return anything.
+    \ Instead the forms defined in lisp are compiled with
+    \ a call to maybe-drop at the end of their definition.
   else \ function
     lisp-state @ 0= if \ interpet
       >r

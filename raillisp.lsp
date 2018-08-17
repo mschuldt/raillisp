@@ -39,10 +39,10 @@
   (dolist (x conditions)
     (compile-r x)
     (if,))
-  (lit, t)
+  (return-lit t)
   (dolist (x conditions)
     (else,)
-    (lit, nil)
+    (return-lit nil)
     (then,)))
 
 
