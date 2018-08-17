@@ -186,6 +186,62 @@
 
 (test-cond)
 
+(def test-and ()
+     (var x 0)
+     (and 1
+          (progn (set x 11) t)
+          nil
+          (set x 22))
+     (test "and" (eq? x 11))
+     (and (= (+ 10 1) x)
+          (and t
+               (set x 33)
+               nil
+               (set x 44))
+          (eq? 2 3)
+          (set x 55))
+     (test "and 2" (eq? x 33))
+     (if (and 3 4)
+         (set x 4)
+       (set x 5))
+     (test "and 3" (eq? x 4))
+     (test "and 4" (eq? (and) t)))
+(test-and)
+
+(def test-or ()
+     (var x 0)
+     (or (progn (set x 11) t)
+         (set x 22))
+     (test "or" (eq? x 11))
+     (or (progn (set x 11) nil)
+         (set x 22))
+     (test "or 2" (eq? x 22))
+     (or nil
+         (or nil
+             (progn (set x 33) t)
+             (set x 44)))
+     (print "x = ")
+     (println x)
+     (test "or 3" (eq? x 33))
+     (if (or nil t)
+         (set x 4)
+       (set x 5))
+     (test "or 4" (eq? x 4))
+     (test "or 5" (eq? (or) nil)))
+(test-or)
+
+(def test-dotimes ()
+     (var x nil)
+     (dotimes (n 5)
+       (set x (cons n x)))
+     (test "dotimes" (equal? x (list 4 3 2 1 0)))
+     (dotimes (n 0)
+       (set x 1))
+     (test "dotimes 2" (not (eq? x 1))))
+
+(test-dotimes)
+
+
 ;; (def func-with-no-body ()) ; TODO
 
 (print "--forth init time: ")
