@@ -45,6 +45,15 @@
     (return-lit nil)
     (then,)))
 
+(defcode or (&rest conditions)
+  (dolist (x conditions)
+    (compile-r x)
+    (if,)
+    (return-lit t)
+    (else,))
+  (return-lit nil)
+  (dolist (x conditions)
+    (then,)))
 
 (def println (obj)
      (print obj)
