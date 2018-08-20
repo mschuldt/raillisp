@@ -687,49 +687,58 @@ defer lisp-read-lisp
     else 2drop then
   else drop then ;
 
+: lisp-interpret-special ( lisp word - )
+  \ special form or macro
+  0 macro-flag !
+  name>int dup find-function >r
+  cdr ( dup check-arg-count )
+  curr-func @ 0<> if
+    curr-args dup 0> if
+      curr-&rest if
+        1- 0 >r else 1 >r then >r
+      begin r@ 0> while
+        dup car
+        swap cdr r> 1- >r
+      repeat
+      r> ( count) drop
+      r> ( &rest @ flag) if drop then
+    else
+      drop
+    then
+  then
+  r> execute
+  macro-flag @ if lisp-interpret then
+  \ can't call 'maybe-drop' for special forms here
+  \ because special forms defined in forth don't return anything.
+  \ Instead the forms defined in lisp are compiled with
+  \ a call to maybe-drop at the end of their definition.
+;
+
+: lisp-interpret-function ( lisp word - )
+  >r return-context @ >r 1 return-context !
+  cdr lisp-interpret-list
+  r> return-context !
+  r> name>int
+  dup find-function-check swap check-arg-count
+  execute ;
+
+: lisp-compile-function ( lisp word - )
+  >r return-context @ 1 return-context !
+  swap cdr lisp-compile-list
+  swap return-context !
+  r> name>int dup find-function-check swap
+  check-arg-count
+  compile, ;
+
 : lisp-interpret-pair ( lisp - lisp?)
   dup car lisp-find-symbol-word
-  dup special? if \ special form or macro
-    0 macro-flag !
-    name>int dup find-function >r
-    cdr ( dup check-arg-count )
-    curr-func @ 0<> if
-      curr-args dup 0> if
-        curr-&rest if
-          1- 0 >r else 1 >r then >r
-        begin r@ 0> while
-          dup car
-          swap cdr r> 1- >r
-        repeat
-        r> ( count) drop
-        r> ( &rest @ flag) if drop then
-      else
-        drop
-      then
-    then
-    r> execute
-    macro-flag @ if lisp-interpret then
-    \ can't call 'maybe-drop' for special forms here
-    \ because special forms defined in forth don't return anything.
-    \ Instead the forms defined in lisp are compiled with
-    \ a call to maybe-drop at the end of their definition.
+  dup special? if
+    lisp-interpret-special
   else \ function
-    lisp-state @ 0= if \ interpret
-      >r
-      return-context @ >r 1 return-context !
-      cdr lisp-interpret-list
-      r> return-context !
-      r> name>int
-      dup find-function-check swap check-arg-count
-      execute
-    else  \ compile
-      >r
-      return-context @ 1 return-context !
-      swap cdr lisp-compile-list
-      swap return-context !
-      r> name>int dup find-function-check swap
-      check-arg-count
-      compile,
+    lisp-state @ 0= if
+      lisp-interpret-function
+    else
+      lisp-compile-function
     then
     maybe-drop
   then ;
