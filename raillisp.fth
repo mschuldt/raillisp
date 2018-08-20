@@ -367,16 +367,17 @@ variable return-context \ 1 if currently in a return context
   repeat
   drop r> ;
 
-: lisp-compile-list ( lisp - )
+: lisp-compile-list ( lisp - count )
+  0 swap
   begin
     dup 0<>
   while
     dup car lisp-interpret
-    cdr
+    cdr swap 1+ swap
   repeat drop ;
 
 : lisp-interpret-r ( lisp - lisp?) 1 rcontext{ lisp-interpret }rcontext ;
-: lisp-compile-list-nr 0 rcontext{ lisp-compile-list }rcontext ;
+: lisp-compile-list-nr 0 rcontext{ lisp-compile-list drop }rcontext ;
 
 : lisp-compile-progn ( lisp - )
   return-context @ swap
@@ -397,7 +398,7 @@ variable return-context \ 1 if currently in a return context
 
 : compile lisp-interpret t ; f1
 : compile-r lisp-interpret-r t ; f1
-: compile-list lisp-compile-list t ; f1
+: compile-list lisp-compile-list ; f1
 : compile-list-nr lisp-compile-list-nr t ; f1
 
 : compile-progn lisp-compile-progn t ; fn
@@ -719,7 +720,7 @@ defer lisp-read-lisp
     else  \ compile
       >r
       return-context @ 1 return-context !
-      swap cdr lisp-compile-list
+      swap cdr lisp-compile-list drop
       return-context !
       r> name>int compile,
     then
