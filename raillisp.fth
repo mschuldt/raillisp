@@ -676,10 +676,13 @@ defer lisp-read-lisp
     then
   then ;
 
-: check-arg-count ( func argc - )
+: check-arg-count ( argc - )
   \ ARGC is the arg count curr-func is being called with
-  curr-args 2dup <> if ." invalid arg count, expected " . ." got " . cr
-                    else 2drop then ;
+  curr-&rest 0= if
+    curr-args 2dup <>
+    if ." invalid arg count, expected " . ." got " . cr bye
+    else 2drop then
+  else drop then ;
 
 : lisp-interpret-pair ( lisp - lisp?)
   dup car lisp-find-symbol-word
