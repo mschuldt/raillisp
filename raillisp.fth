@@ -233,14 +233,16 @@ wordlist constant symbols
 ' string-equal? equal?-dispatch lisp-string-tag cells + !
 ' cons-equal? equal?-dispatch lisp-pair-tag cells + !
 
-s" &rest" symbol-new intern constant &rest
+s" &rest" symbol-new intern
+variable &rest f0
+&rest !
 
 : get-vararg
   recursive ( arglist - vararg)
   \ return the vararg symbol and remove from arglist
   dup 0<> if
     dup cdr 0<> if
-      dup cdr car &rest symbol-equal? if
+      dup cdr car &rest @ symbol-equal? if
         dup cdr cdr car  \ vararg
         swap pair-cdr 0 swap !
       else
@@ -255,7 +257,7 @@ s" &rest" symbol-new intern constant &rest
 
 : split-args ( arglist - args vararg)
   dup 0<> if
-    dup car &rest symbol-equal? if
+    dup car &rest @ symbol-equal? if
       0 swap cdr car
     else
       dup get-vararg
@@ -700,7 +702,7 @@ defer lisp-read-lisp
           swap cdr r> 1- >r
         repeat
         r> ( count) drop
-        r> ( &rest flag) if drop then
+        r> ( &rest @ flag) if drop then
       else
         drop
       then
