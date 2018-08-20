@@ -353,14 +353,16 @@ variable return-context \ 1 if currently in a return context
     + @ execute
   then ;
 
-: lisp-interpret-list ( lisp - a1...an )
+: lisp-interpret-list ( lisp - a1...an n )
+  0 >r
   begin
     dup 0<>
   while
     dup car lisp-interpret
     swap cdr
+    r> 1+ >r
   repeat
-  drop ;
+  drop r> ;
 
 : lisp-compile-list ( lisp - )
   recursive
@@ -697,10 +699,10 @@ defer lisp-read-lisp
     \ Instead the forms defined in lisp are compiled with
     \ a call to maybe-drop at the end of their definition.
   else \ function
-    lisp-state @ 0= if \ interpet
+    lisp-state @ 0= if \ interpret
       >r
       return-context @ >r 1 return-context !
-      cdr lisp-interpret-list
+      cdr lisp-interpret-list drop
       r> return-context !
       r> name>int execute
     else  \ compile
