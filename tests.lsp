@@ -241,6 +241,15 @@
 
 (test-dotimes)
 
+(def test-list-index ()
+     (var l (list 1 nil "str" 'sym))
+     (test "list-index 1" (eq? (list-index 1 l) 0))
+     (test "list-index 2" (eq? (list-index "str" l) 2))
+     (test "list-index 3" (eq? (list-index 'sym l) 3))
+     (test "list-index 4" (eq? (list-index 'xx l) -1))
+     (test "list-index 5" (eq? (list-index nil (list)) -1)))
+(test-list-index)
+
 
 ;; (def func-with-no-body ()) ; TODO
 
