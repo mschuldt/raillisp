@@ -94,7 +94,6 @@ variable curr-func
   dup func-returns 1 swap !
   function-first ! ;
 
-\ todo: latest won't work for recursive functions
 : set-func-xt ( - ) latest name>int function-first @ func-xt ! ;
 : set-func-args ( n - ) function-first @ func-args ! ;
 : set-func-&rest ( x - ) function-first @ func-&rest ! ;
@@ -819,7 +818,8 @@ variable next-local-index 0 cells next-local-index !
 ; special
 
 : lisp-create ( ua - ) \ create new dictionary entry
-  ( gforth) nextname header reveal docol: cfa, ;
+  ( gforth) nextname header reveal docol: cfa,
+  postpone recursive ;
 
 : member ( key list - list )
   begin
@@ -866,6 +866,7 @@ variable let-bound-names
   1 return-context !
   0 let-bound-names !
   dup car symbol->string lisp-create \ create dictionary header
+  set-func-xt
   cdr dup car handle-args
   dup postpone literal \ lisp word: arg length
   here 1 cells + locals-counter ! \ set location of locals count
@@ -881,7 +882,7 @@ variable let-bound-names
 
 : def ( lisp - lisp)
   compile-def end-compile
-  postpone exit set-func-xt
+  postpone exit
   nil ; special
 
 : defcode ( lisp - lisp)
@@ -889,13 +890,13 @@ variable let-bound-names
   compile-def
   \ TODO: temp workaround - discard the return value
   [comp'] drop drop compile,
-  end-compile postpone exit set-func-xt
+  end-compile postpone exit
   immediate nil ; special
 
 : defmacro ( lisp - lisp)
   compile-def end-compile
   [comp'] set-macro-flag drop compile,
-  postpone exit set-func-xt
+  postpone exit
   immediate nil ; special
 
 : lisp-interpret-symbol ( lisp - )
