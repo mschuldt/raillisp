@@ -85,7 +85,7 @@ variable curr-func
 : curr-&rest ( - x ) curr-func @ dup 0<> if func-&rest @ then ;
 
 : check-alloc dup 1 and if ." lsb bit is set" 1 throw then ;
-: new-function
+: new-function ( - )
   sizeof-func allocate throw check-alloc
   dup func-next function-first @ swap !
   dup func-returns 1 swap !
@@ -97,6 +97,15 @@ variable curr-func
 : set-func-&rest ( x - ) function-first @ func-&rest ! ;
 : set-func-returns ( x - ) function-first @ func-returns ! ;
 
+: func ( num-args num-ret - )   \ declare a lisp function
+  new-function set-func-xt set-func-returns set-func-args ;
+
+: f0 0 1 func ;
+: f1 1 1 func ;
+: f2 2 1 func ;
+: f3 3 1 func ;
+: fn -1 1 func 1 set-func-&rest ;
+
 : make-cons ( car cdr -- lisp )
   sizeof-pair allocate throw check-alloc >r
   r@ ( pair-tag) lisp-pair-tag swap !
@@ -105,10 +114,10 @@ variable curr-func
   r> ;
 
 : car ( pair -- lisp )
-  dup 0<> if pair-car @ then ;
+  dup 0<> if pair-car @ then ; f1
 
 : cdr ( pair -- lisp )
-  dup 0<> if pair-cdr @ then ;
+  dup 0<> if pair-cdr @ then ; f1
 
 : <<1 1 lshift ;
 : >>1 1 rshift ;
@@ -150,17 +159,18 @@ variable curr-func
     then
   then ;
 
-: type-of get-lisp-tag make-number ; \ todo: return symbol
-: number? 1 and ;
-: cons? get-lisp-tag lisp-pair-tag  = ;
-: symbol? get-lisp-tag lisp-symbol-tag = ;
-: string? get-lisp-tag lisp-string-tag =  ;
-: vector? get-lisp-tag lisp-vector-tag  = ;
+: type-of get-lisp-tag make-number ; f1 \ todo: return symbol
+: number? 1 and ; f1
+: cons? get-lisp-tag lisp-pair-tag  = ; f2
+: symbol? get-lisp-tag lisp-symbol-tag = ; f1
+: string? get-lisp-tag lisp-string-tag =  ; f1
+: vector? get-lisp-tag lisp-vector-tag  = ; f1
 
 -1 constant lisp-true
-variable t lisp-true t !
+variable t f0
+lisp-true t !
 
-: eq? = ;
+: eq? = ; f2
 
 wordlist constant symbols
 
@@ -180,7 +190,7 @@ wordlist constant symbols
     \ change type to symbol
     lisp-symbol-tag r@ ( symbol-tag) !
     r>
-  then ;
+  then ; f1
 
 : string-equal? ( lisp1 lisp2 -- lisp )
   symbol->string rot symbol->string
@@ -188,9 +198,9 @@ wordlist constant symbols
     lisp-true
   else
     nil
-  then ;
+  then ; f2
 
-: symbol-equal? string-equal? ; \ TODO: symbol interning
+: symbol-equal? string-equal? ;  f2 \ TODO: symbol interning
 
 : equal? ( lisp lisp - lisp )
   2dup = if
@@ -209,7 +219,7 @@ wordlist constant symbols
         then
       then
     then
-  then ;
+  then ; f2
 
 : cons-equal? ( lisp lisp - lisp )
   \ todo: non recursive version
@@ -259,7 +269,7 @@ s" &rest" symbol-new intern constant &rest
     dup get-lisp-tag cells display-dispatch + @ execute
   then ;
 
-: print ( lisp -- lisp ) dup lisp-display ;
+: print ( lisp -- lisp ) dup lisp-display ; f1
 
 : lisp-display-pair ( lisp -- )
   [char] ( emit ( 32 emit)
@@ -329,11 +339,11 @@ variable return-context \ 1 if currently in a return context
 : }rcontext ( v - ) r> r> swap >r return-context ! ;
 
 : maybe-ret ( - t ) \ used to return nil if in return context
-  return-context @ if 0 postpone literal then t ;
+  return-context @ if 0 postpone literal then t ; f0
 
 \ return-lit used in defcode to return a value from the form
 : return-lit ( n - )
-  return-context @ if postpone literal else drop then t ;
+  return-context @ if postpone literal else drop then t ; f1
 
 : lisp-interpret ( lisp - lisp? )
   dup 0<> if
@@ -379,12 +389,12 @@ variable return-context \ 1 if currently in a return context
 : special?
   cell+ @ immediate-mask and 0<> ;
 
-: compile lisp-interpret t ;
-: compile-r lisp-interpret-r t ;
-: compile-list lisp-compile-list t ;
-: compile-list-nr lisp-compile-list-nr t ;
+: compile lisp-interpret t ; f1
+: compile-r lisp-interpret-r t ; f1
+: compile-list lisp-compile-list t ; f1
+: compile-list-nr lisp-compile-list-nr t ; f1
 
-: compile-progn lisp-compile-progn t ;
+: compile-progn lisp-compile-progn t ; fn
 : progn lisp-compile-progn ; special
 
 
@@ -537,7 +547,7 @@ defer lisp-read-lisp
   then ;
 
 : string->number ( lisp - lisp )
-  symbol->string s>number? if drop make-number else nil then ;
+  symbol->string s>number? if drop make-number else nil then ; f1
 
 : lisp-read-symbol ( e a -- e a lisp )
   lisp-read-token 2dup s>number? if
@@ -725,7 +735,7 @@ defer lisp-read-lisp
 
 ( ( )( )( ) ( lisp words ) ( )( )( )
 
-: cons make-cons ;
+: cons make-cons ; f2
 
 : quote
   lisp-state @ 0= if
@@ -805,7 +815,7 @@ variable next-local-index 0 cells next-local-index !
   while
     cdr
   repeat
-  nip ;
+  nip ; f2
 
 : assoc ( key list - list )
   begin
@@ -818,11 +828,11 @@ variable next-local-index 0 cells next-local-index !
       2drop
     then
     cdr dup 0= until
-  nip ;
+  nip ; f2
 
-: list-length lisp-list-length make-number ;
+: list-length lisp-list-length make-number ; f1
 
-: string-length ( lisp - lisp ) symbol-nameu @ make-number ;
+: string-length ( lisp - lisp ) symbol-nameu @ make-number ; f1
 
 \ counts the number of let bound names in the current word
 \ or other names that have been cleaned up with pop-local-names
@@ -951,31 +961,31 @@ variable let-bound-names
   then
 ; special
 
-: if, postpone if t ;
-: else, postpone else t ;
-: then, postpone then t ;
-: begin, postpone begin t ;
-: while, postpone while t ;
-: repeat, postpone repeat t ;
-: lit, postpone literal t ;
-: drop, [comp'] drop drop compile, t ;
+: if, postpone if t ; f0
+: else, postpone else t ; f0
+: then, postpone then t ; f0
+: begin, postpone begin t ; f0
+: while, postpone while t ; f0
+: repeat, postpone repeat t ; f0
+: lit, postpone literal t ; f0
+: drop, [comp'] drop drop compile, t ; f0
 
-: 1+ ( n - n ) 2 + ;
-: 1- ( n - n ) 2 - ;
-: + ( nn - n ) >>1 swap >>1 + make-number ;
-: - ( nn - n ) >>1 swap >>1 swap - make-number ;
-: * ( nn - n ) >>1 swap >>1 * make-number ;
-: / ( nn - n ) >>1 swap >>1 swap / make-number ;
+: 1+ ( n - n ) 2 + ; f1
+: 1- ( n - n ) 2 - ; f1
+: + ( nn - n ) >>1 swap >>1 + make-number ; f2
+: - ( nn - n ) >>1 swap >>1 swap - make-number ; f2
+: * ( nn - n ) >>1 swap >>1 * make-number ; f2
+: / ( nn - n ) >>1 swap >>1 swap / make-number ; f2
 
-: zero? 0= ;
-: not 0=  ;
+: zero? 0= ; f1
+: not 0=  ; f1
 
-: cr cr t ;
-: exit bye ;
-: utime utime drop make-number ;
-: sleep-ms ( ms - ) >>1 ms t ;
-: here here make-number ;
-: list-index list-index make-number ;
+: cr cr t ; f0
+: exit bye ; f0
+: utime utime drop make-number ; f0
+: sleep-ms ( ms - ) >>1 ms t ; f1
+: here here make-number ; f0
+: list-index list-index make-number ; f2
 
 variable nil 0 nil !
 
