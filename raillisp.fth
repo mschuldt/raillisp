@@ -85,6 +85,7 @@ variable curr-func
   find-function curr-func @ 0= if ." invalid function" cr bye then ;
 
 : curr-args ( - n ) curr-func @ dup 0<> if func-args @ then ;
+: curr-returns ( - n ) curr-func @ dup 0<> if func-returns @ then ;
 : curr-&rest ( - x ) curr-func @ dup 0<> if func-&rest @ then ;
 
 : check-alloc dup 1 and if ." lsb bit is set" 1 throw then ;
@@ -270,7 +271,8 @@ variable &rest f0
   dup 0= over -1 = or if
     .
   else
-    dup get-lisp-tag cells display-dispatch + @ execute
+    dup get-lisp-tag
+    cells display-dispatch + @ execute
   then ;
 
 : print ( lisp -- lisp ) dup lisp-display ; f1
@@ -661,6 +663,55 @@ defer lisp-read-lisp
   ." > " lisp-read-lisp
 ;
 
+: cons make-cons ; f2
+
+\ STACK is a list representing the current stack of the compiled program.
+\ symbols in this list represent named stack positons (locals variables).
+\ anonymous stack entries are nil.
+\ --
+\ eventually STACK will replace the LOCALS list. but it
+\ it will exist alongside it until the new compilation method works.
+variable stack
+0 stack !
+variable stack-depth
+0 stack-depth !
+
+: stack-print stack @ lisp-display cr ;
+
+: stack-push ( v - )
+\  ." stack-push" cr
+  stack-depth dup @ 1+ swap !
+  stack @ cons stack !
+\  ."    stack: " stack-print
+;
+
+: stack-pop ( - )
+\  ." stack-pop" cr
+  stack-depth dup @ dup 0= if
+    ." stack underflow" 1 throw
+  then
+  1- swap !
+  stack dup @ cdr swap !
+\  ."    stack: " stack-print
+;
+
+: stack-pop-n ( n - )
+\  ." stack-pop-n: " dup . cr
+  begin dup 0 > while
+    1- stack-pop
+  repeat drop ;
+
+: stack-push-n ( n - )
+  begin dup while
+    1- 999 make-number stack-push
+  repeat drop ;
+
+: check-stack-depth ( n - )
+  dup stack-depth @ <> if
+    ." ERROR: function left " stack-depth @ .
+    ." items on the stack, expected " . cr
+    ."   stack: " stack-print cr bye
+  then drop ;
 
 : lisp-list-length ( list - n )
   0 swap
@@ -676,6 +727,7 @@ defer lisp-read-lisp
       \ drop
     else
       [comp'] drop drop compile,
+      stack-pop
     then
   then ;
 
@@ -728,7 +780,9 @@ defer lisp-read-lisp
   swap return-context !
   r> name>int dup find-function-check swap
   check-arg-count
-  compile, ;
+  compile,
+  curr-args stack-pop-n
+  curr-returns stack-push-n ;
 
 : lisp-interpret-pair ( lisp - lisp?)
   dup car lisp-find-symbol-word
@@ -749,7 +803,8 @@ defer lisp-read-lisp
 : lisp-interpret-number ;
 
 : lisp-compile-number
-  \ TODO: need a better/faster number representation
+  \ 444 make-number stack-push
+  dup stack-push
   postpone literal
 ;
 
@@ -757,6 +812,7 @@ defer lisp-read-lisp
 ' lisp-compile-number compile-dispatch lisp-number-tag cells + !
 
 : lisp-compile-string
+  111 make-number stack-push
   postpone literal \ todo: compile it into the dictionary
 ;
 
@@ -764,8 +820,6 @@ defer lisp-read-lisp
 ' lisp-compile-string compile-dispatch lisp-string-tag cells + !
 
 ( ( )( )( ) ( lisp words ) ( )( )( )
-
-: cons make-cons ; f2
 
 : quote
   lisp-state @ 0= if
@@ -775,19 +829,22 @@ defer lisp-read-lisp
   then
 ; special
 
-\ locals-counter is a pointer to the locals count in
-\ the word currently being compiled
+\ locals-counter count the locals in the current function
 variable locals-counter
 \ locals is an alist of (name . index) pairs.
 \  index is a forth integer so this list cannot be printed as lisp
 variable locals nil locals !
-: ++locals locals-counter @ dup @ 1+ swap ! ;
+
+: ++locals
+  locals-counter dup @ 1+ swap ! ;
+
 \ next-local-index is the offset from the frame pointer
 variable next-local-index 0 cells next-local-index !
 : ++local-index next-local-index dup @ 1 cells + swap ! ;
 : --local-index next-local-index dup @ 1 cells - swap ! ;
 
 : push-local-name ( symbol - )
+  dup stack-push
   next-local-index @ cons
   locals @ cons locals !
   ++local-index ;
@@ -802,6 +859,8 @@ variable next-local-index 0 cells next-local-index !
 : pop-local-names ( n - )
   recursive
   dup 0> if
+    stack-pop
+    [comp'] drop drop compile,
     locals dup @ cdr swap !
     --local-index
     1- pop-local-names
@@ -818,11 +877,73 @@ variable next-local-index 0 cells next-local-index !
   repeat
   if drop r> else r> 2drop -1 then ;
 
+: compile-pick postpone literal [comp'] pick drop compile, ;
+: compile-dup [comp'] dup drop compile, ;
+: compile-over [comp'] over drop compile, ;
+: 2pick 2 compile-pick ;
+: 3pick 3 compile-pick ;
+: 4pick 4 compile-pick ;
+: 5pick 5 compile-pick ;
+: 6pick 6 compile-pick ;
+: 7pick 7 compile-pick ;
+: 8pick 8 compile-pick ;
+: 9pick 9 compile-pick ;
+
+: compile-stack-set ( n - )
+  3 + cells postpone literal
+  [comp'] sp@ drop compile,
+  [comp'] ! drop compile, ;
+: compile-nip [comp'] nip drop compile, ;
+: 1set ( a x v - v x )
+  [comp'] -rot drop compile,
+  [comp'] nip drop compile, ;
+: 2set 3 compile-stack-set ;
+: 3set 4 compile-stack-set ;
+: 4set 5 compile-stack-set ;
+: 5set 6 compile-stack-set ;
+: 6set 7 compile-stack-set ;
+: 7set 8 compile-stack-set ;
+: 8set 9 compile-stack-set ;
+: 9set 10 compile-stack-set ;
+
+10 cells allocate throw constant stack-getters
+10 cells allocate throw constant stack-setters
+
+: stack-getter cells stack-getters + ! ;
+: stack-setter cells stack-setters + ! ;
+
+' compile-dup 0 stack-getter
+' compile-over 1 stack-getter
+' 2pick 2 stack-getter
+' 3pick 3 stack-getter
+' 4pick 4 stack-getter
+' 5pick 5 stack-getter
+' 6pick 6 stack-getter
+' 7pick 7 stack-getter
+' 8pick 8 stack-getter
+' 9pick 9 stack-getter
+
+' compile-nip 0 stack-setter
+' 1set 1 stack-setter
+' 2set 2 stack-setter
+' 3set 3 stack-setter
+' 4set 4 stack-setter
+' 5set 5 stack-setter
+' 6set 6 stack-setter
+' 7set 7 stack-setter
+' 8set 8 stack-setter
+' 9set 9 stack-setter
+
 : compile-local-var ( symbol value - )
   lisp-interpret-r \ compile initial value
   ++locals push-local-name
   next-local-index @ 1 cells - postpone literal
   [comp'] set-local drop compile, ;
+
+: compile-local-var-ng ( symbol value - )
+  ++locals lisp-interpret-r \ compile initial value
+  stack-pop stack-push
+; \ name the stack location
 
 : var ( sv - v)
   dup car swap cdr car \ symbol value
@@ -830,7 +951,7 @@ variable next-local-index 0 cells next-local-index !
     lisp-interpret dup rot symbol->string
     nextname create ,
   else
-    compile-local-var
+    compile-local-var-ng
   then
 ; special
 
@@ -882,23 +1003,27 @@ variable let-bound-names
   new-function
   1 return-context !
   0 let-bound-names !
-  dup car symbol->string lisp-create \ create dictionary header
+  dup car symbol->string
+  ." compiling function: " 2dup type cr
+  lisp-create \ create dictionary header
   set-func-xt
   cdr dup car handle-args
-  dup postpone literal \ lisp word: arg length
-  here 1 cells + locals-counter ! \ set location of locals count
-  0 postpone literal \ lisp word: locals count
-  [comp'] next-frame drop compile, \ lisp word: start frame
+  dup locals-counter !
+\  dup postpone literal \ lisp word: arg length
+\  here 1 cells + locals-counter ! \ set location of locals count
+\  0 postpone literal \ lisp word: locals count
+\  [comp'] next-frame drop compile, \ lisp word: start frame
   swap cdr start-compile lisp-compile-progn \ compile function body
-  locals-counter @ @ + \ nlocals+nargs
-  let-bound-names @ -
-  pop-local-names
-  [comp'] prev-frame drop compile, \ lisp word: end frame
+\  locals-counter @ @ + \ nlocals+nargs
+\  let-bound-names @ -
+  drop locals-counter @ pop-local-names
+\  [comp'] prev-frame drop compile, \ lisp word: end frame
   0 return-context !
 ;
 
 : def ( lisp - lisp)
   compile-def end-compile
+  1 check-stack-depth stack-pop
   postpone exit
   nil ; special
 
@@ -907,12 +1032,15 @@ variable let-bound-names
   compile-def
   \ TODO: temp workaround - discard the return value
   [comp'] drop drop compile,
-  end-compile postpone exit
+  end-compile
+  stack-pop 0 check-stack-depth
+  postpone exit
   immediate nil ; special
 
 : defmacro ( lisp - lisp)
   compile-def end-compile
   [comp'] set-macro-flag drop compile,
+  1 check-stack-depth stack-pop
   postpone exit
   immediate nil ; special
 
@@ -929,8 +1057,18 @@ variable let-bound-names
     [comp'] @ drop compile,
   then ;
 
+: lisp-compile-symbol-ng ( lisp - )
+  dup stack @ list-index dup -1 <> if \ local variable reference
+    cells stack-getters + @ execute
+    drop
+  else \ compile dicationary variable lookup
+    drop lisp-find-symbol-word name>int compile,
+    [comp'] @ drop compile,
+  then
+  222 make-number stack-push ;
+
 ' lisp-interpret-symbol interpret-dispatch lisp-symbol-tag cells + !
-' lisp-compile-symbol compile-dispatch lisp-symbol-tag cells + !
+' lisp-compile-symbol-ng compile-dispatch lisp-symbol-tag cells + !
 
 : set-interpret ( symbol value - )
   lisp-interpret dup rot
@@ -973,26 +1111,30 @@ variable let-bound-names
     dup 0<>
   while
     dup car
-    dup car swap cdr car compile-local-var
+    dup car swap cdr car
+    \ compile-local-var-ng
+    lisp-interpret-r stack-pop stack-push
     r> 1+ >r cdr
   repeat
   drop cdr lisp-compile-progn
   r> dup pop-local-names
   let-bound-names dup @ rot + swap !
-
 ; special
 
 
 : list ( lisp - lisp )
   0 >r
   begin dup 0<>
-  while dup car lisp-interpret cdr r> 1+ >r
+  while
+    dup car lisp-interpret cdr r> 1+ >r
   repeat drop
   0 postpone literal
-  r>
+  r> dup
   begin dup 0>
   while [comp'] cons drop compile, 1-
-  repeat drop ; special
+  repeat drop
+  stack-pop-n 667 make-number stack-push
+; special
 
 : if, postpone if t ; f0
 : else, postpone else t ; f0
@@ -1030,6 +1172,7 @@ variable let-bound-names
 : min min ; f2
 : max max ; f2
 : bye bye ; f0
+: quit quit ; f0
 \ \\\\\\\\\\\\\\\
 
 variable nil f0
