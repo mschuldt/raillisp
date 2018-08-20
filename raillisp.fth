@@ -62,8 +62,9 @@ lisp-max-tag cells allocate throw constant compile-dispatch
 : func-args [ 2 cells ] literal + ;
 : func-locals [ 3 cells ] literal + ;
 : func-&rest [ 4 cells ] literal + ;
-: func-next [ 5 cells ] literal + ;
-6 cells constant sizeof-func
+: func-returns [ 5 cells ] literal + ;
+: func-next [ 6 cells ] literal + ;
+7 cells constant sizeof-func
 
 variable function-first
 variable curr-func
@@ -87,12 +88,14 @@ variable curr-func
 : new-function
   sizeof-func allocate throw check-alloc
   dup func-next function-first @ swap !
+  dup func-returns 1 swap !
   function-first ! ;
 
 \ todo: latest won't work for recursive functions
 : set-func-xt ( - ) latest name>int function-first @ func-xt ! ;
 : set-func-args ( n - ) function-first @ func-args ! ;
 : set-func-&rest ( x - ) function-first @ func-&rest ! ;
+: set-func-returns ( x - ) function-first @ func-returns ! ;
 
 : make-cons ( car cdr -- lisp )
   sizeof-pair allocate throw check-alloc >r
