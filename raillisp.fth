@@ -81,6 +81,9 @@ variable curr-func
   2drop 0 ;
 
 : find-function ( xt - ) function-lookup curr-func ! ;
+: find-function-check ( xt - )
+  find-function curr-func @ 0= if ." invalid function" cr bye then ;
+
 : curr-args ( - n ) curr-func @ dup 0<> if func-args @ then ;
 : curr-&rest ( - x ) curr-func @ dup 0<> if func-&rest @ then ;
 
@@ -710,7 +713,7 @@ defer lisp-read-lisp
       cdr lisp-interpret-list
       r> return-context !
       r> name>int
-      dup find-function swap check-arg-count
+      dup find-function-check swap check-arg-count
       execute
     else  \ compile
       >r
