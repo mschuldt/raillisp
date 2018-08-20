@@ -984,14 +984,15 @@ variable let-bound-names
 
 
 : list ( lisp - lisp )
-  recursive
-  dup 0<> if
-    dup car lisp-interpret cdr list
-    [comp'] cons drop compile,
-  else
-    postpone literal
-  then
-; special
+  0 >r
+  begin dup 0<>
+  while dup car lisp-interpret cdr r> 1+ >r
+  repeat drop
+  0 postpone literal
+  r>
+  begin dup 0>
+  while [comp'] cons drop compile, 1-
+  repeat drop ; special
 
 : if, postpone if t ; f0
 : else, postpone else t ; f0
