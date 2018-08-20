@@ -672,6 +672,11 @@ defer lisp-read-lisp
     then
   then ;
 
+: check-arg-count ( func argc - )
+  \ ARGC is the arg count curr-func is being called with
+  curr-args 2dup <> if ." invalid arg count, expected " . ." got " . cr
+                    else 2drop then ;
+
 : lisp-interpret-pair ( lisp - lisp?)
   dup car lisp-find-symbol-word
   dup special? if \ special form or macro
@@ -702,9 +707,11 @@ defer lisp-read-lisp
     lisp-state @ 0= if \ interpret
       >r
       return-context @ >r 1 return-context !
-      cdr lisp-interpret-list drop
+      cdr lisp-interpret-list
       r> return-context !
-      r> name>int execute
+      r> name>int
+      dup find-function swap check-arg-count
+      execute
     else  \ compile
       >r
       return-context @ 1 return-context !
