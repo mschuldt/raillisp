@@ -1008,10 +1008,23 @@ variable let-bound-names
 : here here make-number ; f0
 : list-index list-index make-number ; f2
 
-variable nil 0 nil !
+\ TODO: need to declare built in words as lisp words
+\ temp fix:
+: = = ; f2
+: > > ; f2
+: < < ; f2
+: <= <= ; f2
+: >= >= ; f2
+: min min ; f2
+: max max ; f2
+: bye bye ; f0
+\ \\\\\\\\\\\\\\\
 
-variable forth-init-time
-variable forth-dict-space
+variable nil f0
+0 nil !
+
+variable forth-init-time f0
+variable forth-dict-space f0
 utime start-time @ make-number - forth-init-time !
 here start-here @ make-number - forth-dict-space !
 
