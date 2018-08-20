@@ -368,11 +368,12 @@ variable return-context \ 1 if currently in a return context
   drop r> ;
 
 : lisp-compile-list ( lisp - )
-  recursive
-  dup 0<> if
+  begin
+    dup 0<>
+  while
     dup car lisp-interpret
-    cdr lisp-compile-list dup
-  then drop ;
+    cdr
+  repeat drop ;
 
 : lisp-interpret-r ( lisp - lisp?) 1 rcontext{ lisp-interpret }rcontext ;
 : lisp-compile-list-nr 0 rcontext{ lisp-compile-list }rcontext ;
