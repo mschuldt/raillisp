@@ -406,6 +406,7 @@ variable return-context \ 1 if currently in a return context
 
 : lisp-find-symbol-word ( lisp - word)
   symbol->string
+\  ." word: " 2dup type cr
   2dup find-name
   dup 0= if
     drop
@@ -722,9 +723,11 @@ defer lisp-read-lisp
     else  \ compile
       >r
       return-context @ 1 return-context !
-      swap cdr lisp-compile-list drop
-      return-context !
-      r> name>int compile,
+      swap cdr lisp-compile-list
+      swap return-context !
+      r> name>int dup find-function-check swap
+      check-arg-count
+      compile,
     then
     maybe-drop
   then ;
