@@ -1191,9 +1191,12 @@ variable saved-stack-depth
   [comp'] do-then, drop compile,
   maybe-ret drop ; special
 
-: begin, postpone begin t ; f0
-: while, postpone while t ; f0
-: repeat, postpone repeat t ; f0
+: do-begin, postpone begin ;
+: begin, 3 stack-push-n [comp'] do-begin, drop compile, ; special
+: do-while, postpone while ;
+: while, 3 stack-push-n [comp'] do-while, drop compile, ; special
+: do-repeat, postpone repeat ; special
+: repeat, 6 stack-pop-n [comp'] do-repeat, drop compile, ; special
 : lit, postpone literal t ; f0
 : drop, [comp'] drop drop compile, t ; f0
 
