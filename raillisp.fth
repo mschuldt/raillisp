@@ -89,7 +89,11 @@ variable curr-func
 : curr-&rest ( - x ) curr-func @ dup 0<> if func-&rest @ then ;
 
 : check-alloc dup 1 and if ." lsb bit is set" 1 throw then ;
+
+variable stack-counter
+
 : new-function ( - )
+  0 stack-counter !
   sizeof-func allocate throw check-alloc
   dup func-next function-first @ swap !
   dup func-returns 1 swap !
@@ -685,6 +689,10 @@ variable stack-depth
 \  ."    stack: " stack-print
 ;
 
+: stack-push*
+  \ pushes a unique number onto the parameter
+  stack-counter dup @ 1+ dup make-number stack-push swap ! ;
+
 : stack-pop ( - )
 \  ." stack-pop" cr
   stack-depth dup @ dup 0= if
@@ -703,7 +711,7 @@ variable stack-depth
 
 : stack-push-n ( n - )
   begin dup while
-    1- 999 make-number stack-push
+    1- stack-push*
   repeat drop ;
 
 : check-stack-depth ( n - )
@@ -812,7 +820,7 @@ variable stack-depth
 ' lisp-compile-number compile-dispatch lisp-number-tag cells + !
 
 : lisp-compile-string
-  111 make-number stack-push
+  stack-push*
   postpone literal \ todo: compile it into the dictionary
 ;
 
@@ -826,6 +834,7 @@ variable stack-depth
     car
   else
     car postpone literal
+    stack-push*
   then
 ; special
 
@@ -1065,7 +1074,7 @@ variable let-bound-names
     drop lisp-find-symbol-word name>int compile,
     [comp'] @ drop compile,
   then
-  222 make-number stack-push ;
+  stack-push* ;
 
 ' lisp-interpret-symbol interpret-dispatch lisp-symbol-tag cells + !
 ' lisp-compile-symbol-ng compile-dispatch lisp-symbol-tag cells + !
@@ -1133,7 +1142,7 @@ variable let-bound-names
   begin dup 0>
   while [comp'] cons drop compile, 1-
   repeat drop
-  stack-pop-n 667 make-number stack-push
+  stack-pop-n stack-push*
 ; special
 
 : if, postpone if t ; f0
