@@ -348,9 +348,6 @@ variable return-context \ 1 if currently in a return context
 : rcontext{ ( v - ) return-context @ r> swap >r >r return-context ! ;
 : }rcontext ( v - ) r> r> swap >r return-context ! ;
 
-: maybe-ret ( - t ) \ used to return nil if in return context
-  return-context @ if 0 postpone literal then t ; f0
-
 \ return-lit used in defcode to return a value from the form
 : return-lit ( n - )
   return-context @ if postpone literal else drop then t ; f1
@@ -720,6 +717,9 @@ variable stack-depth
     ." items on the stack, expected " . cr
     ."   stack: " stack-print cr bye
   then drop ;
+
+: maybe-ret ( - t ) \ used to return nil if in return context
+  return-context @ if 0 postpone literal stack-push* then t ; f0
 
 : lisp-list-length ( list - n )
   0 swap
