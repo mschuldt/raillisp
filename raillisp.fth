@@ -405,7 +405,7 @@ variable return-context \ 1 if currently in a return context
 : compile-list lisp-compile-list ; f1
 : compile-list-nr lisp-compile-list-nr t ; f1
 
-: compile-progn lisp-compile-progn t ; fn
+: compile-progn lisp-compile-progn t ; f1
 : progn lisp-compile-progn ; special
 
 
