@@ -948,8 +948,7 @@ variable next-local-index 0 cells next-local-index !
 
 : compile-local-var-ng ( symbol value - )
   ++locals lisp-interpret-r \ compile initial value
-  stack-pop stack-push
-; \ name the stack location
+  stack-pop stack-push ; \ name the stack location
 
 : var ( sv - v)
   dup car swap cdr car \ symbol value
@@ -1074,7 +1073,7 @@ variable let-bound-names
     [comp'] @ drop compile,
   then ;
 
-: lisp-compile-symbol-ng ( lisp - )
+: lisp-compile-symbol-ng ( lisp - ) \ todo; rename: symbol ref
   dup stack @ list-index dup -1 <> if \ local variable reference
     cells stack-getters + @ execute
     drop
@@ -1097,7 +1096,14 @@ variable let-bound-names
   [comp'] set-local drop compile,
   drop ; \ symbol
 
-: set-compile-global ( symbol value  - )
+: set-compile-local-ng ( symbol value indexcons - )
+  drop
+  swap lisp-interpret-r
+  cdr postpone literal
+  [comp'] set-local drop compile,
+  drop ; \ symbol
+
+: set-compile-global ( symbol value - )
   lisp-interpret-r \ compile value
   lisp-find-symbol-word name>int compile,
   [comp'] ! drop compile, ;
@@ -1105,6 +1111,22 @@ variable let-bound-names
 : set-compile ( symbol value - )
   over locals @ assoc dup if
     set-compile-local
+    drop \ symbol
+  else
+    drop set-compile-global
+  then
+  return-context @ if
+    0 postpone literal \ TODO: return value instead
+  then ;
+
+: set-compile-local-ng ( symbol value index - )
+  swap lisp-interpret-r
+  cells stack-setters + @ execute
+  ( symbol ) drop ;
+
+: set-compile-ng ( symbol value - )
+  over stack @ list-index dup -1 <> if
+    set-compile-local-ng
   else
     drop set-compile-global
   then
@@ -1117,10 +1139,9 @@ variable let-bound-names
   lisp-state @ 0= if
     set-interpret
   else
-    set-compile
+    set-compile-ng
   then
 ; special
-
 
 : let* ( lisp - )   \ todo: interpret
   dup car 0 >r
