@@ -1150,15 +1150,14 @@ variable let-bound-names
   while
     dup car
     dup car swap cdr car
-    \ compile-local-var-ng
-    lisp-interpret-r stack-pop stack-push
+    lisp-interpret-r
+     stack-push
     r> 1+ >r cdr
   repeat
-  drop cdr lisp-compile-progn
-  r> dup pop-local-names
-  let-bound-names dup @ rot + swap !
+  drop cdr
+  lisp-compile-progn
+  r> pop-local-names
 ; special
-
 
 : list ( lisp - lisp )
   0 >r
