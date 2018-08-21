@@ -120,6 +120,8 @@ variable stack-counter
   r@ pair-car !
   r> ;
 
+: cons make-cons ; f2
+
 : car ( pair -- lisp )
   dup 0<> if pair-car @ then ; f1
 
@@ -352,6 +354,52 @@ variable return-context \ 1 if currently in a return context
 : return-lit ( n - )
   return-context @ if postpone literal else drop then t ; f1
 
+
+\ STACK is a list representing the current stack of the compiled program.
+\ symbols in this list represent named stack positons (locals variables).
+\ anonymous stack entries are nil.
+\ --
+\ eventually STACK will replace the LOCALS list. but it
+\ it will exist alongside it until the new compilation method works.
+variable stack
+0 stack !
+variable stack-depth
+0 stack-depth !
+
+: stack-print stack @ lisp-display cr ;
+
+: stack-push ( v - )
+  stack-depth dup @ 1+ swap !
+  stack @ cons stack ! ;
+
+: stack-push*
+  \ pushes a unique number onto the parameter
+  stack-counter dup @ 1+ dup make-number stack-push swap ! ;
+
+: stack-pop ( - )
+  stack-depth dup @ dup 0= if
+  then
+  1- swap !
+  stack dup @ cdr swap !
+;
+
+: stack-pop-n ( n - )
+  begin dup 0 > while
+    1- stack-pop
+  repeat drop ;
+
+: stack-push-n ( n - )
+  begin dup while
+    1- stack-push*
+  repeat drop ;
+
+: check-stack-depth ( n - )
+  dup stack-depth @ <> if
+    ." ERROR: function left " stack-depth @ .
+    ." items on the stack, expected " . cr
+    ."   stack: " stack-print cr bye
+  then drop ;
+
 : lisp-interpret ( lisp - lisp? )
   dup 0<> if
     dup get-lisp-tag cells
@@ -380,21 +428,23 @@ variable return-context \ 1 if currently in a return context
     cdr swap 1+ swap
   repeat drop ;
 
-: lisp-interpret-r ( lisp - lisp?) 1 rcontext{ lisp-interpret }rcontext ;
+: lisp-interpret-r ( lisp - lisp?)
+  \ used when the lisp being compiled consumes the return result
+  1 rcontext{ lisp-interpret }rcontext stack-pop ;
 : lisp-compile-list-nr 0 rcontext{ lisp-compile-list drop }rcontext ;
 
 : lisp-compile-progn ( lisp - )
-  return-context @ swap
+  >r return-context @
   0 return-context !
   begin
-    dup 0<>
+    r@ 0<>
   while
-    dup cdr 0= if
-      swap return-context !
+    r@ cdr 0= if
+      return-context !
     then
-    dup car lisp-interpret cdr
+    r> dup car lisp-interpret cdr >r
   repeat
-  drop ;
+  r> drop ;
 
 : special immediate ;
 : special?
@@ -664,60 +714,6 @@ defer lisp-read-lisp
   ." > " lisp-read-lisp
 ;
 
-: cons make-cons ; f2
-
-\ STACK is a list representing the current stack of the compiled program.
-\ symbols in this list represent named stack positons (locals variables).
-\ anonymous stack entries are nil.
-\ --
-\ eventually STACK will replace the LOCALS list. but it
-\ it will exist alongside it until the new compilation method works.
-variable stack
-0 stack !
-variable stack-depth
-0 stack-depth !
-
-: stack-print stack @ lisp-display cr ;
-
-: stack-push ( v - )
-\  ." stack-push" cr
-  stack-depth dup @ 1+ swap !
-  stack @ cons stack !
-\  ."    stack: " stack-print
-;
-
-: stack-push*
-  \ pushes a unique number onto the parameter
-  stack-counter dup @ 1+ dup make-number stack-push swap ! ;
-
-: stack-pop ( - )
-\  ." stack-pop" cr
-  stack-depth dup @ dup 0= if
-    ." stack underflow" 1 throw
-  then
-  1- swap !
-  stack dup @ cdr swap !
-\  ."    stack: " stack-print
-;
-
-: stack-pop-n ( n - )
-\  ." stack-pop-n: " dup . cr
-  begin dup 0 > while
-    1- stack-pop
-  repeat drop ;
-
-: stack-push-n ( n - )
-  begin dup while
-    1- stack-push*
-  repeat drop ;
-
-: check-stack-depth ( n - )
-  dup stack-depth @ <> if
-    ." ERROR: function left " stack-depth @ .
-    ." items on the stack, expected " . cr
-    ."   stack: " stack-print cr bye
-  then drop ;
-
 : maybe-ret ( - t ) \ used to return nil if in return context
   return-context @ if 0 postpone literal stack-push* then t ; f0
 
@@ -752,6 +748,7 @@ variable stack-depth
   0 macro-flag !
   name>int dup find-function >r
   cdr ( dup check-arg-count )
+  dup 0= if drop then \ drop empty list. TODO: but what about passing nil?
   curr-func @ 0<> if
     curr-args dup 0> if
       curr-&rest if
@@ -1006,6 +1003,16 @@ variable let-bound-names
   dup 0<> if push-local-name 1+ else drop then
   dup set-func-args ;
 
+: drop-locals ( n - )
+  [comp'] >r drop compile,
+  begin
+    dup 0>
+  while
+    1- [comp'] drop drop compile,
+    stack-pop
+  repeat drop
+  [comp'] r> drop compile, ;
+
 : compile-def ( lisp - )
   \ lisp word format:
   \  num-args num-locals next-frame [body...] prev-frame exit
@@ -1013,7 +1020,6 @@ variable let-bound-names
   1 return-context !
   0 let-bound-names !
   dup car symbol->string
-  ." compiling function: " 2dup type cr
   lisp-create \ create dictionary header
   set-func-xt
   cdr dup car handle-args
@@ -1024,8 +1030,9 @@ variable let-bound-names
 \  [comp'] next-frame drop compile, \ lisp word: start frame
   swap cdr start-compile lisp-compile-progn \ compile function body
 \  locals-counter @ @ + \ nlocals+nargs
-\  let-bound-names @ -
-  drop locals-counter @ pop-local-names
+  \  let-bound-names @ -
+  drop locals-counter @
+  drop-locals
 \  [comp'] prev-frame drop compile, \ lisp word: end frame
   0 return-context !
 ;
@@ -1057,6 +1064,7 @@ variable let-bound-names
   lisp-find-symbol-word name>int execute @ ;
 
 : lisp-compile-symbol ( lisp - )
+  ." lisp-compile-symbol:" dup lisp-display cr
   dup locals @ assoc dup if \ local variable reference
     cdr postpone literal
     [comp'] get-local drop compile,
@@ -1145,14 +1153,32 @@ variable let-bound-names
   stack-pop-n stack-push*
 ; special
 
-: if, postpone if t ; f0
-: else, postpone else t ; f0
-: then, postpone then t ; f0
+variable saved-stack-depth
+: stack-save ( - t ) stack-depth @ saved-stack-depth ! ;
+: stack-restore ( - t )
+  stack-depth @ saved-stack-depth @ - stack-pop-n ;
+
+: do-if, stack-save postpone if ;
+: if, 3 stack-push-n [comp'] do-if, drop compile, ; special
+: else, stack-restore postpone else t ; f0
+: do-then,
+  stack-restore
+  stack-push* \ return result
+  postpone then  ;
+: then,
+  3 stack-pop-n
+  [comp'] do-then, drop compile,
+  maybe-ret drop ; special
+
 : begin, postpone begin t ; f0
 : while, postpone while t ; f0
 : repeat, postpone repeat t ; f0
 : lit, postpone literal t ; f0
 : drop, [comp'] drop drop compile, t ; f0
+
+: stack-push-n ( n - t ) >>1 stack-push-n t ; f0
+: stack-pop-n ( n - t ) >>1 stack-pop-n t ; f0
+
 
 : 1+ ( n - n ) 2 + ; f1
 : 1- ( n - n ) 2 - ; f1
