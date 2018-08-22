@@ -1181,17 +1181,19 @@ variable let-bound-names
 ; special
 
 variable saved-stack-depth
-: stack-save ( - t ) stack-depth @ saved-stack-depth ! ;
-: stack-restore ( - t )
-  stack-depth @ saved-stack-depth @ - stack-pop-n ;
+: stack-save ( - )
+  stack-depth @ saved-stack-depth @ cons saved-stack-depth ! ;
+: stack-reset ( - )
+  stack-depth @ saved-stack-depth @ car - stack-pop-n ;
+: stack-restore ( - )
+  stack-reset saved-stack-depth dup @ cdr swap ! ;
 
-: do-if, stack-save postpone if ;
+: do-if, stack-pop stack-save postpone if ;
 : if, 3 stack-push-n [comp'] do-if, drop compile, ; special
-: else, stack-restore postpone else t ; f0
+: else, stack-reset postpone else t ; f0
 : do-then,
-  stack-restore
-  stack-push* \ return result
-  postpone then  ;
+  stack-restore postpone then
+  return-context @ if stack-push* then ;
 : then,
   3 stack-pop-n
   [comp'] do-then, drop compile,
