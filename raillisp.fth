@@ -429,8 +429,11 @@ variable stack-depth
   repeat drop ;
 
 : lisp-interpret-r ( lisp - lisp?)
+  \ forces return context
   \ used when the lisp being compiled consumes the return result
-  1 rcontext{ lisp-interpret }rcontext stack-pop ;
+  \ The caller is responsible for maintaining the locals stack
+  1 rcontext{ lisp-interpret }rcontext ;
+
 : lisp-compile-list-nr 0 rcontext{ lisp-compile-list drop }rcontext ;
 
 : lisp-compile-progn ( lisp - )
@@ -958,6 +961,7 @@ variable next-local-index 0 cells next-local-index !
   else
     compile-local-var-ng
   then
+  maybe-ret drop
 ; special
 
 : lisp-create ( ua - ) \ create new dictionary entry
@@ -1105,6 +1109,7 @@ variable let-bound-names
 
 : set-compile-global ( symbol value - )
   lisp-interpret-r \ compile value
+  stack-pop
   lisp-find-symbol-word name>int compile,
   [comp'] ! drop compile, ;
 
@@ -1121,6 +1126,7 @@ variable let-bound-names
 
 : set-compile-local-ng ( symbol value index - )
   swap lisp-interpret-r
+  stack-pop
   cells stack-setters + @ execute
   ( symbol ) drop ;
 
@@ -1132,6 +1138,7 @@ variable let-bound-names
   then
   return-context @ if
     0 postpone literal \ TODO: return value instead
+    stack-push*
   then ;
 
 : set ( sv - v)
@@ -1151,7 +1158,7 @@ variable let-bound-names
     dup car
     dup car swap cdr car
     lisp-interpret-r
-     stack-push
+    stack-pop stack-push \ name it
     r> 1+ >r cdr
   repeat
   drop cdr
