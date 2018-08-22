@@ -79,7 +79,7 @@
      (test "list len 1" (eq? (list-length (list)) 0))
      (test "list len 2" (eq? (list-length (list 1)) 1))
      (test "list len 3" (eq? (list-length (list 1 nil t)) 3))
-     (var l (list (cons 1 2) (cons 2 3) (cons "s" 4)))
+     (set l (list (cons 1 2) (cons 2 3) (cons "s" 4)))
      (test "assoc" (equal? (assoc 2 l) (cons 2 3)))
      (test "assoc 2" (equal? (assoc "s" l) (cons "s" 4)))
      (test "assoc 2" (eq? (assoc 4 l) nil)))
@@ -101,10 +101,10 @@
 (test-string)
 
 (def test-if ()
+     (var x 1)
      (test "if 1" (eq? (if (eq? 1 1) 1 2) 1))
      (test "if 2" (eq? (if (eq? 1 2) 1 2) 2))
      ;;(test "if 3" (eq? (if (eq? 1 2) 1 2 3 4) 4)) ; TODO
-     (var x 1)
      (test "if 4" (eq? (if (eq? 1 1) (progn (set x 2) 4) 6) 4))
      (test "if 5" (eq? x 2))
      (if t (if 1 (set x 11) (set x 22)) (set x 33))
