@@ -895,6 +895,12 @@ variable next-local-index 0 cells next-local-index !
 : 7pick 7 compile-pick ;
 : 8pick 8 compile-pick ;
 : 9pick 9 compile-pick ;
+: 10pick 10 compile-pick ;
+: 11pick 11 compile-pick ;
+: 12pick 12 compile-pick ;
+: 13pick 13 compile-pick ;
+: 14pick 14 compile-pick ;
+: 15pick 15 compile-pick ;
 
 : compile-stack-set ( n - )
   2 + cells postpone literal
@@ -913,9 +919,15 @@ variable next-local-index 0 cells next-local-index !
 : 7set 7 compile-stack-set ;
 : 8set 8 compile-stack-set ;
 : 9set 9 compile-stack-set ;
+: 10set 10 compile-stack-set ;
+: 11set 11 compile-stack-set ;
+: 12set 12 compile-stack-set ;
+: 13set 13 compile-stack-set ;
+: 14set 14 compile-stack-set ;
+: 15set 15 compile-stack-set ;
 
-10 cells allocate throw constant stack-getters
-10 cells allocate throw constant stack-setters
+16 cells allocate throw constant stack-getters
+16 cells allocate throw constant stack-setters
 
 : stack-getter cells stack-getters + ! ;
 : stack-setter cells stack-setters + ! ;
@@ -930,6 +942,12 @@ variable next-local-index 0 cells next-local-index !
 ' 7pick 7 stack-getter
 ' 8pick 8 stack-getter
 ' 9pick 9 stack-getter
+' 10pick 10 stack-getter
+' 11pick 11 stack-getter
+' 12pick 12 stack-getter
+' 13pick 13 stack-getter
+' 14pick 14 stack-getter
+' 15pick 15 stack-getter
 
 ' compile-nip 0 stack-setter
 ' 1set 1 stack-setter
@@ -941,6 +959,12 @@ variable next-local-index 0 cells next-local-index !
 ' 7set 7 stack-setter
 ' 8set 8 stack-setter
 ' 9set 9 stack-setter
+' 10set 10 stack-setter
+' 11set 11 stack-setter
+' 12set 12 stack-setter
+' 13set 13 stack-setter
+' 14set 14 stack-setter
+' 15set 15 stack-setter
 
 : compile-local-var ( symbol value - )
   lisp-interpret-r \ compile initial value
