@@ -350,10 +350,6 @@ variable return-context \ 1 if currently in a return context
 : rcontext{ ( v - ) return-context @ r> swap >r >r return-context ! ;
 : }rcontext ( v - ) r> r> swap >r return-context ! ;
 
-\ return-lit used in defcode to return a value from the form
-: return-lit ( n - )
-  return-context @ if postpone literal else drop then t ; f1
-
 
 \ STACK is a list representing the current stack of the compiled program.
 \ symbols in this list represent named stack positons (locals variables).
@@ -1216,6 +1212,10 @@ variable while-stack
 : while,
   stack-pop while-pop3 postpone while while-push3 while-push3 t ; f0
 : repeat, while-pop3 while-pop3 postpone repeat t ; f0
+
+\ return-lit used in defcode to return a value from the form
+: return-lit ( n - )
+  return-context @ if postpone literal else drop then t ; f1
 
 : stack-push-n ( n - t ) >>1 stack-push-n t ; f0
 : stack-pop-n ( n - t ) >>1 stack-pop-n t ; f0
