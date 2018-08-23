@@ -10,7 +10,7 @@ while retaining low level access and a small footprint
 making it suitable for constrained systems.
 Raillisp lets you ride the metal in style.
 
-Raillisp works by compiling the lisp functions into forth words.
+Raillisp works by compiling lisp functions into forth words.
 For example, defining a Fibonacci function and calling =quit=
 we can interactively inspect the compiled lisp code,
 printing the disassembled forth word:
@@ -35,9 +35,8 @@ see fib
 
 For more example code have a look at raillisp.lsp and tests.lsp
 
-The Raillisp dialect is influenced Common Lisp and Scheme,
-but there are substantial differences. There are
-common features that are not current supported,
-and some that will never be supported.
+The Raillisp dialect is influenced by Common Lisp and Scheme,
+but there are substantial differences.
+Lots of common features are not currently supported, some never will be.
 Features that compromise the performance of the system will
 not be implemented.

@@ -1196,6 +1196,13 @@ variable let-bound-names
   stack-pop-n stack-push*
 ; special
 
+: disassemble ( sym - lisp )
+  symbol->string find-name
+  dup 0= if drop ." undefined" cr nil
+  else
+    name-see cr lisp-true
+  then ; f1
+
 variable saved-stack-depth
 : stack-save ( - )
   stack-depth @ saved-stack-depth @ cons saved-stack-depth ! ;
