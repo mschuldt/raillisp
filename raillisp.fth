@@ -369,7 +369,7 @@ variable stack-depth
   stack @ cons stack ! ;
 
 : stack-push*
-  \ pushes a unique number onto the parameter
+  \ pushes a unique number onto the locals stack
   stack-counter dup @ 1+ dup make-number stack-push swap ! ;
 
 : stack-pop ( - )
@@ -1020,7 +1020,7 @@ variable let-bound-names
   \  num-args num-locals next-frame [body...] prev-frame exit
   new-function
   1 return-context !
-  0 let-bound-names !
+\  0 let-bound-names !
   dup car symbol->string
   lisp-create \ create dictionary header
   set-func-xt
@@ -1094,13 +1094,6 @@ variable let-bound-names
   lisp-find-symbol-word name>int execute ! ;
 
 : set-compile-local ( symbol value indexcons - )
-  swap lisp-interpret-r
-  cdr postpone literal
-  [comp'] set-local drop compile,
-  drop ; \ symbol
-
-: set-compile-local-ng ( symbol value indexcons - )
-  drop
   swap lisp-interpret-r
   cdr postpone literal
   [comp'] set-local drop compile,
