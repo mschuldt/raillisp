@@ -1191,25 +1191,31 @@ variable saved-stack-depth
 : stack-restore ( - )
   stack-reset saved-stack-depth dup @ cdr swap ! ;
 
-: do-if, stack-pop stack-save postpone if ;
-: if, 3 stack-push-n [comp'] do-if, drop compile, ; special
-: else, stack-reset postpone else t ; f0
+variable if-stack
+variable while-stack
+
+: if-push ( n - ) if-stack @ cons if-stack ! ;
+: if-pop ( - n ) if-stack dup @ dup car swap cdr rot ! ;
+: while-push ( n - ) while-stack @ cons while-stack ! ;
+: while-pop ( - n ) while-stack dup @ dup car swap cdr rot ! ;
+
+: if-push3 if-push if-push if-push ;
+: if-pop3 if-pop if-pop if-pop ;
+: while-push3 while-push while-push while-push ;
+: while-pop3 while-pop while-pop while-pop ;
+
+: if, stack-pop stack-save postpone if if-push3 t ; f0
+: else, stack-reset if-pop3 postpone else if-push3 t ; f0
 : do-then,
-  stack-restore postpone then
+  stack-restore if-pop3 postpone then
   return-context @ if stack-push* then ;
 : then,
-  3 stack-pop-n
-  [comp'] do-then, drop compile,
-  maybe-ret drop ; special
+  [comp'] do-then, drop compile, maybe-ret drop ; special
 
-: do-begin, postpone begin ;
-: begin, 3 stack-push-n [comp'] do-begin, drop compile, ; special
-: do-while, stack-pop postpone while ;
-: while, 3 stack-push-n [comp'] do-while, drop compile, ; special
-: do-repeat, postpone repeat ; special
-: repeat, 6 stack-pop-n [comp'] do-repeat, drop compile, ; special
-: lit, postpone literal t ; f0
-: drop, [comp'] drop drop compile, t ; f0
+: begin, postpone begin while-push3 t ; f0
+: while,
+  stack-pop while-pop3 postpone while while-push3 while-push3 t ; f0
+: repeat, while-pop3 while-pop3 postpone repeat t ; f0
 
 : stack-push-n ( n - t ) >>1 stack-push-n t ; f0
 : stack-pop-n ( n - t ) >>1 stack-pop-n t ; f0
