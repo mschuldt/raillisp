@@ -1204,7 +1204,7 @@ variable saved-stack-depth
 
 : do-begin, postpone begin ;
 : begin, 3 stack-push-n [comp'] do-begin, drop compile, ; special
-: do-while, postpone while ;
+: do-while, stack-pop postpone while ;
 : while, 3 stack-push-n [comp'] do-while, drop compile, ; special
 : do-repeat, postpone repeat ; special
 : repeat, 6 stack-pop-n [comp'] do-repeat, drop compile, ; special
