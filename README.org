@@ -3,7 +3,7 @@ Raillisp is a simple lisp implemented in Forth.
 It aims to be small, fast, and portable.
 
 Raillisp is in active development. Currently it only runs on Gforth,
-but soon it will run on everything from microcontrollers to web browsers.
+but will soon run on everything from microcontrollers to web browsers.
 
 It is designed to give you high level lisp features
 while retaining low level access and a small footprint
@@ -11,29 +11,27 @@ making it suitable for constrained systems.
 Raillisp lets you ride the metal in style.
 
 Raillisp works by compiling lisp functions into forth words.
-For example, defining a Fibonacci function and calling =quit=
-we can interactively inspect the compiled lisp code,
-printing the disassembled forth word:
+For example, create a lisp function and show the disassembled forth word:
 #+BEGIN_SRC lisp
-(defun fib (n)
-  (if (< n 3) 1
-    (+ (fib (- n 1)) (fib (- n 2)))))
+  (defun fib (n)
+    (if (< n 3)
+        1
+      (+ (fib (- n 1)) (fib (- n 2)))))
 
-(quit)
+  (disassemble 'fib)
 #+END_SRC
-now, in forth:
-#+BEGIN_SRC forth
-see fib
-: fib
-  dup 7 <
-  IF     3
-  ELSE   dup 3 - fib over 5 - fib +
-  THEN
-  nip ; ok
-#+END_SRC
-(the number constant are different because of the lisp type tagging)
+prints:
+: : fib
+:   dup 7 <
+:   IF     3
+:   ELSE   dup 3 - fib over 5 - fib +
+:   THEN
+:   nip ; ok
+(the number constants are different because of the lisp type tagging,
+=disassemble= just calls the forth word =see=)
 
-For more example code have a look at raillisp.lsp and tests.lsp
+More documentation is forthcoming. For now more example code
+can be found in =raillisp.lsp= and =tests.lsp=.
 
 The Raillisp dialect is influenced by Common Lisp and Scheme,
 but there are substantial differences.
