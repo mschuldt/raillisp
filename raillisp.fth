@@ -814,6 +814,7 @@ defer lisp-read-lisp
   \ 444 make-number stack-push
   dup stack-push
   postpone literal
+  maybe-drop
 ;
 
 ' lisp-interpret-number interpret-dispatch lisp-number-tag cells + !
@@ -822,6 +823,7 @@ defer lisp-read-lisp
 : lisp-compile-string
   stack-push*
   postpone literal \ todo: compile it into the dictionary
+  maybe-drop
 ;
 
 ' lisp-interpret-number interpret-dispatch lisp-string-tag cells + !
