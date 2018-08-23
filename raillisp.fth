@@ -899,21 +899,22 @@ variable next-local-index 0 cells next-local-index !
 : 9pick 9 compile-pick ;
 
 : compile-stack-set ( n - )
-  3 + cells postpone literal
+  2 + cells postpone literal
   [comp'] sp@ drop compile,
+  [comp'] + drop compile,
   [comp'] ! drop compile, ;
 : compile-nip [comp'] nip drop compile, ;
 : 1set ( a x v - v x )
   [comp'] -rot drop compile,
   [comp'] nip drop compile, ;
-: 2set 3 compile-stack-set ;
-: 3set 4 compile-stack-set ;
-: 4set 5 compile-stack-set ;
-: 5set 6 compile-stack-set ;
-: 6set 7 compile-stack-set ;
-: 7set 8 compile-stack-set ;
-: 8set 9 compile-stack-set ;
-: 9set 10 compile-stack-set ;
+: 2set 2 compile-stack-set ;
+: 3set 3 compile-stack-set ;
+: 4set 4 compile-stack-set ;
+: 5set 5 compile-stack-set ;
+: 6set 6 compile-stack-set ;
+: 7set 7 compile-stack-set ;
+: 8set 8 compile-stack-set ;
+: 9set 9 compile-stack-set ;
 
 10 cells allocate throw constant stack-getters
 10 cells allocate throw constant stack-setters
