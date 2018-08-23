@@ -1,7 +1,7 @@
 
 (var start-time (utime))
 
-(def test (name check)
+(defun test (name check)
      (if (not check)
          (progn (print "FAILED TEST: ")
                 (println name)
@@ -57,7 +57,7 @@
 (test "hex 2" (= $af 175))
 (test "bin" (= %101 5))
 
-(def test-equal? ()
+(defun test-equal? ()
      (test "equal? 1" (equal? 1 1))
      (test "equal? 2" (not (equal? 1 2)))
      (test "equal? 3" (equal? (cons 1 2) (cons 1 2)))
@@ -70,7 +70,7 @@
      (test "equal? 10" (not (equal? "s" "ss"))))
 (test-equal?)
 
-(def test-list ()
+(defun test-list ()
      (var l (list 1 2 3))
      ;;(test "list 0" (equal? (list) nil))
      (test "list 1" (eq? (car l) 1))
@@ -85,7 +85,7 @@
      (test "assoc 2" (eq? (assoc 4 l) nil)))
 (test-list)
 
-(def test-string ()
+(defun test-string ()
      (var s1 "str")
      (var s2 "str")
      (test "string 1" (equal? s1 s2))
@@ -100,7 +100,7 @@
      (test "string 8" (= (string->number "-5") -5)))
 (test-string)
 
-(def test-if ()
+(defun test-if ()
      (var x 1)
      (test "if 1" (eq? (if (eq? 1 1) 1 2) 1))
      (test "if 2" (eq? (if (eq? 1 2) 1 2) 2))
@@ -112,7 +112,7 @@
 
 (test-if)
 
-(def test-let* (x)
+(defun test-let* (x)
      (var xx x)
      (let* ((x 11)
             (z 50))
@@ -128,7 +128,7 @@
      (test "let* 7" (eq? x xx)))
 (test-let* 100)
 
-(def test-while1 ()
+(defun test-while1 ()
      (var x 10)
      (var n 0)
      (while (> x 0)
@@ -137,7 +137,7 @@
      (test "while1" (eq? n 10)))
 (test-while1)
 
-(def test-while ()
+(defun test-while ()
      (var lst nil)
      (var n 0)
      (var x 2)
@@ -154,14 +154,14 @@
      (test "while 3" (eq? inner 20)))
 (test-while)
 
-(def factorial (n)
+(defun factorial (n)
      (if (= n 1)
          1
        (* n (factorial (- n 1)))))
 
 (test "recursion" (eq? (factorial 5) 120))
 
-(def test-dolist ()
+(defun test-dolist ()
      (let* ((v nil))
        (dolist (x (list 1 2 3))
          (set v (cons (cons x (* x x)) v)))
@@ -176,12 +176,12 @@
        (test "dolist 2" (equal? v (list 2 22 11 1 22 11)))))
 (test-dolist)
 
-(def cond-x (x)
+(defun cond-x (x)
      (cond ((= x 1) "one")
            ((= x 2) "two")
            (t "default")))
 
-(def test-cond ()
+(defun test-cond ()
      (test "cond 1" (equal? (cond-x 1) "one"))
      (test "cond 2" (equal? (cond-x 2) "two"))
      (test "cond 3" (equal? (cond-x 32) "default"))
@@ -196,7 +196,7 @@
 
 (test-cond)
 
-(def test-and ()
+(defun test-and ()
      (var x 0)
      (and 1
           (progn (set x 11) t)
@@ -219,7 +219,7 @@
      )
 (test-and)
 
-(def test-or ()
+(defun test-or ()
      (var x 0)
      (or (progn (set x 11) t)
          (set x 22))
@@ -242,7 +242,7 @@
      )
 (test-or)
 
-(def test-dotimes ()
+(defun test-dotimes ()
      (var x nil)
      (dotimes (n 5)
        (set x (cons n x)))
@@ -253,7 +253,7 @@
 
 (test-dotimes)
 
-(def test-list-index ()
+(defun test-list-index ()
      (var l (list 1 nil "str" 'sym))
      (test "list-index 1" (eq? (list-index 1 l) 0))
      (test "list-index 2" (eq? (list-index "str" l) 2))
@@ -263,7 +263,7 @@
 )
 (test-list-index)
 
-;; (def func-with-no-body ()) ; TODO
+;; (defun func-with-no-body ()) ; TODO
 
 (print "--forth init time: ")
 (println forth-init-time)

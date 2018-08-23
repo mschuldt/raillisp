@@ -55,9 +55,9 @@
   (dolist (x conditions)
     (then,)))
 
-(def println (obj)
-     (print obj)
-     (cr))
+(defun println (obj)
+  (print obj)
+  (cr))
 
 (defmacro dotimes (spec &rest body)
   (list 'let* (list (list '--dotimes-limit-- (car (cdr spec)))

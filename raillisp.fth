@@ -1063,7 +1063,7 @@ variable let-bound-names
   0 return-context !
 ;
 
-: def ( lisp - lisp)
+: defun ( lisp - lisp)
   compile-def end-compile
   1 check-stack-depth stack-pop
   postpone exit
