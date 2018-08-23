@@ -128,6 +128,15 @@
      (test "let* 7" (eq? x xx)))
 (test-let* 100)
 
+(def test-while1 ()
+     (var x 10)
+     (var n 0)
+     (while (> x 0)
+       (set n (+ n 1))
+       (set x (- x 1)))
+     (test "while1" (eq? n 10)))
+(test-while1)
+
 (def test-while ()
      (var lst nil)
      (var n 0)
