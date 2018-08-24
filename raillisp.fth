@@ -122,11 +122,11 @@ variable stack-counter
 
 : cons make-cons ; f2
 
-: car ( pair -- lisp )
-  dup 0<> if pair-car @ then ; f1
+: car ( pair -- lisp ) dup 0<> if pair-car @ then ; f1
+: cdr ( pair -- lisp ) dup 0<> if pair-cdr @ then ; f1
 
-: cdr ( pair -- lisp )
-  dup 0<> if pair-cdr @ then ; f1
+: setcar ( pair x -- x ) dup rot pair-car ! ; f2
+: setcdr ( pair x -- x ) dup rot pair-cdr ! ; f2
 
 : <<1 1 lshift ;
 : >>1 1 rshift ;
