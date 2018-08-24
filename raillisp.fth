@@ -29,6 +29,7 @@ lisp-max-tag cells allocate throw constant display-dispatch
 lisp-max-tag cells allocate throw constant equal?-dispatch
 lisp-max-tag cells allocate throw constant interpret-dispatch
 lisp-max-tag cells allocate throw constant compile-dispatch
+lisp-max-tag cells allocate throw constant type-names
 
 \ lisp structs. The forth struct feature is not used for portability
 
@@ -190,6 +191,7 @@ wordlist constant symbols
   dup if
     \ the symbol already exits
     -rot 2drop name>int execute @ r> drop
+    \ TODO: fix: s" cons" intern
   else
     \ create a new variable in the symbols wordlist
     drop get-current -rot symbols set-current
@@ -1188,6 +1190,13 @@ variable command-line-args
 process-args command-line-args !
 
 : identity ( x - x ) ; f1
+
+s" 'cons" symbol-new intern lisp-pair-tag cells type-names + !
+s" integer" symbol-new intern lisp-number-tag cells type-names + !
+s" symbol" symbol-new intern lisp-symbol-tag cells type-names + !
+s" string" symbol-new intern lisp-string-tag cells type-names + !
+s" vector" symbol-new intern lisp-vector-tag cells type-names + !
+: type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ ; f1
 
 variable saved-stack-depth
 : stack-save ( - )
