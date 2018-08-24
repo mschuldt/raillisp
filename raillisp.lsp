@@ -66,5 +66,9 @@
               (cons 'progn body)
               (list 'set (car spec) (list '+ (car spec) 1)))))
 
+(defun repl ()
+  (while 1
+    (println (eval (read-from-input)))))
+
 (var lisp-init-time (- (utime) start-time))
 (var lisp-dict-space (- (here) start-here))
