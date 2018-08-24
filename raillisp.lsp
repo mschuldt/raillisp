@@ -75,5 +75,10 @@
       (cons (funcall fn (list (car lst))) (mapcar fn (cdr lst)))
     lst))
 
+(defcode when (test &rest body)
+  (compile-r test)
+  (if,)
+  (compile-progn body)
+  (then,))
 (var lisp-init-time (- (utime) start-time))
 (var lisp-dict-space (- (here) start-here))
