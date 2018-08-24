@@ -683,13 +683,13 @@ defer lisp-read-lisp
     then
   then ;
 
-: lisp-read-from-input
+: read-from-input
   0 read-from-string !
   -1 stdin-lastchar !
   0 stdin-unread !
   0 paren-count !
   ." > " lisp-read-lisp
-;
+; f0
 
 : read ( str - lisp ) symbol->string lisp-read-from-string ; f1
 : eval ( lisp - lisp ) lisp-interpret ; f1
