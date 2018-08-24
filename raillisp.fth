@@ -374,16 +374,16 @@ variable stack-depth
   \ pushes a unique number onto the locals stack
   stack-counter dup @ 1+ dup make-number stack-push swap ! ;
 
-: stack-pop ( - )
+: stack-drop ( - )
   stack-depth dup @ dup 0= if
   then
   1- swap !
   stack do-stack-pop drop
 ;
 
-: stack-pop-n ( n - )
+: stack-drop-n ( n - )
   begin dup 0 > while
-    1- stack-pop
+    1- stack-drop
   repeat drop ;
 
 : stack-push-n ( n - )
@@ -732,7 +732,7 @@ defer lisp-read-lisp
       \ drop
     else
       [comp'] drop drop compile,
-      stack-pop
+      stack-drop
     then
   then ;
 
@@ -787,7 +787,7 @@ defer lisp-read-lisp
   r> name>int dup find-function-check swap
   check-arg-count
   compile,
-  curr-args stack-pop-n
+  curr-args stack-drop-n
   curr-returns stack-push-n ;
 
 : lisp-interpret-pair ( lisp - lisp?)
@@ -868,7 +868,7 @@ variable next-local-index 0 cells next-local-index !
 : pop-local-names ( n - )
   recursive
   dup 0> if
-    stack-pop
+    stack-drop
     [comp'] drop drop compile,
     locals dup @ cdr swap !
     --local-index
@@ -976,7 +976,7 @@ variable next-local-index 0 cells next-local-index !
 
 : compile-local-var-ng ( symbol value - )
   ++locals lisp-interpret-r \ compile initial value
-  stack-pop stack-push ; \ name the stack location
+  stack-drop stack-push ; \ name the stack location
 
 : var ( sv - v)
   dup car swap cdr car \ symbol value
@@ -1037,7 +1037,7 @@ variable let-bound-names
     dup 0>
   while
     1- [comp'] drop drop compile,
-    stack-pop
+    stack-drop
   repeat drop
   [comp'] r> drop compile, ;
 
@@ -1067,7 +1067,7 @@ variable let-bound-names
 
 : defun ( lisp - lisp)
   compile-def end-compile
-  1 check-stack-depth stack-pop
+  1 check-stack-depth stack-drop
   postpone exit
   nil ; special
 
@@ -1077,14 +1077,14 @@ variable let-bound-names
   \ TODO: temp workaround - discard the return value
   [comp'] drop drop compile,
   end-compile
-  stack-pop 0 check-stack-depth
+  stack-drop 0 check-stack-depth
   postpone exit
   immediate nil ; special
 
 : defmacro ( lisp - lisp)
   compile-def end-compile
   [comp'] set-macro-flag drop compile,
-  1 check-stack-depth stack-pop
+  1 check-stack-depth stack-drop
   postpone exit
   immediate nil ; special
 
@@ -1127,7 +1127,7 @@ variable let-bound-names
 
 : set-compile-global ( symbol value - )
   lisp-interpret-r \ compile value
-  stack-pop
+  stack-drop
   lisp-find-symbol-word name>int compile,
   [comp'] ! drop compile, ;
 
@@ -1144,7 +1144,7 @@ variable let-bound-names
 
 : set-compile-local-ng ( symbol value index - )
   swap lisp-interpret-r
-  stack-pop
+  stack-drop
   cells stack-setters + @ execute
   ( symbol ) drop ;
 
@@ -1176,7 +1176,7 @@ variable let-bound-names
     dup car
     dup car swap cdr car
     lisp-interpret-r
-    stack-pop stack-push \ name it
+    stack-drop stack-push \ name it
     r> 1+ >r cdr
   repeat
   drop cdr
@@ -1195,7 +1195,7 @@ variable let-bound-names
   begin dup 0>
   while [comp'] cons drop compile, 1-
   repeat drop
-  stack-pop-n stack-push*
+  stack-drop-n stack-push*
 ; special
 
 : disassemble ( sym - lisp )
@@ -1224,7 +1224,7 @@ variable saved-stack-depth
 : stack-save ( - )
   stack-depth @ saved-stack-depth do-stack-push ;
 : stack-reset ( - )
-  stack-depth @ saved-stack-depth @ car - stack-pop-n ;
+  stack-depth @ saved-stack-depth @ car - stack-drop-n ;
 : stack-restore ( - )
   stack-reset saved-stack-depth do-stack-pop drop ;
 
@@ -1241,7 +1241,7 @@ variable while-stack
 : while-push3 while-push while-push while-push ;
 : while-pop3 while-pop while-pop while-pop ;
 
-: if, stack-pop stack-save postpone if if-push3 t ; f0
+: if, stack-drop stack-save postpone if if-push3 t ; f0
 : else, stack-reset if-pop3 postpone else if-push3 t ; f0
 : do-then,
   stack-restore if-pop3 postpone then
@@ -1251,7 +1251,7 @@ variable while-stack
 
 : begin, postpone begin while-push3 t ; f0
 : while,
-  stack-pop while-pop3 postpone while while-push3 while-push3 t ; f0
+  stack-drop while-pop3 postpone while while-push3 while-push3 t ; f0
 : repeat, while-pop3 while-pop3 postpone repeat t ; f0
 
 \ return-lit used in defcode to return a value from the form
@@ -1259,7 +1259,7 @@ variable while-stack
   return-context @ if postpone literal else drop then t ; f1
 
 : stack-push-n ( n - t ) >>1 stack-push-n t ; f0
-: stack-pop-n ( n - t ) >>1 stack-pop-n t ; f0
+: stack-drop-n ( n - t ) >>1 stack-drop-n t ; f0
 
 
 : 1+ ( n - n ) 2 + ; f1
