@@ -1174,6 +1174,16 @@ variable let-bound-names
     >r unlist r> name>int execute
   then ; f2
 
+variable command-line-args
+: process-args ( - )
+  recursive
+  next-arg 2dup 0 0 d<> if
+    symbol-new intern process-args cons
+  else
+    drop
+  then ;
+process-args command-line-args !
+
 : identity ( x - x ) ; f1
 
 variable saved-stack-depth
