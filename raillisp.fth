@@ -808,8 +808,6 @@ defer lisp-read-lisp
 ' lisp-interpret-number interpret-dispatch lisp-string-tag cells + !
 ' lisp-compile-string compile-dispatch lisp-string-tag cells + !
 
-( ( )( )( ) ( lisp words ) ( )( )( )
-
 : quote
   lisp-state @ 0= if
     car
@@ -819,7 +817,7 @@ defer lisp-read-lisp
   then
 ; special
 
-\ locals-counter count the locals in the current function
+\ locals-counter counts the locals in the current function
 variable locals-counter
 
 : ++locals locals-counter dup @ 1+ swap ! ;
@@ -855,90 +853,39 @@ variable locals-counter
 : compile-pick postpone literal [comp'] pick drop compile, ;
 : compile-dup [comp'] dup drop compile, ;
 : compile-over [comp'] over drop compile, ;
-: 2pick 2 compile-pick ;
-: 3pick 3 compile-pick ;
-: 4pick 4 compile-pick ;
-: 5pick 5 compile-pick ;
-: 6pick 6 compile-pick ;
-: 7pick 7 compile-pick ;
-: 8pick 8 compile-pick ;
-: 9pick 9 compile-pick ;
-: 10pick 10 compile-pick ;
-: 11pick 11 compile-pick ;
-: 12pick 12 compile-pick ;
-: 13pick 13 compile-pick ;
-: 14pick 14 compile-pick ;
-: 15pick 15 compile-pick ;
-
+: compile-nip [comp'] nip drop compile, ;
 : compile-stack-set ( n - )
   2 + cells postpone literal
   [comp'] sp@ drop compile,
   [comp'] + drop compile,
   [comp'] ! drop compile, ;
-: compile-nip [comp'] nip drop compile, ;
-: 1set ( a x v - v x )
+: compile-rot-nip
   [comp'] -rot drop compile,
   [comp'] nip drop compile, ;
-: 2set 2 compile-stack-set ;
-: 3set 3 compile-stack-set ;
-: 4set 4 compile-stack-set ;
-: 5set 5 compile-stack-set ;
-: 6set 6 compile-stack-set ;
-: 7set 7 compile-stack-set ;
-: 8set 8 compile-stack-set ;
-: 9set 9 compile-stack-set ;
-: 10set 10 compile-stack-set ;
-: 11set 11 compile-stack-set ;
-: 12set 12 compile-stack-set ;
-: 13set 13 compile-stack-set ;
-: 14set 14 compile-stack-set ;
-: 15set 15 compile-stack-set ;
-
-16 cells allocate throw constant stack-getters
-16 cells allocate throw constant stack-setters
-16 cells allocate throw constant local-droppers
-
-: stack-getter cells stack-getters + ! ;
-: stack-setter cells stack-setters + ! ;
-: local-dropper cells local-droppers + ! ;
-
-' compile-dup 0 stack-getter
-' compile-over 1 stack-getter
-' 2pick 2 stack-getter
-' 3pick 3 stack-getter
-' 4pick 4 stack-getter
-' 5pick 5 stack-getter
-' 6pick 6 stack-getter
-' 7pick 7 stack-getter
-' 8pick 8 stack-getter
-' 9pick 9 stack-getter
-' 10pick 10 stack-getter
-' 11pick 11 stack-getter
-' 12pick 12 stack-getter
-' 13pick 13 stack-getter
-' 14pick 14 stack-getter
-' 15pick 15 stack-getter
-
-' compile-nip 0 stack-setter
-' 1set 1 stack-setter
-' 2set 2 stack-setter
-' 3set 3 stack-setter
-' 4set 4 stack-setter
-' 5set 5 stack-setter
-' 6set 6 stack-setter
-' 7set 7 stack-setter
-' 8set 8 stack-setter
-' 9set 9 stack-setter
-' 10set 10 stack-setter
-' 11set 11 stack-setter
-' 12set 12 stack-setter
-' 13set 13 stack-setter
-' 14set 14 stack-setter
-' 15set 15 stack-setter
 
 : compile-rot-2drop
   [comp'] -rot drop compile,
   [comp'] 2drop drop compile, ;
+
+: compile-stack-getter ( n - )
+  dup 0= if
+    drop compile-dup
+  else
+    dup 1 = if
+      drop compile-over
+    else
+      compile-pick
+    then then ;
+
+: compile-stack-setter ( n - )
+  dup 0= if
+    drop compile-nip
+  else
+    dup 1 = if
+      drop compile-rot-nip
+    else
+      compile-stack-set
+    then then ;
 
 : compile-drop-locals ( n - )
   [comp'] >r drop compile,
@@ -950,36 +897,19 @@ variable locals-counter
   repeat drop
   [comp'] r> drop compile, ;
 
-: 3dropl 3 compile-drop-locals ;
-: 4dropl 4 compile-drop-locals ;
-: 5dropl 5 compile-drop-locals ;
-: 6dropl 6 compile-drop-locals ;
-: 7dropl 7 compile-drop-locals ;
-: 8dropl 8 compile-drop-locals ;
-: 9dropl 9 compile-drop-locals ;
-: 10dropl 10 compile-drop-locals ;
-: 11dropl 11 compile-drop-locals ;
-: 12dropl 12 compile-drop-locals ;
-: 13dropl 13 compile-drop-locals ;
-: 14dropl 14 compile-drop-locals ;
-: 15dropl 15 compile-drop-locals ;
-
-' noop 0 local-dropper
-' compile-nip 1 local-dropper
-' compile-rot-2drop 2 local-dropper
-' 3dropl 3 local-dropper
-' 4dropl 4 local-dropper
-' 5dropl 5 local-dropper
-' 6dropl 6 local-dropper
-' 7dropl 7 local-dropper
-' 8dropl 8 local-dropper
-' 9dropl 9 local-dropper
-' 10dropl 10 local-dropper
-' 11dropl 11 local-dropper
-' 12dropl 12 local-dropper
-' 13dropl 13 local-dropper
-' 14dropl 14 local-dropper
-' 15dropl 15 local-dropper
+: drop-locals ( n - )
+  dup stack-drop-n
+  dup 0= if
+    drop
+  else
+    dup 1 = if
+      drop compile-nip
+    else
+      dup 2 = if
+        drop compile-rot-2drop
+      else
+        compile-drop-locals
+      then then then ;
 
 : compile-local-var ( symbol value - )
   ++locals lisp-interpret-r \ compile initial value
@@ -1038,10 +968,6 @@ variable let-bound-names
   dup 0<> if push-local-name 1+ else drop then
   dup set-func-args ;
 
-: drop-locals ( n - )
-  dup stack-drop-n
-  cells local-droppers + @ execute ;
-
 : compile-def ( lisp - )
   new-function
   1 return-context !
@@ -1082,7 +1008,7 @@ variable let-bound-names
 
 : lisp-compile-symbol ( lisp - ) \ todo; rename: symbol ref
   dup stack @ list-index dup -1 <> if \ local variable reference
-    cells stack-getters + @ execute
+    compile-stack-getter
     drop
   else \ compile dicationary variable lookup
     drop lisp-find-symbol-word name>int compile,
@@ -1105,8 +1031,7 @@ variable let-bound-names
 
 : set-compile-local ( symbol value index - )
   swap lisp-interpret-r
-  stack-drop
-  cells stack-setters + @ execute
+  stack-drop compile-stack-setter
   ( symbol ) drop ;
 
 : set-compile ( symbol value - )
