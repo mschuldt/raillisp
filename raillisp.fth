@@ -930,9 +930,11 @@ variable next-local-index 0 cells next-local-index !
 
 16 cells allocate throw constant stack-getters
 16 cells allocate throw constant stack-setters
+16 cells allocate throw constant local-droppers
 
 : stack-getter cells stack-getters + ! ;
 : stack-setter cells stack-setters + ! ;
+: local-dropper cells local-droppers + ! ;
 
 ' compile-dup 0 stack-getter
 ' compile-over 1 stack-getter
@@ -967,6 +969,51 @@ variable next-local-index 0 cells next-local-index !
 ' 13set 13 stack-setter
 ' 14set 14 stack-setter
 ' 15set 15 stack-setter
+
+: compile-rot-2drop
+  [comp'] -rot drop compile,
+  [comp'] 2drop drop compile, ;
+
+: compile-drop-locals ( n - )
+  [comp'] >r drop compile,
+  begin
+    dup 0>
+  while
+    \ TODO: use 2drop when possible
+    1- [comp'] drop drop compile,
+  repeat drop
+  [comp'] r> drop compile, ;
+
+: 3dropl 3 compile-drop-locals ;
+: 4dropl 4 compile-drop-locals ;
+: 5dropl 5 compile-drop-locals ;
+: 6dropl 6 compile-drop-locals ;
+: 7dropl 7 compile-drop-locals ;
+: 8dropl 8 compile-drop-locals ;
+: 9dropl 9 compile-drop-locals ;
+: 10dropl 10 compile-drop-locals ;
+: 11dropl 11 compile-drop-locals ;
+: 12dropl 12 compile-drop-locals ;
+: 13dropl 13 compile-drop-locals ;
+: 14dropl 14 compile-drop-locals ;
+: 15dropl 15 compile-drop-locals ;
+
+' noop 0 local-dropper
+' compile-nip 1 local-dropper
+' compile-rot-2drop 2 local-dropper
+' 3dropl 3 local-dropper
+' 4dropl 4 local-dropper
+' 5dropl 5 local-dropper
+' 6dropl 6 local-dropper
+' 7dropl 7 local-dropper
+' 8dropl 8 local-dropper
+' 9dropl 9 local-dropper
+' 10dropl 10 local-dropper
+' 11dropl 11 local-dropper
+' 12dropl 12 local-dropper
+' 13dropl 13 local-dropper
+' 14dropl 14 local-dropper
+' 15dropl 15 local-dropper
 
 : compile-local-var ( symbol value - )
   lisp-interpret-r \ compile initial value
@@ -1032,14 +1079,8 @@ variable let-bound-names
   dup set-func-args ;
 
 : drop-locals ( n - )
-  [comp'] >r drop compile,
-  begin
-    dup 0>
-  while
-    1- [comp'] drop drop compile,
-    stack-drop
-  repeat drop
-  [comp'] r> drop compile, ;
+  dup stack-drop-n
+  cells local-droppers + @ execute ;
 
 : compile-def ( lisp - )
   \ lisp word format:
