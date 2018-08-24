@@ -1203,6 +1203,19 @@ variable let-bound-names
     name-see cr lisp-true
   then ; f1
 
+: unlist ( list - e1,e2,...,en )
+  recursive
+  dup 0<> if
+    dup car swap cdr unlist
+  else drop then ;
+
+: funcall ( fn args - lisp )
+  swap symbol->string find-name dup 0= if
+    2drop ." undefined fn" cr nil
+  else
+    >r unlist r> name>int execute
+  then ; f2
+
 variable saved-stack-depth
 : stack-save ( - )
   stack-depth @ saved-stack-depth @ cons saved-stack-depth ! ;
