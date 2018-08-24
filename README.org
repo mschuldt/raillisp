@@ -26,7 +26,7 @@ prints:
 :   IF     3
 :   ELSE   dup 3 - fib over 5 - fib +
 :   THEN
-:   nip ; ok
+:   nip ;
 (the number constants are different because of the lisp type tagging,
 =disassemble= just calls the forth word =see=)
 
