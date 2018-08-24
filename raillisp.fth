@@ -1216,6 +1216,8 @@ variable let-bound-names
     >r unlist r> name>int execute
   then ; f2
 
+: identity ( x - x ) ; f1
+
 variable saved-stack-depth
 : stack-save ( - )
   stack-depth @ saved-stack-depth @ cons saved-stack-depth ! ;
