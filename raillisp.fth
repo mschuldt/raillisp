@@ -356,9 +356,6 @@ variable return-context \ 1 if currently in a return context
 \ STACK is a list representing the current stack of the compiled program.
 \ symbols in this list represent named stack positons (locals variables).
 \ anonymous stack entries are nil.
-\ --
-\ eventually STACK will replace the LOCALS list. but it
-\ it will exist alongside it until the new compilation method works.
 variable stack
 0 stack !
 variable stack-depth
@@ -472,27 +469,6 @@ variable stack-depth
 
 variable macro-flag
 : set-macro-flag 1 macro-flag ! ;
-
-variable frame
-: ndrop ( n - )
-  begin dup 0> while swap drop 1- repeat drop ;
-: stack-space ( n - ) \ adds n things to the stack
-  begin dup 0> while dup swap 1- repeat drop ;
-
-: get-local ( n - v ) frame @ swap - @ ;
-: set-local ( v n - ) frame @ swap - ! ;
-
-: next-frame (  nargs nlocals - nlocals... nargs+nlocals old-frame magic )
-  swap over + >r stack-space r>
-  dup 1+ cells sp@ + frame dup @ -rot !
-  1112111 \ XXX magic number to help catch stack corruption
-;
-
-: prev-frame ( locals... nlocals old-frame magic ret - ret)
-  >r
-  1112111 <>
-  if ." error: magic frame number not found" cr .s 1 throw then
-  frame ! ndrop r> ;
 
 \ the reader
 
@@ -840,23 +816,10 @@ defer lisp-read-lisp
 
 \ locals-counter count the locals in the current function
 variable locals-counter
-\ locals is an alist of (name . index) pairs.
-\  index is a forth integer so this list cannot be printed as lisp
-variable locals nil locals !
 
-: ++locals
-  locals-counter dup @ 1+ swap ! ;
+: ++locals locals-counter dup @ 1+ swap ! ;
 
-\ next-local-index is the offset from the frame pointer
-variable next-local-index 0 cells next-local-index !
-: ++local-index next-local-index dup @ 1 cells + swap ! ;
-: --local-index next-local-index dup @ 1 cells - swap ! ;
-
-: push-local-name ( symbol - )
-  dup stack-push
-  next-local-index @ cons
-  locals @ cons locals !
-  ++local-index ;
+: push-local-name ( symbol - ) stack-push ;
 
 : push-local-names ( list - )
   recursive
@@ -870,8 +833,6 @@ variable next-local-index 0 cells next-local-index !
   dup 0> if
     stack-drop
     [comp'] drop drop compile,
-    locals dup @ cdr swap !
-    --local-index
     1- pop-local-names
   else drop then ;
 
@@ -1016,12 +977,6 @@ variable next-local-index 0 cells next-local-index !
 ' 15dropl 15 local-dropper
 
 : compile-local-var ( symbol value - )
-  lisp-interpret-r \ compile initial value
-  ++locals push-local-name
-  next-local-index @ 1 cells - postpone literal
-  [comp'] set-local drop compile, ;
-
-: compile-local-var-ng ( symbol value - )
   ++locals lisp-interpret-r \ compile initial value
   stack-drop stack-push ; \ name the stack location
 
@@ -1031,7 +986,7 @@ variable next-local-index 0 cells next-local-index !
     lisp-interpret dup rot symbol->string
     nextname create ,
   else
-    compile-local-var-ng
+    compile-local-var
   then
   maybe-ret drop
 ; special
@@ -1083,28 +1038,16 @@ variable let-bound-names
   cells local-droppers + @ execute ;
 
 : compile-def ( lisp - )
-  \ lisp word format:
-  \  num-args num-locals next-frame [body...] prev-frame exit
   new-function
   1 return-context !
-\  0 let-bound-names !
   dup car symbol->string
   lisp-create \ create dictionary header
   set-func-xt
   cdr dup car handle-args
   dup locals-counter !
-\  dup postpone literal \ lisp word: arg length
-\  here 1 cells + locals-counter ! \ set location of locals count
-\  0 postpone literal \ lisp word: locals count
-\  [comp'] next-frame drop compile, \ lisp word: start frame
   swap cdr start-compile lisp-compile-progn \ compile function body
-\  locals-counter @ @ + \ nlocals+nargs
-  \  let-bound-names @ -
-  drop locals-counter @
-  drop-locals
-\  [comp'] prev-frame drop compile, \ lisp word: end frame
-  0 return-context !
-;
+  drop locals-counter @ drop-locals
+  0 return-context ! ;
 
 : defun ( lisp - lisp)
   compile-def end-compile
@@ -1132,18 +1075,7 @@ variable let-bound-names
 : lisp-interpret-symbol ( lisp - )
   lisp-find-symbol-word name>int execute @ ;
 
-: lisp-compile-symbol ( lisp - )
-  ." lisp-compile-symbol:" dup lisp-display cr
-  dup locals @ assoc dup if \ local variable reference
-    cdr postpone literal
-    [comp'] get-local drop compile,
-    drop
-  else \ compile dicationary variable lookup
-    drop lisp-find-symbol-word name>int compile,
-    [comp'] @ drop compile,
-  then ;
-
-: lisp-compile-symbol-ng ( lisp - ) \ todo; rename: symbol ref
+: lisp-compile-symbol ( lisp - ) \ todo; rename: symbol ref
   dup stack @ list-index dup -1 <> if \ local variable reference
     cells stack-getters + @ execute
     drop
@@ -1154,17 +1086,11 @@ variable let-bound-names
   stack-push* ;
 
 ' lisp-interpret-symbol interpret-dispatch lisp-symbol-tag cells + !
-' lisp-compile-symbol-ng compile-dispatch lisp-symbol-tag cells + !
+' lisp-compile-symbol compile-dispatch lisp-symbol-tag cells + !
 
 : set-interpret ( symbol value - )
   lisp-interpret dup rot
   lisp-find-symbol-word name>int execute ! ;
-
-: set-compile-local ( symbol value indexcons - )
-  swap lisp-interpret-r
-  cdr postpone literal
-  [comp'] set-local drop compile,
-  drop ; \ symbol
 
 : set-compile-global ( symbol value - )
   lisp-interpret-r \ compile value
@@ -1172,26 +1098,15 @@ variable let-bound-names
   lisp-find-symbol-word name>int compile,
   [comp'] ! drop compile, ;
 
-: set-compile ( symbol value - )
-  over locals @ assoc dup if
-    set-compile-local
-    drop \ symbol
-  else
-    drop set-compile-global
-  then
-  return-context @ if
-    0 postpone literal \ TODO: return value instead
-  then ;
-
-: set-compile-local-ng ( symbol value index - )
+: set-compile-local ( symbol value index - )
   swap lisp-interpret-r
   stack-drop
   cells stack-setters + @ execute
   ( symbol ) drop ;
 
-: set-compile-ng ( symbol value - )
+: set-compile ( symbol value - )
   over stack @ list-index dup -1 <> if
-    set-compile-local-ng
+    set-compile-local
   else
     drop set-compile-global
   then
@@ -1205,7 +1120,7 @@ variable let-bound-names
   lisp-state @ 0= if
     set-interpret
   else
-    set-compile-ng
+    set-compile
   then
 ; special
 
