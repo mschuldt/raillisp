@@ -691,6 +691,8 @@ defer lisp-read-lisp
   ." > " lisp-read-lisp
 ;
 
+: read ( str - lisp ) symbol->string lisp-read-from-string ; f1
+
 : maybe-ret ( - t ) \ used to return nil if in return context
   return-context @ if 0 postpone literal stack-push* then t ; f0
 
