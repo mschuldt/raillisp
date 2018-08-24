@@ -70,5 +70,10 @@
   (while 1
     (println (eval (read-from-input)))))
 
+(defun mapcar (fn lst)
+  (if lst ;TODO: non-recursive version
+      (cons (funcall fn (list (car lst))) (mapcar fn (cdr lst)))
+    lst))
+
 (var lisp-init-time (- (utime) start-time))
 (var lisp-dict-space (- (here) start-here))
