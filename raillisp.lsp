@@ -80,5 +80,16 @@
   (if,)
   (compile-progn body)
   (then,))
+
+(defun init ()
+  (if (not (boundp '_testing_))
+      (if (= (list-length command-line-args) 0)
+          (repl)
+        (load (car command-line-args))
+        (bye))
+    nil))
+
 (var lisp-init-time (- (utime) start-time))
 (var lisp-dict-space (- (here) start-here))
+
+(init)

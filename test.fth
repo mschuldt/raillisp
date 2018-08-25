@@ -6,6 +6,8 @@
     bye
   then ;
 
+: _testing_ ;
+
 include raillisp.fth
 
 check-stack
