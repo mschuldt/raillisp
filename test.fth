@@ -6,7 +6,7 @@
     bye
   then ;
 
-: _testing_ ;
+: _noinit_ ;
 
 include raillisp.fth
 

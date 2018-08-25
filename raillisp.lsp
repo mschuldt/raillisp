@@ -85,7 +85,7 @@
   (then,))
 
 (defun init ()
-  (if (not (boundp '_testing_))
+  (if (not (boundp '_noinit_))
       (progn
         (process-args)
         (if (= (list-length command-line-args) 0)

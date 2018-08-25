@@ -1,5 +1,5 @@
 
-: _testing_ ;
+: _noinit_ ;
 include ../raillisp.fth
 s" bench.lsp" lisp-load-from-file
 cr bye
