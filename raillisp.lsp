@@ -2,6 +2,8 @@
 (set start-time (utime))
 (set start-here (here))
 
+(var raillisp-version "0.1")
+
 (defcode if (test true &rest false)
   (compile-r test)
   (if,)
@@ -84,7 +86,11 @@
 (defun init ()
   (if (not (boundp '_testing_))
       (if (= (list-length command-line-args) 0)
-          (repl)
+          (progn
+            (print "// Raillisp ")
+            (print raillisp-version)
+            (println " \\\\")
+            (repl))
         (load (car command-line-args))
         (bye))
     nil))
