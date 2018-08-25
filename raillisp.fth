@@ -1,8 +1,7 @@
 \ -*- forth -*-
 
-\ utilities
-
 0 warnings !
+
 variable start-time
 variable start-here
 utime drop start-time !
@@ -11,8 +10,7 @@ here start-here !
 variable exit-on-error
 1 exit-on-error !
 
-: maybe-bye
-  exit-on-error @ if 1 throw then ;
+: maybe-bye exit-on-error @ if 1 throw then ;
 
 : string-new ( a u -- a u )
   dup rot over allocate drop
@@ -132,8 +130,8 @@ variable stack-counter
 : <<1 1 lshift ;
 : >>1 1 rshift ;
 
-: make-number ( num -- lisp )
-  <<1 1 or ;
+: tag-num ( number -- lisp ) 1 lshift 1 or ;
+: untag-num ( lisp - number ) 1 rshift ;
 
 : make-symbol ( namea nameu -- lisp )
   sizeof-symbol allocate throw check-alloc >r
@@ -169,7 +167,7 @@ variable stack-counter
     then
   then ;
 
-: type-of get-lisp-tag make-number ; f1 \ todo: return symbol
+: type-of get-lisp-tag tag-num ; f1 \ todo: return symbol
 : number? 1 and ; f1
 : cons? get-lisp-tag lisp-pair-tag  = ; f2
 : symbol? get-lisp-tag lisp-symbol-tag = ; f1
@@ -302,20 +300,15 @@ variable &rest f0
 
 ' lisp-display-pair display-dispatch lisp-pair-tag cells + !
 
-: lisp-display-number ( lisp -- )
-  >>1 . ;
+: lisp-display-number ( lisp -- ) untag-num . ;
 
 ' lisp-display-number display-dispatch lisp-number-tag cells + !
 
-: lisp-display-symbol ( lisp -- )
-  symbol->string type ;
+: lisp-display-symbol ( lisp -- ) symbol->string type ;
 
 ' lisp-display-symbol display-dispatch lisp-symbol-tag cells + !
 
-: lisp-display-string ( lisp -- )
-  ( [char] " dup emit )
-  swap symbol->string
-  type ( emit ) ;
+: lisp-display-string ( lisp -- ) swap symbol->string type ;
 
 ' lisp-display-string display-dispatch lisp-string-tag cells + !
 
@@ -371,14 +364,13 @@ variable stack-depth
 
 : stack-push*
   \ pushes a unique number onto the locals stack
-  stack-counter dup @ 1+ dup make-number stack-push swap ! ;
+  stack-counter dup @ 1+ dup tag-num stack-push swap ! ;
 
 : stack-drop ( - )
   stack-depth dup @ dup 0= if
   then
   1- swap !
-  stack do-list-pop drop
-;
+  stack do-list-pop drop ;
 
 : stack-drop-n ( n - )
   begin dup 0 > while
@@ -447,8 +439,7 @@ variable stack-depth
   r> drop ;
 
 : special immediate ;
-: special?
-  cell+ @ immediate-mask and 0<> ;
+: special? cell+ @ immediate-mask and 0<> ;
 
 : compile lisp-interpret t ; f1
 : compile-r lisp-interpret-r t ; f1
@@ -457,7 +448,6 @@ variable stack-depth
 
 : compile-progn lisp-compile-progn t ; f1
 : progn lisp-compile-progn ; special
-
 
 : lisp-find-symbol-word ( lisp - word)
   symbol->string
@@ -588,11 +578,11 @@ defer lisp-read-lisp
   then ;
 
 : string->number ( lisp - lisp )
-  symbol->string s>number? if drop make-number else nil then ; f1
+  symbol->string s>number? if drop tag-num else nil then ; f1
 
 : lisp-read-symbol ( e a -- e a lisp )
   lisp-read-token 2dup s>number? if
-    drop make-number nip nip
+    drop tag-num nip nip
   else
     drop drop string-new make-symbol
   then ;
@@ -792,11 +782,9 @@ defer lisp-read-lisp
 : lisp-interpret-number ;
 
 : lisp-compile-number
-  \ 444 make-number stack-push
   dup stack-push
   postpone literal
-  maybe-drop
-;
+  maybe-drop ;
 
 ' lisp-interpret-number interpret-dispatch lisp-number-tag cells + !
 ' lisp-compile-number compile-dispatch lisp-number-tag cells + !
@@ -804,8 +792,7 @@ defer lisp-read-lisp
 : lisp-compile-string
   stack-push*
   postpone literal \ todo: compile it into the dictionary
-  maybe-drop
-;
+  maybe-drop ;
 
 ' lisp-interpret-number interpret-dispatch lisp-string-tag cells + !
 ' lisp-compile-string compile-dispatch lisp-string-tag cells + !
@@ -856,11 +843,13 @@ variable locals-counter
 : compile-dup [comp'] dup drop compile, ;
 : compile-over [comp'] over drop compile, ;
 : compile-nip [comp'] nip drop compile, ;
+
 : compile-stack-set ( n - )
   2 + cells postpone literal
   [comp'] sp@ drop compile,
   [comp'] + drop compile,
   [comp'] ! drop compile, ;
+
 : compile-rot-nip
   [comp'] -rot drop compile,
   [comp'] nip drop compile, ;
@@ -955,9 +944,9 @@ variable locals-counter
     cdr dup 0= until
   nip ; f2
 
-: list-length lisp-list-length make-number ; f1
+: list-length lisp-list-length tag-num ; f1
 
-: string-length ( lisp - lisp ) symbol-nameu @ make-number ; f1
+: string-length ( lisp - lisp ) symbol-nameu @ tag-num ; f1
 
 \ counts the number of let bound names in the current word
 \ or other names that have been cleaned up with pop-local-names
@@ -1154,8 +1143,7 @@ variable while-stack
 : do-then,
   stack-restore if-pop3 postpone then
   return-context @ if stack-push* then ;
-: then,
-  [comp'] do-then, drop compile, maybe-ret drop ; special
+: then, [comp'] do-then, drop compile, maybe-ret drop ; special
 
 : begin, postpone begin while-push3 t ; f0
 : while,
@@ -1166,26 +1154,25 @@ variable while-stack
 : return-lit ( n - )
   return-context @ if postpone literal else drop then t ; f1
 
-: stack-push-n ( n - t ) >>1 stack-push-n t ; f0
-: stack-drop-n ( n - t ) >>1 stack-drop-n t ; f0
-
+: stack-push-n ( n - t ) untag-num stack-push-n t ; f0
+: stack-drop-n ( n - t ) untag-num stack-drop-n t ; f0
 
 : 1+ ( n - n ) 2 + ; f1
 : 1- ( n - n ) 2 - ; f1
-: + ( nn - n ) >>1 swap >>1 + make-number ; f2
-: - ( nn - n ) >>1 swap >>1 swap - make-number ; f2
-: * ( nn - n ) >>1 swap >>1 * make-number ; f2
-: / ( nn - n ) >>1 swap >>1 swap / make-number ; f2
+: + ( nn - n ) untag-num swap untag-num + tag-num ; f2
+: - ( nn - n ) untag-num swap untag-num swap - tag-num ; f2
+: * ( nn - n ) untag-num swap untag-num * tag-num ; f2
+: / ( nn - n ) untag-num swap untag-num swap / tag-num ; f2
 
 : zero? 0= ; f1
 : not 0=  ; f1
 
 : cr cr t ; f0
 : exit bye ; f0
-: utime utime drop make-number ; f0
-: sleep-ms ( ms - ) >>1 ms t ; f1
-: here here make-number ; f0
-: list-index list-index make-number ; f2
+: utime utime drop tag-num ; f0
+: sleep-ms ( ms - ) untag-num ms t ; f1
+: here here tag-num ; f0
+: list-index list-index tag-num ; f2
 
 \ TODO: need to declare built in words as lisp words
 \ temp fix:
@@ -1207,7 +1194,7 @@ variable nil f0
 
 variable forth-init-time f0
 variable forth-dict-space f0
-utime start-time @ make-number - forth-init-time !
-here start-here @ make-number - forth-dict-space !
+utime start-time @ tag-num - forth-init-time !
+here start-here @ tag-num - forth-dict-space !
 
 s" raillisp.lsp" lisp-load-from-file drop
