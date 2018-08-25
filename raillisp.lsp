@@ -69,6 +69,7 @@
               (list 'set (car spec) (list '+ (car spec) 1)))))
 
 (defun repl ()
+  (cr)
   (while 1
     (println (eval (read-from-input)))))
 
@@ -85,7 +86,9 @@
 
 (defun init ()
   (if (not (boundp '_testing_))
-      (if (= (list-length command-line-args) 0)
+      (progn
+        (process-args)
+        (if (= (list-length command-line-args) 0)
           (progn
             (print "// Raillisp ")
             (print raillisp-version)
@@ -93,7 +96,7 @@
             (repl))
         (load (car command-line-args))
         (bye))
-    nil))
+    nil)))
 
 (var lisp-init-time (- (utime) start-time))
 (var lisp-dict-space (- (here) start-here))

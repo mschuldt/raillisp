@@ -1109,14 +1109,15 @@ variable let-bound-names
 : boundp ( lisp - lisp ) symbol->string find-name 0<> ; f1
 
 variable command-line-args
-: process-args ( - )
+: do-process-args ( - )
   recursive
   next-arg 2dup 0 0 d<> if
-    symbol-new intern process-args cons
+    symbol-new intern do-process-args cons
   else
     drop
   then ;
-process-args command-line-args !
+
+: process-args do-process-args command-line-args ! t ; f0
 
 : identity ( x - x ) ; f1
 
