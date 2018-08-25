@@ -38,3 +38,18 @@ but there are substantial differences.
 Lots of common features are not currently supported, some never will be.
 Features that compromise the performance of the system will
 not be implemented.
+
+* Usage
+
+To run a file:
+: gforth raillisp.fth FILE.lsp
+For the REPL:
+: gforth raillisp.fth
+
+The REPL is very limited. Like forth there is a distinction between
+compile and interpretive modes. Control flow forms like =if= and =while=
+and other special forms cannot be used outside of a =defun=.
+When you do something wrong, the helpful error message is probably a backtrace.
+
+The =make= option to build a gforth image does not currently work
+becuase heap pointers are compiled into the dictionary.
