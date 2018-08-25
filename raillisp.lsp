@@ -84,6 +84,11 @@
   (compile-progn body)
   (then,))
 
+(defun caar (x) (car (car x)))
+(defun cadr (x) (car (cdr x)))
+(defun cdar (x) (cdr (car x)))
+(defun cddr (x) (cdr (cdr x)))
+
 (defun init ()
   (if (not (boundp '_noinit_))
       (progn
