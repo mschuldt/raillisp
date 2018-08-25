@@ -1202,6 +1202,8 @@ variable while-stack
 variable nil f0
 0 nil !
 
+\ : dump ( lisp - lisp ) symbol->string dump-fi lisp-true ; f1
+
 variable forth-init-time f0
 variable forth-dict-space f0
 utime start-time @ make-number - forth-init-time !
