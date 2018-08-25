@@ -352,8 +352,8 @@ variable return-context \ 1 if currently in a return context
 : rcontext{ ( v - ) return-context @ r> swap >r >r return-context ! ;
 : }rcontext ( v - ) r> r> swap >r return-context ! ;
 
-: do-stack-push ( x stack - ) dup @ rot swap cons swap ! ;
-: do-stack-pop ( stack - x ) dup @ dup car swap cdr rot ! ;
+: do-list-push ( x list - ) dup @ rot swap cons swap ! ;
+: do-list-pop ( list - x ) dup @ dup car swap cdr rot ! ;
 
 \ STACK is a list representing the current stack of the compiled program.
 \ symbols in this list represent named stack positons (locals variables).
@@ -367,7 +367,7 @@ variable stack-depth
 
 : stack-push ( v - )
   stack-depth dup @ 1+ swap !
-  stack do-stack-push ;
+  stack do-list-push ;
 
 : stack-push*
   \ pushes a unique number onto the locals stack
@@ -377,7 +377,7 @@ variable stack-depth
   stack-depth dup @ dup 0= if
   then
   1- swap !
-  stack do-stack-pop drop
+  stack do-list-pop drop
 ;
 
 : stack-drop-n ( n - )
@@ -1129,19 +1129,19 @@ s" vector" symbol-new intern lisp-vector-tag cells type-names + !
 
 variable saved-stack-depth
 : stack-save ( - )
-  stack-depth @ saved-stack-depth do-stack-push ;
+  stack-depth @ saved-stack-depth do-list-push ;
 : stack-reset ( - )
   stack-depth @ saved-stack-depth @ car - stack-drop-n ;
 : stack-restore ( - )
-  stack-reset saved-stack-depth do-stack-pop drop ;
+  stack-reset saved-stack-depth do-list-pop drop ;
 
 variable if-stack
 variable while-stack
 
-: if-push ( n - ) if-stack do-stack-push ;
-: if-pop ( - n ) if-stack do-stack-pop ;
-: while-push ( n - ) while-stack do-stack-push ;
-: while-pop ( - n ) while-stack do-stack-pop ;
+: if-push ( n - ) if-stack do-list-push ;
+: if-pop ( - n ) if-stack do-list-pop ;
+: while-push ( n - ) while-stack do-list-push ;
+: while-pop ( - n ) while-stack do-list-pop ;
 
 : if-push3 if-push if-push if-push ;
 : if-pop3 if-pop if-pop if-pop ;
