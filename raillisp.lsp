@@ -74,7 +74,7 @@
     (println (eval (read-from-input)))))
 
 (defun mapcar (fn lst)
-  (if lst ;TODO: non-recursive version
+  (if lst
       (cons (funcall fn (list (car lst))) (mapcar fn (cdr lst)))
     lst))
 
