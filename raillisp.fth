@@ -1106,6 +1106,8 @@ variable let-bound-names
     >r unlist r> name>int execute
   then ; f2
 
+: boundp ( lisp - lisp ) symbol->string find-name 0<> ; f1
+
 variable command-line-args
 : process-args ( - )
   recursive
