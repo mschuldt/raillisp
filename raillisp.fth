@@ -57,7 +57,8 @@ lisp-max-tag cells allocate throw constant type-names
 
 \ : function-tag 0 + ;
 : function-entry [ 1 cells ] literal + ;
-2 cells constant sizeof-function
+: function-data [ 2 cells ] literal + ;
+3 cells constant sizeof-function
 
 \ function meta data
 : func-xt ;
@@ -160,10 +161,12 @@ variable stack-counter
   dup r@ vector-len !
   allocate throw r@ vector-vec ! r> ;
 
-: make-function ( entry - lisp )
+: make-function ( name - lisp )
   sizeof-function allocate throw check-alloc >r
   r@ lisp-function-tag swap !
-  r@ function-entry ! r> ;
+  dup r@ function-entry !
+  name>int function-lookup r@ function-data !
+  r> ;
 
 : get-lisp-tag ( lisp - type )
   dup 1 and if
