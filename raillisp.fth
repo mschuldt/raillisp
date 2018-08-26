@@ -582,13 +582,23 @@ variable read-from-string
 
 defer lisp-read-lisp
 
-: lisp-read-list
-  recursive ( e a -- e a lisp )
-  lisp-skip lisp-read-char
-  dup [char] ) = swap 0 = or if
-    0
+: lisp-read-list-char
+  lisp-skip lisp-read-char dup [char] ) = swap 0 = or ;
+
+: lisp-read-list-cons
+  lisp-unread-char lisp-read-lisp nil cons ;
+
+: lisp-read-list ( e a -- e a lisp )
+  lisp-read-list-char if
+    nil
   else
-    lisp-unread-char lisp-read-lisp >r lisp-read-list r> swap make-cons
+    lisp-read-list-cons dup >r >r
+    begin
+      lisp-read-list-char 0=
+    while
+      lisp-read-list-cons dup r> pair-cdr ! >r
+    repeat
+    r> drop r>
   then ;
 
 : string->number ( lisp - lisp )
