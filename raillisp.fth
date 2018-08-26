@@ -50,9 +50,8 @@ lisp-max-tag cells allocate throw constant type-names
 2 cells constant sizeof-symbol
 
 \ : vector-tag 0 + ;
-: vector-tag [ 1 cells ] literal + ;
-: vector-len [ 2 cells ] literal + ;
-: vector-vec [ 3 cells ] literal + ;
+: vector-len [ 1 cells ] literal + ;
+: vector-vec [ 2 cells ] literal + ;
 3 cells constant sizeof-vector
 
 \ function meta data
@@ -152,7 +151,7 @@ variable stack-counter
 
 : make-vector ( length -- lisp )
   sizeof-vector allocate throw check-alloc >r
-  r@ vector-tag lisp-vector-tag swap !
+  r@ ( vector-tag) lisp-vector-tag swap !
   dup r@ vector-len !
   allocate throw r@ vector-vec ! r> ;
 
