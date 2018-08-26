@@ -21,7 +21,8 @@ variable exit-on-error
 2 constant lisp-symbol-tag
 3 constant lisp-string-tag
 4 constant lisp-vector-tag
-5 constant lisp-max-tag
+5 constant lisp-function-tag
+6 constant lisp-max-tag
 
 lisp-max-tag cells allocate throw constant display-dispatch
 lisp-max-tag cells allocate throw constant equal?-dispatch
@@ -53,6 +54,10 @@ lisp-max-tag cells allocate throw constant type-names
 : vector-len [ 1 cells ] literal + ;
 : vector-vec [ 2 cells ] literal + ;
 3 cells constant sizeof-vector
+
+\ : function-tag 0 + ;
+: function-entry [ 1 cells ] literal + ;
+2 cells constant sizeof-function
 
 \ function meta data
 : func-xt ;
@@ -154,6 +159,11 @@ variable stack-counter
   r@ ( vector-tag) lisp-vector-tag swap !
   dup r@ vector-len !
   allocate throw r@ vector-vec ! r> ;
+
+: make-function ( entry - lisp )
+  sizeof-function allocate throw check-alloc >r
+  r@ lisp-function-tag swap !
+  r@ function-entry ! r> ;
 
 : get-lisp-tag ( lisp - type )
   dup 1 and if
@@ -325,6 +335,11 @@ variable &rest f0
   [char] ] emit ;
 
 ' lisp-display-vector display-dispatch lisp-vector-tag cells + !
+
+: lisp-display-function ( lisp - )
+  [char] $ emit function-entry @ name>string type ;
+
+' lisp-display-function display-dispatch lisp-function-tag cells + !
 
 : error-undefined-value
   cr ." undefined value: " lisp-display cr maybe-bye ;
@@ -1114,6 +1129,7 @@ s" integer" symbol-new intern lisp-number-tag cells type-names + !
 s" symbol" symbol-new intern lisp-symbol-tag cells type-names + !
 s" string" symbol-new intern lisp-string-tag cells type-names + !
 s" vector" symbol-new intern lisp-vector-tag cells type-names + !
+s" function" symbol-new intern lisp-function-tag cells type-names + !
 : type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ ; f1
 
 variable saved-stack-depth
