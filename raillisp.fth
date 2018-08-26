@@ -1102,12 +1102,19 @@ variable let-bound-names
     dup car swap cdr unlist
   else drop then ;
 
-: funcall ( fn args - lisp )
-  swap symbol->string find-name dup 0= if
-    2drop ." undefined fn" cr nil
+: symbol-function ( sym - func )
+  symbol->string find-name dup 0= if
+    drop ." undefined fn" cr nil
   else
-    >r unlist r> name>int execute
-  then ; f2
+    make-function
+  then ; f1
+
+: funcall ( fn args - lisp )
+  swap >r unlist r> function-entry @ name>int execute ; f2
+
+: function-name ( func - str )
+  \ todo: intern or cache in func struct
+  function-entry @ name>string make-string ; f1
 
 : boundp ( lisp - lisp ) symbol->string find-name 0<> ; f1
 
