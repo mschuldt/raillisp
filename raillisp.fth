@@ -1115,7 +1115,7 @@ variable let-bound-names
     dup car swap cdr unlist
   else drop then ;
 
-: symbol-function ( sym - func )
+: function ( str - func )
   symbol->string find-name dup 0= if
     drop ." undefined fn" cr nil
   else
