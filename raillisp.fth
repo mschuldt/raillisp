@@ -1129,6 +1129,8 @@ variable let-bound-names
   \ todo: intern or cache in func struct
   function-entry @ name>string make-string ; f1
 
+: function-arity ( func - num ) function-data @ func-args @ tag-num ; f1
+
 : boundp ( lisp - lisp ) symbol->string find-name 0<> ; f1
 
 variable command-line-args
