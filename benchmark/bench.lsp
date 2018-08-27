@@ -41,19 +41,19 @@
 
 (defun runbench (fn count args)
   (- (runbench-1 fn count args)
-     (runbench-1 'identity count '(1))))
+     (runbench-1 identity count '(1))))
 
 (defun bench-locals ()
-  (runbench 'locals 50000 '(1 2 3 4 5 6)))
+  (runbench locals 50000 '(1 2 3 4 5 6)))
 
 (defun bench-tak ()
-  (runbench 'tak 10 '(18 12 6)))
+  (runbench tak 10 '(18 12 6)))
 
 (defun bench-fib ()
-  (runbench 'fib 10 '(22)))
+  (runbench fib 10 '(22)))
 
 (defun bench-whileloop ()
-  (runbench 'whileloop 10 nil))
+  (runbench whileloop 10 nil))
 
 (print forth-init-time) (print " ")
 (print lisp-init-time) (print " ")
