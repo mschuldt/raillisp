@@ -18,7 +18,7 @@ For example, create a lisp function and show the disassembled forth word:
         1
       (+ (fib (- n 1)) (fib (- n 2)))))
 
-  (disassemble 'fib)
+  (dis 'fib)
 #+END_SRC
 prints:
 : : fib
@@ -28,7 +28,7 @@ prints:
 :   THEN
 :   nip ;
 (the number constants are different because of the lisp type tagging,
-=disassemble= just calls the forth word =see=)
+=dis= just calls the forth word =see=)
 
 More documentation is forthcoming. For now more example code
 can be found in =raillisp.lsp= and =tests.lsp=.

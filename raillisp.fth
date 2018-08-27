@@ -1099,7 +1099,7 @@ variable let-bound-names
   stack-drop-n stack-push*
 ; special
 
-: disassemble ( sym - lisp )
+: dis ( sym - lisp )
   symbol->string find-name
   dup 0= if drop ." undefined" cr nil
   else
