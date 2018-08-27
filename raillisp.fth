@@ -1010,15 +1010,24 @@ variable let-bound-names
   immediate nil ; special
 
 : lisp-interpret-symbol ( lisp - )
-  lisp-find-symbol-word name>int execute @ ;
+  lisp-find-symbol-word
+  dup function-lookup dup 0= if
+    drop name>int execute @
+  else
+    nip
+  then ;
 
 : lisp-compile-symbol ( lisp - ) \ todo; rename: symbol ref
   dup stack @ list-index dup -1 <> if \ local variable reference
     compile-stack-getter
     drop
-  else \ compile dicationary variable lookup
-    drop lisp-find-symbol-word name>int compile,
-    [comp'] @ drop compile,
+  else \ global variable
+    drop lisp-find-symbol-word
+    dup function-lookup dup 0= if
+      drop name>int compile, [comp'] @ drop compile, \ variable
+    else
+      nip postpone literal \ function
+    then
   then
   stack-push* ;
 
