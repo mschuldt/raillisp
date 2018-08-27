@@ -1199,7 +1199,7 @@ variable while-stack
 : repeat, while-pop3 while-pop3 postpone repeat t ; f0
 
 : do,
-  stack-drop stack-drop postpone do while-push3 t ; f0
+  stack-drop stack-drop postpone ?do while-push3 t ; f0
 : loop,
   while-pop3 postpone loop t ; f0
 
