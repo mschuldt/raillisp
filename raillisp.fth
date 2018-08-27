@@ -176,7 +176,7 @@ variable stack-counter
 : vector? get-lisp-tag lisp-vector-tag  = ; f1
 
 -1 constant lisp-true
-variable t f0
+variable t
 lisp-true t !
 
 : eq? = ; f2
@@ -242,7 +242,7 @@ wordlist constant symbols
 ' cons-equal? equal?-dispatch lisp-pair-tag cells + !
 
 s" &rest" symbol-new intern
-variable &rest f0
+variable &rest
 &rest !
 
 : get-vararg
@@ -1220,13 +1220,13 @@ variable while-stack
 : quit quit ; f0
 \ \\\\\\\\\\\\\\\
 
-variable nil f0
+variable nil
 0 nil !
 
 \ : dump ( lisp - lisp ) symbol->string dump-fi lisp-true ; f1
 
-variable forth-init-time f0
-variable forth-dict-space f0
+variable forth-init-time
+variable forth-dict-space
 utime start-time @ tag-num - forth-init-time !
 here start-here @ tag-num - forth-dict-space !
 
