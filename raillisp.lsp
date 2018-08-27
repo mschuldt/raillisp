@@ -20,6 +20,20 @@
   (repeat,)
   (maybe-ret))
 
+(defcode dotimes (spec &rest body)
+  (let* ((v (car (cdr spec))))
+    (if (number? v)
+        (untag-lit, v)
+      (compile-r v)
+      (untag-num,)))
+  (untag-lit, 0)
+  (do,)
+  (set loop-vars (cons (car spec) loop-vars))
+  (compile-list-nr body)
+  (set loop-vars (cdr loop-vars))
+  (loop,)
+  (maybe-ret))
+
 (defmacro dolist (spec &rest body)
   (list 'let* (list (list '--tail-- (car (cdr spec)))
                     (list (car spec) 'nil))
@@ -60,14 +74,6 @@
 (defun println (obj)
   (print obj)
   (cr))
-
-(defmacro dotimes (spec &rest body)
-  (list 'let* (list (list '--dotimes-limit-- (car (cdr spec)))
-                    (list (car spec) 0))
-        (list 'while (list '< (car spec) '--dotimes-limit--)
-              (cons 'progn body)
-              (list 'set (car spec) (list '+ (car spec) 1)))))
-
 (defun repl ()
   (cr)
   (while 1

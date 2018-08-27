@@ -1017,17 +1017,32 @@ variable let-bound-names
     nip
   then ;
 
-: lisp-compile-symbol ( lisp - ) \ todo; rename: symbol ref
-  dup stack @ list-index dup -1 <> if \ local variable reference
-    compile-stack-getter
-    drop
-  else \ global variable
+variable loop-vars
+3 cells allocate throw constant loop-var-addrs
+comp' i drop loop-var-addrs !
+comp' j drop loop-var-addrs 1 cells + !
+comp' k drop loop-var-addrs 2 cells + !
+
+: compile-loop-var ( n - )
+  cells loop-var-addrs + @ compile,
+  [comp'] tag-num drop compile, ;
+
+: lisp-compile-global-sym ( lisp - )
+  dup loop-vars @ list-index dup -1 <> if
+    nip compile-loop-var
+  else
     drop lisp-find-symbol-word
     dup function-lookup dup 0= if
       drop name>int compile, [comp'] @ drop compile, \ variable
     else
       nip postpone literal \ function
-    then
+    then then ;
+
+: lisp-compile-symbol ( lisp - )
+  dup stack @ list-index dup -1 <> if \ local variable reference
+    compile-stack-getter drop
+  else
+    drop lisp-compile-global-sym
   then
   stack-push* ;
 
@@ -1183,9 +1198,17 @@ variable while-stack
   stack-drop while-pop3 postpone while while-push3 while-push3 t ; f0
 : repeat, while-pop3 while-pop3 postpone repeat t ; f0
 
+: do,
+  stack-drop stack-drop postpone do while-push3 t ; f0
+: loop,
+  while-pop3 postpone loop t ; f0
+
 \ return-lit used in defcode to return a value from the form
 : return-lit ( n - )
   return-context @ if postpone literal else drop then t ; f1
+: lit, ( n - ) stack-push* postpone literal t ; f1
+: untag-lit, ( n - ) untag-num lit, ; f1
+: untag-num, ( - n ) [comp'] untag-num drop compile, t ; f0
 
 : stack-push-n ( n - t ) untag-num stack-push-n t ; f0
 : stack-drop-n ( n - t ) untag-num stack-drop-n t ; f0
