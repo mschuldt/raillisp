@@ -95,6 +95,14 @@
 (defun cdar (x) (cdr (car x)))
 (defun cddr (x) (cdr (cdr x)))
 
+(defun nthcdr (n list)
+  (dotimes (_ n)
+    (set list (cdr list)))
+  list)
+
+(defun nth (n list)
+  (car (nthcdr n list)))
+
 (defun init ()
   (if (not (boundp '_noinit_))
       (progn
