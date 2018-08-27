@@ -18,7 +18,7 @@ For example, create a lisp function and show the disassembled forth word:
         1
       (+ (fib (- n 1)) (fib (- n 2)))))
 
-  (dis 'fib)
+  (dis fib)
 #+END_SRC
 prints:
 : : fib

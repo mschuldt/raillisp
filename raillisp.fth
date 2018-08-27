@@ -1114,12 +1114,7 @@ comp' k drop loop-var-addrs 2 cells + !
   stack-drop-n stack-push*
 ; special
 
-: dis ( sym - lisp )
-  symbol->string find-name
-  dup 0= if drop ." undefined" cr nil
-  else
-    name-see cr lisp-true
-  then ; f1
+: dis ( func - lisp ) func-name @ name-see cr nil ; f1
 
 : unlist ( list - e1,e2,...,en )
   recursive
