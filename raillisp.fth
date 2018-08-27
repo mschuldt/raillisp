@@ -55,14 +55,9 @@ lisp-max-tag cells allocate throw constant type-names
 : vector-vec [ 2 cells ] literal + ;
 3 cells constant sizeof-vector
 
-\ : function-tag 0 + ;
-: function-entry [ 1 cells ] literal + ;
-: function-data [ 2 cells ] literal + ;
-3 cells constant sizeof-function
-
 \ function meta data
-: func-xt ;
-: func-xt [ 1 cells ] literal + ;
+\ : func-tag 0 + ;
+: func-name [ 1 cells ] literal + ;
 : func-args [ 2 cells ] literal + ;
 : func-locals [ 3 cells ] literal + ;
 : func-&rest [ 4 cells ] literal + ;
@@ -73,19 +68,19 @@ lisp-max-tag cells allocate throw constant type-names
 variable function-first
 variable curr-func
 
-: function-lookup ( xt -- function )
+: function-lookup ( name -- function )
   function-first @
   begin
     dup 0<>
   while
-    2dup func-xt @
+    2dup func-name @
     = if nip exit then
     func-next @
   repeat
   2drop 0 ;
 
-: find-function ( xt - ) function-lookup curr-func ! ;
-: find-function-check ( xt - )
+: find-function ( name - ) function-lookup curr-func ! ;
+: find-function-check ( name - )
   find-function curr-func @ 0= if ." invalid function" cr bye then ;
 
 : curr-args ( - n ) curr-func @ dup 0<> if func-args @ then ;
@@ -99,17 +94,18 @@ variable stack-counter
 : new-function ( - )
   0 stack-counter !
   sizeof-func allocate throw check-alloc
+  dup ( func-tag ) lisp-function-tag swap !
   dup func-next function-first @ swap !
   dup func-returns 1 swap !
   function-first ! ;
 
-: set-func-xt ( - ) latest name>int function-first @ func-xt ! ;
+: set-func-name ( - ) latest function-first @ func-name ! ;
 : set-func-args ( n - ) function-first @ func-args ! ;
 : set-func-&rest ( x - ) function-first @ func-&rest ! ;
 : set-func-returns ( x - ) function-first @ func-returns ! ;
 
 : func ( num-args num-ret - )   \ declare a lisp function
-  new-function set-func-xt set-func-returns set-func-args ;
+  new-function set-func-name set-func-returns set-func-args ;
 
 : f0 0 1 func ;
 : f1 1 1 func ;
@@ -160,13 +156,6 @@ variable stack-counter
   r@ ( vector-tag) lisp-vector-tag swap !
   dup r@ vector-len !
   allocate throw r@ vector-vec ! r> ;
-
-: make-function ( name - lisp )
-  sizeof-function allocate throw check-alloc >r
-  r@ lisp-function-tag swap !
-  dup r@ function-entry !
-  name>int function-lookup r@ function-data !
-  r> ;
 
 : get-lisp-tag ( lisp - type )
   dup 1 and if
@@ -340,7 +329,7 @@ variable &rest f0
 ' lisp-display-vector display-dispatch lisp-vector-tag cells + !
 
 : lisp-display-function ( lisp - )
-  [char] $ emit function-entry @ name>string type ;
+  [char] $ emit func-name @ name>string type ;
 
 ' lisp-display-function display-dispatch lisp-function-tag cells + !
 
@@ -747,7 +736,7 @@ defer lisp-read-lisp
 : lisp-interpret-special ( lisp word - )
   \ special form or macro
   0 macro-flag !
-  name>int dup find-function >r
+  dup find-function name>int >r
   cdr ( dup check-arg-count )
   dup 0= if drop then \ drop empty list. TODO: but what about passing nil?
   curr-func @ 0<> if
@@ -776,15 +765,14 @@ defer lisp-read-lisp
   >r return-context @ >r 1 return-context !
   cdr lisp-interpret-list
   r> return-context !
-  r> name>int
-  dup find-function-check swap check-arg-count
+  r> dup find-function-check name>int swap check-arg-count
   execute ;
 
 : lisp-compile-function ( lisp word - )
   >r return-context @ 1 return-context !
   swap cdr lisp-compile-list
   swap return-context !
-  r> name>int dup find-function-check swap
+  r> dup find-function-check name>int swap
   check-arg-count
   compile,
   curr-args stack-drop-n
@@ -991,7 +979,7 @@ variable let-bound-names
   1 return-context !
   dup car symbol->string
   lisp-create \ create dictionary header
-  set-func-xt
+  set-func-name
   cdr dup car handle-args
   dup locals-counter !
   swap cdr start-compile lisp-compile-progn \ compile function body
@@ -1119,17 +1107,16 @@ variable let-bound-names
   symbol->string find-name dup 0= if
     drop ." undefined fn" cr nil
   else
-    make-function
+    function-lookup
   then ; f1
 
 : funcall ( fn args - lisp )
-  swap >r unlist r> function-entry @ name>int execute ; f2
+  swap >r unlist r> func-name @ name>int execute ; f2
 
 : function-name ( func - str )
-  \ todo: intern or cache in func struct
-  function-entry @ name>string make-string ; f1
+  func-name @ name>string make-string ; f1
 
-: function-arity ( func - num ) function-data @ func-args @ tag-num ; f1
+: function-arity ( func - num ) func-args @ tag-num ; f1
 
 : boundp ( lisp - lisp ) symbol->string find-name 0<> ; f1
 
@@ -1151,7 +1138,7 @@ s" integer" symbol-new intern lisp-number-tag cells type-names + !
 s" symbol" symbol-new intern lisp-symbol-tag cells type-names + !
 s" string" symbol-new intern lisp-string-tag cells type-names + !
 s" vector" symbol-new intern lisp-vector-tag cells type-names + !
-s" function" symbol-new intern lisp-function-tag cells type-names + !
+s" 'function" symbol-new intern lisp-function-tag cells type-names + !
 : type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ ; f1
 
 variable saved-stack-depth
