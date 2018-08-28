@@ -113,14 +113,14 @@ variable stack-counter
 : f3 3 1 func ;
 : fn -1 1 func 1 set-func-&rest ;
 
-: make-cons ( car cdr -- lisp )
+: create-cons ( car cdr -- lisp )
   sizeof-pair allocate throw check-alloc >r
   r@ ( pair-tag) lisp-pair-tag swap !
   r@ pair-cdr !
   r@ pair-car !
   r> ;
 
-: cons make-cons ; f2
+: cons create-cons ; f2
 
 : car ( pair -- lisp ) dup 0<> if pair-car @ then ; f1
 : cdr ( pair -- lisp ) dup 0<> if pair-cdr @ then ; f1
@@ -134,7 +134,7 @@ variable stack-counter
 : tag-num ( number -- lisp ) 1 lshift 1 or ;
 : untag-num ( lisp - number ) 1 rshift ;
 
-: make-symbol ( namea nameu -- lisp )
+: create-symbol ( namea nameu -- lisp )
   sizeof-symbol allocate throw check-alloc >r
   r@ ( symbol-tag) lisp-symbol-tag swap !
   r@ symbol-nameu !
@@ -142,16 +142,16 @@ variable stack-counter
   r> ;
 
 : symbol-new ( namea nameu -- lisp )
-  string-new make-symbol ;
+  string-new create-symbol ;
 
 : symbol->string ( lisp -- namea nameu )
   dup symbol-namea @ swap symbol-nameu @ ;
 
-: make-string ( namea nameu -- lisp )
-  make-symbol
+: create-string ( namea nameu -- lisp )
+  create-symbol
   dup ( symbol-tag) lisp-string-tag swap ! ;
 
-: make-vector ( length -- lisp )
+: create-vector ( length -- lisp )
   sizeof-vector allocate throw check-alloc >r
   r@ ( vector-tag) lisp-vector-tag swap !
   dup r@ vector-len !
@@ -600,12 +600,12 @@ defer lisp-read-lisp
   lisp-read-token 2dup s>number? if
     drop tag-num nip nip
   else
-    drop drop string-new make-symbol
+    drop drop string-new create-symbol
   then ;
 
 : lisp-read-quote ( e a -- e a lisp )
-  lisp-read-lisp nil make-cons
-  s" quote" symbol-new swap make-cons ;
+  lisp-read-lisp nil create-cons
+  s" quote" symbol-new swap create-cons ;
 
 : lisp-escape-char ( c - c )
   dup [char] n = if
@@ -637,7 +637,7 @@ defer lisp-read-lisp
     lisp-unread-char
   then
   token-buffer r>
-  string-new make-string ;
+  string-new create-string ;
 
 : _lisp-read-lisp ( e a -- e a lisp )
   lisp-skip lisp-read-char
@@ -1133,7 +1133,7 @@ comp' k drop loop-var-addrs 2 cells + !
   swap >r unlist r> func-name @ name>int execute ; f2
 
 : function-name ( func - str )
-  func-name @ name>string make-string ; f1
+  func-name @ name>string create-string ; f1
 
 : function-arity ( func - num ) func-args @ tag-num ; f1
 
