@@ -169,10 +169,10 @@ variable stack-counter
   then ;
 
 : type-of get-lisp-tag tag-num ; f1 \ todo: return symbol
-: number? 1 and ; f1
+: int? 1 and ; f1
 : cons? get-lisp-tag lisp-pair-tag  = ; f2
-: symbol? get-lisp-tag lisp-symbol-tag = ; f1
-: string? get-lisp-tag lisp-string-tag =  ; f1
+: sym? get-lisp-tag lisp-symbol-tag = ; f1
+: str? get-lisp-tag lisp-string-tag =  ; f1
 : vector? get-lisp-tag lisp-vector-tag  = ; f1
 
 -1 constant lisp-true
@@ -202,7 +202,7 @@ wordlist constant symbols
     r>
   then ; f1
 
-: string-equal? ( lisp1 lisp2 -- lisp )
+: str-equal? ( lisp1 lisp2 -- lisp )
   symbol->string rot symbol->string
   compare 0= if
     lisp-true
@@ -210,7 +210,7 @@ wordlist constant symbols
     nil
   then ; f2
 
-: symbol-equal? string-equal? ;  f2 \ TODO: symbol interning
+: sym-equal? str-equal? ;  f2 \ TODO: symbol interning
 
 : equal? ( lisp lisp - lisp )
   2dup = if
@@ -237,8 +237,8 @@ wordlist constant symbols
   -rot cdr swap cdr equal?
   and ;
 
-' string-equal? equal?-dispatch lisp-symbol-tag cells + !
-' string-equal? equal?-dispatch lisp-string-tag cells + !
+' str-equal? equal?-dispatch lisp-symbol-tag cells + !
+' str-equal? equal?-dispatch lisp-string-tag cells + !
 ' cons-equal? equal?-dispatch lisp-pair-tag cells + !
 
 s" &rest" symbol-new intern
@@ -250,7 +250,7 @@ variable &rest
   \ return the vararg symbol and remove from arglist
   dup 0<> if
     dup cdr 0<> if
-      dup cdr car &rest @ symbol-equal? if
+      dup cdr car &rest @ sym-equal? if
         dup cdr cdr car  \ vararg
         swap pair-cdr 0 swap !
       else
@@ -265,7 +265,7 @@ variable &rest
 
 : split-args ( arglist - args vararg)
   dup 0<> if
-    dup car &rest @ symbol-equal? if
+    dup car &rest @ sym-equal? if
       0 swap cdr car
     else
       dup get-vararg
@@ -593,7 +593,7 @@ defer lisp-read-lisp
     r> drop r>
   then ;
 
-: string->number ( lisp - lisp )
+: str->int ( lisp - lisp )
   symbol->string s>number? if drop tag-num else nil then ; f1
 
 : lisp-read-symbol ( e a -- e a lisp )
@@ -707,7 +707,7 @@ defer lisp-read-lisp
 : maybe-ret ( - t ) \ used to return nil if in return context
   return-context @ if 0 postpone literal stack-push* then t ; f0
 
-: lisp-list-length ( list - n )
+: lisp-list-len ( list - n )
   0 swap
   begin
     dup 0<>
@@ -959,9 +959,9 @@ variable locals-counter
     cdr dup 0= until
   nip ; f2
 
-: list-length lisp-list-length tag-num ; f1
+: list-len lisp-list-len tag-num ; f1
 
-: string-length ( lisp - lisp ) symbol-nameu @ tag-num ; f1
+: str-len ( lisp - lisp ) symbol-nameu @ tag-num ; f1
 
 \ counts the number of let bound names in the current word
 \ or other names that have been cleaned up with pop-local-names
@@ -970,7 +970,7 @@ variable let-bound-names
 
 : handle-args ( arglist - len )
   split-args swap dup push-local-names
-  lisp-list-length swap dup set-func-&rest
+  lisp-list-len swap dup set-func-&rest
   dup 0<> if push-local-name 1+ else drop then
   dup set-func-args ;
 
@@ -1132,10 +1132,10 @@ comp' k drop loop-var-addrs 2 cells + !
 : funcall ( fn args - lisp )
   swap >r unlist r> func-name @ name>int execute ; f2
 
-: function-name ( func - str )
+: func-name ( func - str )
   func-name @ name>string create-string ; f1
 
-: function-arity ( func - num ) func-args @ tag-num ; f1
+: func-arity ( func - num ) func-args @ tag-num ; f1
 
 : boundp ( lisp - lisp ) symbol->string find-name 0<> ; f1
 
@@ -1160,10 +1160,10 @@ s" vector" symbol-new intern lisp-vector-tag cells type-names + !
 s" 'function" symbol-new intern lisp-function-tag cells type-names + !
 : type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ ; f1
 
-: make-empty-string ( len - str )
+: make-empty-str ( len - str )
   untag-num dup allocate throw swap create-string ; f1
 
-: make-string ( len init - str )
+: make-str ( len init - str )
   untag-num swap untag-num swap
   over dup >r allocate throw dup >r
   rot 0 ?do 2dup c! 1+ loop
