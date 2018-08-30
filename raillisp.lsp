@@ -109,6 +109,29 @@
       (nthcdr (1- (list-len list)) list)
     nil))
 
+(defun list-copy (l)
+  (mapcar identity l))
+
+(defun append! (a b)
+  (var end nil)
+  (if a
+      (progn
+        (set end (last a))
+        (if end
+            (setcdr end b)
+          nil))
+    (set a b))
+  a)
+
+(defun append (a b)
+  (append! (list-copy a) (list-copy b)))
+
+(defun make-list (len init)
+  (var lst nil)
+  (dotimes (_ len)
+    (set lst (cons init lst)))
+  lst)
+
 (defun str-append (a b)
   (var s (make-empty-str (+ (str-len a) (str-len b))))
   (str-move! s a 0)
