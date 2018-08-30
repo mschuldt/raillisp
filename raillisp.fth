@@ -650,10 +650,14 @@ defer lisp-read-lisp
       dup [char] ' = if
         drop lisp-read-quote
       else
-        [char] " = if
-          lisp-read-string
+        dup [char] " = if
+          drop lisp-read-string
         else
-	  lisp-unread-char lisp-read-symbol
+          [char] ? = if
+            lisp-read-char tag-num \ char literal
+            else
+	      lisp-unread-char lisp-read-symbol
+          then
         then
       then
     then
