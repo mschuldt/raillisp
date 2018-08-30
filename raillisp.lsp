@@ -104,6 +104,10 @@
 (defun nth (n list)
   (car (nthcdr n list)))
 
+(defun last (list)
+  (if list
+      (nthcdr (1- (list-length list)) list)
+    nil))
 
 (defun str-append (a b)
   (var s (make-empty-string (+ (string-length a) (string-length b))))
