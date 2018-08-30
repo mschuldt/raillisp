@@ -1160,6 +1160,27 @@ s" vector" symbol-new intern lisp-vector-tag cells type-names + !
 s" 'function" symbol-new intern lisp-function-tag cells type-names + !
 : type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ ; f1
 
+: make-empty-string ( len - str )
+  untag-num dup allocate throw swap create-string ; f1
+
+: make-string ( len init - str )
+  untag-num swap untag-num swap
+  over dup >r allocate throw dup >r
+  rot 0 ?do 2dup c! 1+ loop
+  2drop r> r> create-string ; f2
+
+: str-ref ( s i - lisp )
+  untag-num swap symbol-namea @ + c@ tag-num ; f2
+
+: str-set ( s i v - lisp )
+  untag-num swap untag-num rot symbol-namea @ + c! nil ; f3
+
+: str-move! ( s1 s2 i - lisp )
+  \ copy s2 into s1 at offset i
+  untag-num rot dup >r
+  symbol-namea @ + swap dup symbol-namea @
+  swap symbol-nameu @ swap -rot cmove r> ; f3
+
 variable saved-stack-depth
 : stack-save ( - )
   stack-depth @ saved-stack-depth do-list-push ;
