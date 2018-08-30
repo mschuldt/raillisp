@@ -309,7 +309,7 @@ variable &rest
 
 ' lisp-display-symbol display-dispatch lisp-symbol-tag cells + !
 
-: lisp-display-string ( lisp -- ) swap symbol->string type ;
+: lisp-display-string ( lisp -- ) symbol->string type ;
 
 ' lisp-display-string display-dispatch lisp-string-tag cells + !
 
