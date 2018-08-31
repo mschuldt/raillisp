@@ -173,6 +173,44 @@
     (str-move! ret (car strings) offset))
   ret)
 
+(defun make-vector (len init)
+  (var v (make-empty-vec len))
+  (dotimes (i len)
+    (vec-set v i init))
+  v)
+
+(defun vec->list (v)
+  (var ret nil)
+  (var len (1- (vec-len v)))
+  (dotimes (i (1+ len))
+    (set ret (cons (vec-ref v (- len i)) ret)))
+  ret)
+
+(defun list->vec (l)
+  (var len (list-len l))
+  (var v (make-empty-vec len))
+  (dotimes (i len)
+    (vec-set v i (car l))
+    (set l (cdr l)))
+  v)
+
+(defun vec-map (v fn)
+  (dotimes (i (vec-len v))
+    (funcall fn (list (vec-ref v i))))
+  v)
+
+(defun vec-map! (v fn)
+  (dotimes (i (vec-len v))
+    (vec-set v i (funcall fn (list (vec-ref v i))))))
+
+(defun vec-copy (v)
+  (vec-move! (make-empty-vec (vec-len v)) v 0))
+
+(defun vec-append (a b)
+  (var s (make-empty-vec (+ (vec-len a) (vec-len b))))
+  (vec-move! s a 0)
+  (vec-move! s b (vec-len a)))
+
 (defun init ()
   (if (not (boundp '_noinit_))
       (progn

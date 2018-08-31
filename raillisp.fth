@@ -155,7 +155,7 @@ variable stack-counter
   sizeof-vector allocate throw check-alloc >r
   r@ ( vector-tag) lisp-vector-tag swap !
   dup r@ vector-len !
-  allocate throw r@ vector-vec ! r> ;
+  cells allocate throw r@ vector-vec ! r> ;
 
 : get-lisp-tag ( lisp - type )
   dup 1 and if
@@ -313,17 +313,12 @@ variable &rest
 
 ' lisp-display-string display-dispatch lisp-string-tag cells + !
 
-: do-display-vector ( vec len -- )
-  recursive
-  1- dup 0< if
-    2dup + @ lisp-display do-display-vector
-  else
-    2drop
-  then ;
-
 : lisp-display-vector ( lisp -- )
   [char] [ emit
-  dup vector-vec @ swap vector-len @ do-display-vector
+  dup vector-vec @ swap vector-len @ 0 ?do
+    dup i cells + @ lisp-display ."  "
+  loop
+  drop
   [char] ] emit ;
 
 ' lisp-display-vector display-dispatch lisp-vector-tag cells + !
@@ -1184,6 +1179,42 @@ s" 'function" symbol-new intern lisp-function-tag cells type-names + !
   untag-num rot dup >r
   symbol-namea @ + swap dup symbol-namea @
   swap symbol-nameu @ swap -rot cmove r> ; f3
+
+: stack-to-vec ( x1...xn n - vector )
+  dup create-vector \ n v
+  dup >r vector-vec @ \ n a
+  swap 0 ?do
+    dup rot swap ! 1 cells +
+  loop
+  r> ;
+
+: vector
+  0 >r
+  begin dup 0<>
+  while
+    dup car lisp-interpret cdr r> 1+ >r
+  repeat
+  drop r> dup postpone literal
+  [comp'] stack-to-vec drop compile,
+  stack-drop-n stack-push* ; special
+
+: make-empty-vec ( n - )
+  \ Contains unintialized lisp objects. Should ever be printed.
+  untag-num create-vector ; f1
+
+: vec-ref ( v i - lisp )
+  untag-num cells swap vector-vec @ + @ ; f2
+
+: vec-set ( v i e - lisp )
+  swap untag-num cells rot vector-vec @ + ! nil ; f3
+
+: vec-len ( vec - len ) vector-len @ tag-num ; f1
+
+: vec-move! ( v1 v2 i - lisp )
+  \ copy v2 into v1 at offset i
+  untag-num cells rot dup >r
+  vector-vec @ + swap dup vector-vec @
+  swap vector-len @ cells swap -rot cmove r> ; f3
 
 variable saved-stack-depth
 : stack-save ( - )
