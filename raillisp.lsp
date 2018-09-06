@@ -85,8 +85,10 @@
                  (equal? (car expr) 'defun)))
         (println (eval expr))
       (progn
+        (env-mark 'repl-mark)
         (eval (cons 'defun (cons 'repl_ (cons nil (cons expr nil)))))
-        (println (funcall (function "repl_") nil))))))
+        (println (funcall (function "repl_") nil))
+        (env-revert 'repl-mark)))))
 
 (defun mapcar (fn lst)
   (if lst
