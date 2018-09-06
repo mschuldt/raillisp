@@ -206,6 +206,12 @@
 (defun str-copy (s)
   (str-move! (make-empty-str (str-len s)) s 0))
 
+(defun str-start? (s sub)
+  (str-sub-equal? s sub 0))
+
+(defun str-end? (s sub)
+  (str-sub-equal? s sub (- (str-len s) (str-len sub))))
+
 (defun make-vector (len init)
   (var v (make-empty-vec len))
   (dotimes (i len)

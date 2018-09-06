@@ -212,6 +212,25 @@ wordlist constant symbols
 
 : sym-equal? str-equal? ;  f2 \ TODO: symbol interning
 
+: str-sub-equal? ( str sub index - bool )
+  \ check that SUB matches STR from INDEX
+  dup 0< if
+    drop 2drop nil exit
+  then
+  untag-num >r
+  swap >r
+  symbol->string r> symbol->string
+  rot 2dup r@ + >r
+  drop -rot r>
+  over <= >r drop over
+  r> if
+    swap r> + swap
+    compare 0= if lisp-true else nil then
+  else
+    r> drop 2drop 2drop nil
+  then
+; f3
+
 : equal? ( lisp lisp - lisp )
   2dup = if
     2drop lisp-true
