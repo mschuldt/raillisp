@@ -1151,12 +1151,12 @@ variable command-line-args
 
 : identity ( x - x ) ; f1
 
-s" 'cons" symbol-new intern lisp-pair-tag cells type-names + !
+s" xcons" symbol-new intern lisp-pair-tag cells type-names + !
 s" integer" symbol-new intern lisp-number-tag cells type-names + !
 s" symbol" symbol-new intern lisp-symbol-tag cells type-names + !
 s" string" symbol-new intern lisp-string-tag cells type-names + !
 s" vector" symbol-new intern lisp-vector-tag cells type-names + !
-s" 'function" symbol-new intern lisp-function-tag cells type-names + !
+s" xfunction" symbol-new intern lisp-function-tag cells type-names + !
 : type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ ; f1
 
 : make-empty-str ( len - str )
