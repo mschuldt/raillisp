@@ -90,6 +90,16 @@
         (println (funcall (function "repl_") nil))
         (env-revert 'repl-mark)))))
 
+(defun map (fn lst)
+  (while lst
+    (funcall fn (list (car lst)))
+    (set lst (cdr lst))))
+
+(defun map! (fn lst)
+  (while lst
+    (setcar lst (funcall fn (list (car lst))))
+    (set lst (cdr lst))))
+
 (defun mapcar (fn lst)
   (var head nil)
   (var tail nil)
