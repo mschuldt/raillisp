@@ -76,9 +76,17 @@
   (cr))
 
 (defun repl ()
+  (var expr nil)
   (cr)
   (while 1
-    (println (eval (read-from-input)))))
+    (set expr (read-from-input))
+    (if (and (equal? (type-of expr) 'xcons)
+             (or (equal? (car expr) 'var)
+                 (equal? (car expr) 'defun)))
+        (println (eval expr))
+      (progn
+        (eval (cons 'defun (cons 'repl_ (cons nil (cons expr nil)))))
+        (println (funcall (function "repl_") nil))))))
 
 (defun mapcar (fn lst)
   (if lst
