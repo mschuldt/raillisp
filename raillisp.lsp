@@ -162,7 +162,7 @@
     (set lst (cons init lst)))
   lst)
 
-(defun str-append (a b)
+(defun str-concat (a b)
   (var s (make-empty-str (+ (str-len a) (str-len b))))
   (str-move! s a 0)
   (str-move! s b (str-len a)))
