@@ -1304,6 +1304,8 @@ variable while-stack
 : sleep-ms ( ms - ) untag-num ms t ; f1
 : here here tag-num ; f0
 : list-index list-index tag-num ; f2
+\ : words words nil ; f0
+
 : env-mark symbol->string nextname marker nil ; f1
 : env-revert symbol->string find-name name>int execute nil ; f1
 
