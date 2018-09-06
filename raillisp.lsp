@@ -203,6 +203,9 @@
     (str-move! ret (car strings) offset))
   ret)
 
+(defun str-copy (s)
+  (str-move! (make-empty-str (str-len s)) s 0))
+
 (defun make-vector (len init)
   (var v (make-empty-vec len))
   (dotimes (i len)
