@@ -1,0 +1,84 @@
+* TODO BUG return stack overflow when tests.lsp gets too long
+* TODO fix problem with constants/quoted in dumped image
+need to compile allocation code instead of saving pointer as constant?
+
+strings, cons, etc
+
+* DONE improve dropping of local values
+=nip= instead =>r drop r>= ...
+
+* TODO BUG (println (println 1))
+* TODO BUG fix lisp comment parsing error
+* TODO error messages when trying to interpret a compile only form
+* TODO support multiple return values
+(set a b (fn))
+* TODO error messages for undefined variable or function
+* DONE error message for incorrect argument count
+
+* TODO include line and column number in error messages
+* TODO floating point support
+* TODO garbage collection
+* TODO improve string interning
+* TODO move all lisp words into their own wordlist?
+avoids overwriting common forth words so that a 'forth shell' can still be useful
+
+* TODO support 0x, 0b, etc for reading numbers in alternative bases
+
+  currently have to use forth number prefixes
+
+* TODO obarrays
+oblists, actually
+
+can be simply implemented as wordlists
+
+like the 'symbols' wordlist that's used for interning strings
+but expose the wordlists as a user type
+
+* TODO replace maybe-ret with return-lit
+* TODO BUG functions with empty body
+* TODO compile multiple drops with 2drop 
+* TODO improve the compilation of 'list'
+
+(list 9 8 7 6 5 4 3 2 1 0)
+=>
+19 17 15 13 11 9 7 5 3 1 0 cons cons cons cons cons cons cons cons cons cons 
+
+instead do something like this:
+19 17 15 13 11 9 7 5 3 1 0 10 Ncons
+* TODO tests for local getters/setters
+
+(def test-locals (x y)
+     (var a 1)
+     (var b 2)
+     (var c 3)
+     (var d 4)
+     (var e 5)
+     (var f 6)
+     (println (list x y a b c d e f))
+     (test "locals 1" (equal? (list x y a b c d e f)
+                              (list 0 0 1 2 3 4 5 6 )))
+     (set x (+ x 1))
+     (set y (+ y 1))
+     (set a (+ a 1))
+     (set b (+ b 1))
+     (set c (+ c 1))
+     (set d (+ d 1))
+     (set e (+ e 1))
+     (set f (+ f 1))
+     (println (list x y a b c d e f))
+     (test "locals 2" (equal? (list x y a b c d e f)
+                              (list 1 1 2 3 4 5 6 7))))
+
+(test-locals 0 0)
+* TODO BUG  s" cons" intern
+
+then fix s" xcons" for type-of
+* DONE non-recursive version of mapcar
+* TODO BUG boundp returns t if symbol is interned
+* TODO BUG error when 'when' is the last form in a function
+* DONE have the REPL compile forms into temporary function
+* TODO ` , ,@
+* TODO support \ escape when reading character literals
+* TODO BUG (eq? 'defun 'defun) is broken
+* TODO BUG (str-count string "")
+* TODO BUG (list)
