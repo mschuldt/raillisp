@@ -162,6 +162,16 @@
     (set lst (cons init lst)))
   lst)
 
+(defun count (l e)
+  (var c 0)
+  (var l l)
+  (while l
+    (if (equal? (car l) e)
+        (set c (1+ c))
+      nil)
+    (set l (cdr l)))
+  c)
+
 (defun str-concat (a b)
   (var s (make-empty-str (+ (str-len a) (str-len b))))
   (str-move! s a 0)
@@ -275,6 +285,14 @@
                (set i end))
       (set i (1+ i))))
   index)
+
+(defun vec-count (v e)
+  (var c 0)
+  (dotimes (i (vec-len v))
+    (if (equal? (vec-ref v i) e)
+        (set c (1+ c))
+      nil))
+  c)
 
 (defun init ()
   (if (not (boundp '_noinit_))
