@@ -294,6 +294,11 @@
       nil))
   c)
 
+(defun load (file)
+  (if (str-end? file ".lsp")
+      (load-lisp file)
+    (load-forth file)))
+
 (defun init ()
   (if (not (boundp '_noinit_))
       (progn

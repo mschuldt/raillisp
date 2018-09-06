@@ -724,6 +724,7 @@ defer lisp-read-lisp
 : eval ( lisp - lisp ) lisp-interpret ; f1
 
 : load-lisp ( lisp - lisp ) symbol->string lisp-load-from-file nil ; f1
+: load-forth ( lisp - lisp ) symbol->string included nil ; f1
 
 : maybe-ret ( - t ) \ used to return nil if in return context
   return-context @ if 0 postpone literal stack-push* then t ; f0
