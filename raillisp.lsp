@@ -241,6 +241,17 @@
   (vec-move! s a 0)
   (vec-move! s b (vec-len a)))
 
+(defun vec-index (v e)
+  (var index -1)
+  (var end (vec-len v))
+  (var i 0)
+  (while (< i end)
+    (if (equal? (vec-ref v i) e)
+        (progn (set index i)
+               (set i end))
+      (set i (1+ i))))
+  index)
+
 (defun init ()
   (if (not (boundp '_noinit_))
       (progn
