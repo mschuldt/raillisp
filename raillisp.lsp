@@ -91,9 +91,19 @@
         (env-revert 'repl-mark)))))
 
 (defun mapcar (fn lst)
+  (var head nil)
+  (var tail nil)
   (if lst
-      (cons (funcall fn (list (car lst))) (mapcar fn (cdr lst)))
-    lst))
+      (progn
+        (set head (cons (funcall fn (list (car lst))) nil))
+        (set lst (cdr lst))
+        (set tail head))
+    nil)
+  (while lst
+    (setcdr tail (cons (funcall fn (list (car lst))) nil))
+    (set tail (cdr tail))
+    (set lst (cdr lst)))
+  head)
 
 (defcode when (test &rest body)
   (compile-r test)
