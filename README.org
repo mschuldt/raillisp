@@ -11,7 +11,7 @@ making it suitable for constrained systems.
 Raillisp lets you ride the metal in style.
 
 Raillisp works by compiling lisp functions into forth words.
-For example, create a lisp function and show the disassembled forth word:
+For example, creating a lisp function and disassembling its forth word:
 #+BEGIN_SRC lisp
   (defun fib (n)
     (if (< n 3)
@@ -45,10 +45,10 @@ To run a file:
 : gforth raillisp.fth FILE.lsp
 For the REPL:
 : gforth raillisp.fth
+Run tests:
+: make test
 
-The REPL is very limited. Like forth there is a distinction between
-compile and interpretive modes. Control flow forms like =if= and =while=
-and other special forms cannot be used outside of a =defun=.
+Be careful...There is currently almost no error checking of any kind.
 When you do something wrong, the helpful error message is probably a backtrace.
 
 The =make= option to build a gforth image does not currently work
