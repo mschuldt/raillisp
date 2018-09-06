@@ -294,12 +294,15 @@ variable &rest
   then ;
 
 : lisp-display ( lisp -- )
-  dup 0= over -1 = or if
-    .
+  dup 0= if
+    drop ." nil"
   else
-    dup get-lisp-tag
-    cells display-dispatch + @ execute
-  then ;
+    dup -1 = if
+      drop ." t"
+    else
+      dup get-lisp-tag
+      cells display-dispatch + @ execute
+    then then ;
 
 : print ( lisp -- lisp ) dup lisp-display ; f1
 
