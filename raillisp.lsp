@@ -172,6 +172,37 @@
     (set l (cdr l)))
   c)
 
+(defun reverse (l)
+  (var ret nil)
+  (while l
+    (set ret (cons (car l) ret))
+    (set l (cdr l)))
+  ret)
+
+(defun nreverse (l)
+  (var prev nil)
+  (var next nil)
+  (var curr l)
+  (while l
+    (set curr l)
+    (set next (cdr l))
+    (setcdr l prev)
+    (set prev l)
+    (set l next))
+  curr)
+
+(defun take (l n)
+  (var head nil)
+  (dotimes (_ n)
+    (if l
+        (progn (set head (cons (car l) head))
+               (set l (cdr l)))
+      nil))
+  (nreverse head))
+
+(defun subseq (lst start end)
+  (take (nthcdr start lst) (- end start)))
+
 (defun str-concat (a b)
   (var s (make-empty-str (+ (str-len a) (str-len b))))
   (str-move! s a 0)
