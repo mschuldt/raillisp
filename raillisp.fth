@@ -1065,7 +1065,8 @@ comp' k drop loop-var-addrs 2 cells + !
   else
     drop lisp-compile-global-sym
   then
-  stack-push* ;
+  stack-push*
+  maybe-drop ;
 
 ' lisp-interpret-symbol interpret-dispatch lisp-symbol-tag cells + !
 ' lisp-compile-symbol compile-dispatch lisp-symbol-tag cells + !
