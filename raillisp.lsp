@@ -212,6 +212,18 @@
 (defun str-end? (s sub)
   (str-sub-equal? s sub (- (str-len s) (str-len sub))))
 
+(defun str-count (s sub)
+  (var sub-len (str-len sub))
+  (var count 0)
+  (var i 0)
+  (var end (- (str-len s) (1- sub-len)))
+  (while (< i end)
+    (if (str-sub-equal? s sub i)
+        (progn (set count (1+ count))
+               (set i (+ i sub-len)))
+      (set i (1+ i))))
+  count)
+
 (defun make-vector (len init)
   (var v (make-empty-vec len))
   (dotimes (i len)
