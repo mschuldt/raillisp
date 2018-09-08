@@ -563,15 +563,15 @@ variable read-from-string
     lisp-unread-char
   then ;
 
-: lisp-skip
-  lisp-skip-ws
-  lisp-read-char
-  59 = if \ 59 = ;
-    lisp-skip-line
-  else
-    lisp-unread-char
-  then
-  lisp-skip-ws ;
+: lisp-skip-comments
+  begin
+    lisp-skip-ws lisp-read-char dup 59 =  \ 59 = ;
+  while
+    drop lisp-skip-line
+  repeat
+  0<> if lisp-unread-char then  ;
+
+: lisp-skip lisp-skip-ws lisp-skip-comments ;
 
 128 allocate throw constant token-buffer
 

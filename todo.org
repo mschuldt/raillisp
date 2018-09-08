@@ -8,7 +8,7 @@ strings, cons, etc
 =nip= instead =>r drop r>= ...
 
 * TODO BUG (println (println 1))
-* TODO BUG fix lisp comment parsing error
+* DONE BUG fix lisp comment parsing error
 * TODO error messages when trying to interpret a compile only form
 * TODO support multiple return values
 (set a b (fn))
