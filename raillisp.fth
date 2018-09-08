@@ -511,12 +511,19 @@ variable read-from-string
     then
   then ;
 
+: key
+  begin
+    xkey dup 32 < over 126 > or over 10 <> and
+  while
+    drop
+  repeat ;
+
 : lisp-char-from-input
   stdin-unread @ if
     0 stdin-unread !
     stdin-lastchar @
   else
-    xkey check-char
+    key check-char
     dup stdin-lastchar !
   then ;
 
