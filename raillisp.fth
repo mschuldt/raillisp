@@ -81,7 +81,9 @@ variable curr-func
 
 : find-function ( name - ) function-lookup curr-func ! ;
 : find-function-check ( name - )
-  find-function curr-func @ 0= if ." invalid function" cr bye then ;
+  dup find-function curr-func @ 0= if
+    ." invalid function: " name>string type cr bye
+  then drop ;
 
 : curr-args ( - n ) curr-func @ dup 0<> if func-args @ then ;
 : curr-returns ( - n ) curr-func @ dup 0<> if func-returns @ then ;
