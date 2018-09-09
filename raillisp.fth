@@ -746,12 +746,15 @@ defer lisp-read-lisp
     swap 1+ swap cdr
   repeat drop ;
 
+: comp, comp' drop postpone literal
+        [comp'] compile, drop compile, ; immediate
+
 : maybe-drop \ compile a call to drop if not in return context
   return-context @ 0= if
     lisp-state @ 0= if
       \ drop
     else
-      [comp'] drop drop compile,
+      comp, drop
       stack-drop
     then
   then ;
@@ -870,7 +873,7 @@ variable locals-counter
   recursive
   dup 0> if
     stack-drop
-    [comp'] drop drop compile,
+    comp, drop
     1- pop-local-names
   else drop then ;
 
@@ -885,24 +888,17 @@ variable locals-counter
   repeat
   if drop r> else r> 2drop -1 then ;
 
-: compile-pick postpone literal [comp'] pick drop compile, ;
-: compile-dup [comp'] dup drop compile, ;
-: compile-over [comp'] over drop compile, ;
-: compile-nip [comp'] nip drop compile, ;
+: compile-pick postpone literal comp, pick ;
+: compile-dup comp, dup ;
+: compile-over comp, over ;
+: compile-nip comp, nip ;
 
 : compile-stack-set ( n - )
   2 + cells postpone literal
-  [comp'] sp@ drop compile,
-  [comp'] + drop compile,
-  [comp'] ! drop compile, ;
+  comp, sp@ comp, + comp, !  ;
 
-: compile-rot-nip
-  [comp'] -rot drop compile,
-  [comp'] nip drop compile, ;
-
-: compile-rot-2drop
-  [comp'] -rot drop compile,
-  [comp'] 2drop drop compile, ;
+: compile-rot-nip comp, -rot comp, nip ;
+: compile-rot-2drop comp, -rot comp, 2drop ;
 
 : compile-stack-getter ( n - )
   dup 0= if
@@ -925,14 +921,14 @@ variable locals-counter
     then then ;
 
 : compile-drop-locals ( n - )
-  [comp'] >r drop compile,
+  comp, >r
   begin
     dup 0>
   while
     \ TODO: use 2drop when possible
-    1- [comp'] drop drop compile,
+    1- comp, drop
   repeat drop
-  [comp'] r> drop compile, ;
+  comp, r> ;
 
 : drop-locals ( n - )
   dup stack-drop-n
@@ -1027,7 +1023,7 @@ variable let-bound-names
   \  postpone def
   compile-def
   \ TODO: temp workaround - discard the return value
-  [comp'] drop drop compile,
+  comp, drop
   end-compile
   stack-drop 0 check-stack-depth
   postpone exit
@@ -1035,7 +1031,7 @@ variable let-bound-names
 
 : defmacro ( lisp - lisp)
   compile-def end-compile
-  [comp'] set-macro-flag drop compile,
+  comp, set-macro-flag
   1 check-stack-depth stack-drop
   postpone exit
   immediate nil ; special
@@ -1056,7 +1052,7 @@ comp' k drop loop-var-addrs 2 cells + !
 
 : compile-loop-var ( n - )
   cells loop-var-addrs + @ compile,
-  [comp'] tag-num drop compile, ;
+  comp, tag-num ;
 
 : lisp-compile-global-sym ( lisp - )
   dup loop-vars @ list-index dup -1 <> if
@@ -1064,7 +1060,7 @@ comp' k drop loop-var-addrs 2 cells + !
   else
     drop lisp-find-symbol-word
     dup function-lookup dup 0= if
-      drop name>int compile, [comp'] @ drop compile, \ variable
+      drop name>int compile, comp, @  \ variable
     else
       nip postpone literal \ function
     then then ;
@@ -1089,7 +1085,7 @@ comp' k drop loop-var-addrs 2 cells + !
   lisp-interpret-r \ compile value
   stack-drop
   lisp-find-symbol-word name>int compile,
-  [comp'] ! drop compile, ;
+  comp, ! ;
 
 : set-compile-local ( symbol value index - )
   swap lisp-interpret-r
@@ -1141,7 +1137,7 @@ comp' k drop loop-var-addrs 2 cells + !
   0 postpone literal
   r> dup
   begin dup 0>
-  while [comp'] cons drop compile, 1-
+  while comp, cons 1-
   repeat drop
   stack-drop-n stack-push*
 ; special
@@ -1228,7 +1224,7 @@ s" xfunction" symbol-new intern lisp-function-tag cells type-names + !
     dup car lisp-interpret cdr r> 1+ >r
   repeat
   drop r> dup postpone literal
-  [comp'] stack-to-vec drop compile,
+  comp, stack-to-vec
   stack-drop-n stack-push* ; special
 
 : make-empty-vec ( n - )
@@ -1275,7 +1271,7 @@ variable while-stack
 : do-then,
   stack-restore if-pop3 postpone then
   return-context @ if stack-push* then ;
-: then, [comp'] do-then, drop compile, maybe-ret drop ; special
+: then, comp, do-then, maybe-ret drop ; special
 
 : begin, postpone begin while-push3 t ; f0
 : while,
@@ -1292,7 +1288,7 @@ variable while-stack
   return-context @ if postpone literal else drop then t ; f1
 : lit, ( n - ) stack-push* postpone literal t ; f1
 : untag-lit, ( n - ) untag-num lit, ; f1
-: untag-num, ( - n ) [comp'] untag-num drop compile, t ; f0
+: untag-num, ( - n ) comp, untag-num t ; f0
 
 : stack-push-n ( n - t ) untag-num stack-push-n t ; f0
 : stack-drop-n ( n - t ) untag-num stack-drop-n t ; f0
