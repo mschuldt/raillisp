@@ -3,10 +3,8 @@
 
 (defun whileloop ()
   (var n 0)
-  (var start (utime))
   (while (< n 100000)
-    (set n (1+ n)))
-  (- (utime) start))
+    (set n (1+ n))))
 
 (defun tak (x y z)
   (if (not (< y x))
