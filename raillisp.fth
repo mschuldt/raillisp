@@ -43,12 +43,12 @@ lisp-max-tag cells allocate throw constant type-names
 \ : pair-tag 0 + ;
 : pair-car [ 1 cells ] literal + ;
 : pair-cdr [ 2 cells ] literal + ;
-2 cells constant sizeof-pair
+3 cells constant sizeof-pair
 
 \ : symbol-tag 0 + ;
 : symbol-namea [ 1 cells ] literal + ;
 : symbol-nameu [ 2 cells ] literal + ;
-2 cells constant sizeof-symbol
+3 cells constant sizeof-symbol
 
 \ : vector-tag 0 + ;
 : vector-len [ 1 cells ] literal + ;
@@ -89,7 +89,7 @@ variable curr-func
 : curr-returns ( - n ) curr-func @ dup 0<> if func-returns @ then ;
 : curr-&rest ( - x ) curr-func @ dup 0<> if func-&rest @ then ;
 
-: check-alloc dup 1 and if ." lsb bit is set" 1 throw then ;
+: check-alloc dup 1 and if ." lsb set" 1 throw then ;
 
 variable stack-counter
 
