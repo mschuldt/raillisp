@@ -464,7 +464,11 @@ variable stack-depth
   r> drop ;
 
 : special immediate ;
-: special? 3 cells - @ immediate-mask and 0<> ;
+defined vtcopy, [if]
+    : special? 3 cells - @ immediate-mask and 0<> ;
+[else]
+    : special? cell+ @ immediate-mask and 0<> ;
+[then]
 
 : compile lisp-interpret t ; f1
 : compile-r lisp-interpret-r t ; f1
@@ -959,9 +963,15 @@ variable locals-counter
   maybe-ret drop
 ; special
 
-: lisp-create ( ua - ) \ create new dictionary entry
-  ( gforth) nextname header reveal ['] on vtcopy, ?noname-vt
-  postpone recursive ;
+defined vtcopy, [if]
+    : lisp-create ( ua - ) \ create new dictionary entry
+        ( gforth) nextname header reveal ['] on vtcopy, ?noname-vt
+        postpone recursive ;
+[else]
+    : lisp-create ( ua - ) \ create new dictionary entry
+        ( gforth) nextname header reveal docol: cfa,
+        postpone recursive ;
+[then]
 
 : member ( key list - list )
   begin

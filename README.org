@@ -2,7 +2,7 @@
 Raillisp is a simple lisp implemented in Forth.
 It aims to be small, fast, and portable.
 
-Raillisp is in active development. Currently it only runs on Gforth 0.7.9,
+Raillisp is in active development. Currently it only runs on Gforth,
 but will soon run on everything from microcontrollers to web browsers.
 
 It is designed to give you high level lisp features
