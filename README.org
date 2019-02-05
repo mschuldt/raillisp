@@ -48,8 +48,6 @@ For the REPL:
 Run tests:
 : make test
 
-The REPL has been testing only in the emacs eshell and is completely broken in regular terminals.
-
 Be careful...There is currently almost no error checking of any kind.
 When you do something wrong, the helpful error message is probably a backtrace.
 

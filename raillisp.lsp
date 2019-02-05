@@ -84,11 +84,14 @@
              (or (equal? (car expr) 'var)
                  (equal? (car expr) 'defun)))
         (println (eval expr))
-      (progn
-        (env-mark 'repl-mark)
-        (eval (cons 'defun (cons 'repl_ (cons nil (cons expr nil)))))
-        (println (funcall (function "repl_") nil))
-        (env-revert 'repl-mark)))))
+      (if expr
+          (progn
+            (env-mark 'repl-mark)
+            (eval (cons 'defun (cons 'repl_ (cons nil (cons expr nil)))))
+            (cr)
+            (println (funcall (function "repl_") nil))
+            (env-revert 'repl-mark))
+        nil))))
 
 (defun map (fn lst)
   (while lst
