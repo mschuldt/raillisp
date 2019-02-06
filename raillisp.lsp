@@ -183,14 +183,12 @@
 (defun nreverse (l)
   (var prev nil)
   (var next nil)
-  (var curr l)
   (while l
-    (set curr l)
     (set next (cdr l))
     (setcdr l prev)
     (set prev l)
     (set l next))
-  curr)
+  prev)
 
 (defun take (l n)
   (var head nil)
