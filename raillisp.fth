@@ -537,6 +537,7 @@ variable stack-depth
   repeat
   r> drop ;
 
+
 \ special forms with < 0 args are passed all the arguments as a list
 : special ( immediate) -1 0 f-latest func-special! ;
 
@@ -568,38 +569,42 @@ variable stdin-lastchar
 variable stdin-unread
 variable read-from-string
 
-: check-char ( c - c )
-  \ Returns 0 if done reading, else c
-  \ Used when reading from input streams
-  dup 10 = if \ RET
-    paren-count @ 0 = if
-      drop 0 exit
-    else
-      ." :  "
-    then
-  else
+: update-paren-count ( c - c )
     dup [char] ( = if
       paren-count dup @ 1+ swap !
     else
       dup [char] ) = if
         paren-count dup @ 1- swap !
       then
-    then
   then ;
 
-: key
-  begin
-    xkey dup 32 < over 126 > or over 10 <> and
-  while
-    drop
-  repeat ;
+: read-next-line ( - e a )
+    pad dup 100 accept
+    2dup + 10 swap c! 1+
+    over + swap ;
+
+: next-key ( e a - e a c )
+    2dup <= if
+        \ TODO: reading multi-line strings
+        paren-count @ 0<> if
+            \ End of line but not end of list, read another line
+            cr ." :  "
+            drop drop read-next-line
+        else
+            \ End of line
+            0 exit
+        then
+    then
+    dup c@ swap 1+ swap
+    update-paren-count \ TODO: only do this when reading lists
+;
 
 : lisp-char-from-input
   stdin-unread @ if
     0 stdin-unread !
     stdin-lastchar @
   else
-    key check-char
+    next-key
     dup stdin-lastchar !
   then ;
 
@@ -800,7 +805,9 @@ defer lisp-read-lisp
   -1 stdin-lastchar !
   0 stdin-unread !
   0 paren-count !
-  ." > " lisp-read-lisp
+  ." > " read-next-line
+  lisp-read-lisp
+  >r 2drop r>
 ; f0
 
 : read ( str - lisp ) symbol->string lisp-read-from-string ; f1
@@ -1032,10 +1039,6 @@ variable locals-counter
   then
   maybe-ret drop
 ; special
-
-: lisp-create ( ua - ) \ create new dictionary entry
-  ( gforth) nextname header reveal ['] on vtcopy, ?noname-vt
-  postpone recursive ;
 
 : member ( key list - list )
   begin
