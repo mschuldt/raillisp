@@ -80,6 +80,8 @@ variable lisp-latest
   5 cells + @ name>string ;
 : func>string ( f - a u )
   dup func-indirect? if forthfunc>string else lispfunc>string then ;
+
+defined vtcopy, [if]
 : func>int
   dup func-indirect? if
     5 cells + @
@@ -87,6 +89,16 @@ variable lisp-latest
     func>flags dup @ lisp-len-mask and
      1 cells + + aligned 24 +
   then ;
+[else]
+: func>int
+  dup func-indirect? if
+    5 cells + @
+    name>int
+  else
+    func>flags dup @ lisp-len-mask and
+     1 cells + + aligned
+  then ;
+[then]
 
 : func-set-bit ( mask - ) lisp-latest @ func>flags dup @ rot or swap ! ;
 : func-indirect! lisp-indirect-mask func-set-bit ;
@@ -138,9 +150,14 @@ variable lisp-latest
 
 variable stack-counter
 
-: headersize here :noname postpone [ drop here swap - ;
+: header-offset align here :noname postpone ; drop here swap - 24 - ;
 
-: lisp-header, :noname postpone [ 2drop 2drop 2drop ;
+defined vtcopy, [if]
+    : lisp-header, :noname postpone [ 2drop 2drop 2drop ;
+[else]
+    : lisp-header, :noname postpone [ 2drop 2drop drop ;
+[then]
+
 
 : start-defun ( namea nameu - )
   align here
