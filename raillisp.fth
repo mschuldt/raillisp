@@ -1389,8 +1389,13 @@ variable while-stack
 : list-index list-index tag-num ; f2
 \ : words words nil ; f0
 
-: env-mark symbol->string nextname marker nil ; f1
-: env-revert symbol->string find-name name>int execute nil ; f1
+variable lisp-latest-marked
+: env-mark symbol->string nextname marker
+           lisp-latest @ lisp-latest-marked !
+           nil ; f1
+: env-revert symbol->string find-name name>int execute
+             lisp-latest-marked @ lisp-latest !
+             nil ; f1
 
 : print-stack .s nil ; f0
 
