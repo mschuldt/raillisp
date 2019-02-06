@@ -477,8 +477,8 @@ variable stack-depth
 
 : check-stack-depth ( n - )
   dup stack-depth @ <> if
-    ." ERROR: function left " stack-depth @ .
-    ." items on the stack, expected " . cr
+    ." COMPILATION ERROR: function '" lisp-latest @ func>string type
+    ." ' left " stack-depth @ . ." items on the stack, expected " . cr
     ."   stack: " stack-print cr bye
   then drop ;
 
