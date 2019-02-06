@@ -147,7 +147,7 @@ variable stack-counter
   lisp-function-tag , \ tag
   lisp-latest dup @ , ! \ parent pointer
   0 , \ argument count
-  0 , \ return count
+  1 , \ return count
   dup , \ flags + name length
   mem, \ name
   align lisp-header,
@@ -1107,7 +1107,7 @@ variable let-bound-names
 : defcode ( lisp - lisp)
   \ postpone def
   compile-def
-  1 func-returns!
+  0 func-returns!
   \ TODO: temp workaround - discard the return value
   comp, drop
   end-compile
