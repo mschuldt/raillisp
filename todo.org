@@ -82,3 +82,5 @@ then fix s" xcons" for type-of
 * TODO BUG (eq? 'defun 'defun) is broken
 * TODO BUG (str-count string "")
 * TODO BUG (list)
+* TODO combine fields for function arg and return lengths into a single word
+* TODO (set var value) should have better error message if var is undeclared

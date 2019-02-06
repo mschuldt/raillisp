@@ -79,6 +79,7 @@
   (var expr nil)
   (cr)
   (while 1
+    ;;(print-stack)
     (set expr (read-from-input))
     (if (and (equal? (type-of expr) 'xcons)
              (or (equal? (car expr) 'var)

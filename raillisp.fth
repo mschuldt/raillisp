@@ -55,65 +55,131 @@ lisp-max-tag cells allocate throw constant type-names
 : vector-vec [ 2 cells ] literal + ;
 3 cells constant sizeof-vector
 
-\ function meta data
-\ : func-tag 0 + ;
-: func-name [ 1 cells ] literal + ;
-: func-args [ 2 cells ] literal + ;
-: func-locals [ 3 cells ] literal + ;
-: func-&rest [ 4 cells ] literal + ;
-: func-returns [ 5 cells ] literal + ;
-: func-next [ 6 cells ] literal + ;
-7 cells constant sizeof-func
-
-variable function-first
 variable curr-func
+variable lisp-latest
 
-: function-lookup ( name -- function )
-  function-first @
+-1 4 rshift constant lisp-len-mask
+1 63 lshift constant lisp-macro-mask
+1 62 lshift constant lisp-special-mask
+1 61 lshift constant lisp-&rest-mask
+1 60 lshift constant lisp-indirect-mask
+
+: func>parent 1 cells + ;
+: func>args 2 cells + ;
+: func>returns 3 cells + ;
+: func>flags 4 cells + ;
+
+: func-macro? func>flags @ lisp-macro-mask and ;
+: func-special? func>flags @ lisp-special-mask and ;
+: func-&rest? func>flags @ lisp-&rest-mask and ;
+: func-indirect? func>flags @ lisp-indirect-mask and ;
+
+: lispfunc>string ( f - a u )
+  func>flags dup @ lisp-len-mask and swap 1 cells + swap ;
+: forthfunc>string ( f - a u )
+  5 cells + @ name>string ;
+: func>string ( f - a u )
+  dup func-indirect? if forthfunc>string else lispfunc>string then ;
+: func>int
+  dup func-indirect? if
+    5 cells + @
+  else
+    func>flags dup @ lisp-len-mask and
+     1 cells + + aligned 24 +
+  then ;
+
+: func-set-bit ( mask - ) lisp-latest @ func>flags dup @ rot or swap ! ;
+: func-indirect! lisp-indirect-mask func-set-bit ;
+: func-special! lisp-special-mask func-set-bit ;
+: func-macro! lisp-macro-mask func-set-bit func-special! ;
+: func-&rest! ( sym - )
+  drop \ now only indicate with a bit, don't save parameter symbol
+  lisp-&rest-mask func-set-bit ;
+: func-args! ( n - ) lisp-latest @ func>args ! ;
+: func-returns! lisp-latest @ func>returns ! ;
+
+: function-lookup ( namea nameu - func )
+  lisp-latest
+  @ >r
+  begin
+    r@
+    0<>
+  while
+    2dup r@ func>string
+    compare 0= if
+      2drop r> exit
+    then
+    r> func>parent @ >r
+  repeat
+  2drop
+  r> drop 0
+;
+
+: lisp-print-funcs ( - )
+  lisp-latest @
   begin
     dup 0<>
   while
-    2dup func-name @
-    = if nip exit then
-    func-next @
-  repeat
-  2drop 0 ;
+    dup func>string type ."  " func>parent @
+  repeat drop cr ;
 
-: find-function ( name - ) function-lookup curr-func ! ;
-: find-function-check ( name - )
-  dup find-function curr-func @ 0= if
-    ." invalid function: " name>string type cr bye
-  then drop ;
+\ : find-function ( name - ) function-lookup curr-func ! ;
+\ : find-function-check ( name - )
+\   dup find-function curr-func @ 0= if
+\     ." invalid function: " name>string type cr bye
+\   then drop ;
+: set-curr-func ( func - ) curr-func ! ;
 
-: curr-args ( - n ) curr-func @ dup 0<> if func-args @ then ;
-: curr-returns ( - n ) curr-func @ dup 0<> if func-returns @ then ;
-: curr-&rest ( - x ) curr-func @ dup 0<> if func-&rest @ then ;
+: curr-args ( - n ) curr-func @ dup 0<> if func>args @ then ;
+: curr-returns ( - n ) curr-func @ dup 0<> if func>returns @ then ;
+: curr-&rest ( - x ) curr-func @ dup 0<> if func-&rest? then ;
 
 : check-alloc dup 1 and if ." lsb set" 1 throw then ;
 
 variable stack-counter
 
-: new-function ( - )
-  0 stack-counter !
-  sizeof-func allocate throw check-alloc
-  dup ( func-tag ) lisp-function-tag swap !
-  dup func-next function-first @ swap !
-  dup func-returns 1 swap !
-  function-first ! ;
+: headersize here :noname postpone [ drop here swap - ;
 
-: set-func-name ( - ) latest function-first @ func-name ! ;
-: set-func-args ( n - ) function-first @ func-args ! ;
-: set-func-&rest ( x - ) function-first @ func-&rest ! ;
-: set-func-returns ( x - ) function-first @ func-returns ! ;
+: lisp-header, :noname postpone [ 2drop 2drop 2drop ;
 
-: func ( num-args num-ret - )   \ declare a lisp function
-  new-function set-func-name set-func-returns set-func-args ;
+: start-defun ( namea nameu - )
+  align here
+  lisp-function-tag , \ tag
+  lisp-latest dup @ , ! \ parent pointer
+  0 , \ argument count
+  0 , \ return count
+  dup , \ flags + name length
+  mem, \ name
+  align lisp-header,
+;
 
-: f0 0 1 func ;
-: f1 1 1 func ;
-: f2 2 1 func ;
-: f3 3 1 func ;
-: fn -1 1 func 1 set-func-&rest ;
+: end-defun  postpone exit ;
+
+: (defun ( num-args - ) parse-name
+         start-defun
+         func-args!
+         ] ;
+
+: ) postpone exit postpone [ ; immediate
+
+: func ( word args returns - )
+  \ makes a lisp wrapper around a forth word
+  align here
+  lisp-function-tag , \ tag
+  lisp-latest dup @ , ! \ parent pointer
+  swap , \ arg count
+  , \ return count
+  0 , \ flags
+  , \ word
+  func-indirect! ;
+
+: f-latest ( args ret - ) latest -rot func ;
+: f0 ( - ) 0 1 f-latest ;
+: f1 ( - ) 1 1 f-latest ;
+: f2 ( - ) 2 1 f-latest ;
+: f3 ( - ) 3 1 f-latest ;
+: f4 ( - ) 4 1 f-latest ;
+: fn ( - ) -1 1 f-latest 1 func-&rest! ;
 
 : create-cons ( car cdr -- lisp )
   sizeof-pair allocate throw check-alloc >r
@@ -147,6 +213,7 @@ variable stack-counter
   string-new create-symbol ;
 
 : symbol->string ( lisp -- namea nameu )
+  \  ." *symbol->string:* " dup . cr
   dup symbol-namea @ swap symbol-nameu @ ;
 
 : create-string ( namea nameu -- lisp )
@@ -175,7 +242,8 @@ variable stack-counter
 : cons? get-lisp-tag lisp-pair-tag  = ; f2
 : sym? get-lisp-tag lisp-symbol-tag = ; f1
 : str? get-lisp-tag lisp-string-tag =  ; f1
-: vector? get-lisp-tag lisp-vector-tag  = ; f1
+: vector? get-lisp-tag lisp-vector-tag = ; f1
+
 
 -1 constant lisp-true
 variable t
@@ -348,7 +416,7 @@ variable &rest
 ' lisp-display-vector display-dispatch lisp-vector-tag cells + !
 
 : lisp-display-function ( lisp - )
-  [char] $ emit func-name @ name>string type ;
+  [char] $ emit func>string type ;
 
 ' lisp-display-function display-dispatch lisp-function-tag cells + !
 
@@ -414,6 +482,12 @@ variable stack-depth
     ."   stack: " stack-print cr bye
   then drop ;
 
+: lisp-find-symbol-function ( symbol - func )
+  symbol->string
+  function-lookup
+; \ TODO: error checking
+
+
 : lisp-interpret ( lisp - lisp? )
   dup 0<> if
     dup get-lisp-tag cells
@@ -463,8 +537,8 @@ variable stack-depth
   repeat
   r> drop ;
 
-: special immediate ;
-: special? 3 cells - @ immediate-mask and 0<> ;
+\ special forms with < 0 args are passed all the arguments as a list
+: special ( immediate) -1 0 f-latest func-special! ;
 
 : compile lisp-interpret t ; f1
 : compile-r lisp-interpret-r t ; f1
@@ -767,10 +841,12 @@ defer lisp-read-lisp
     else 2drop then
   else drop then ;
 
-: lisp-interpret-special ( lisp word - )
+: lisp-interpret-special ( lisp func - )
   \ special form or macro
+  \ TODO: macros can be seporated from special forms now that
+  \       they have seporate type bits
   0 macro-flag !
-  dup find-function name>int >r
+  dup set-curr-func >r
   cdr ( dup check-arg-count )
   dup 0= if drop then \ drop empty list. TODO: but what about passing nil?
   curr-func @ 0<> if
@@ -787,34 +863,32 @@ defer lisp-read-lisp
       drop
     then
   then
-  r> execute
-  macro-flag @ if lisp-interpret then
-  \ can't call 'maybe-drop' for special forms here
-  \ because special forms defined in forth don't return anything.
-  \ Instead the forms defined in lisp are compiled with
-  \ a call to maybe-drop at the end of their definition.
-;
+  r@ func>int execute
+  r> func-macro? if lisp-interpret then ;
 
-: lisp-interpret-function ( lisp word - )
+: lisp-interpret-function ( lisp func - )
   >r return-context @ >r 1 return-context !
   cdr lisp-interpret-list
   r> return-context !
-  r> dup find-function-check name>int swap check-arg-count
+  r> dup set-curr-func func>int swap check-arg-count
   execute ;
 
-: lisp-compile-function ( lisp word - )
+: lisp-compile-function ( lisp func - )
   >r return-context @ 1 return-context !
   swap cdr lisp-compile-list
   swap return-context !
-  r> dup find-function-check name>int swap
-  check-arg-count
-  compile,
+  r> dup set-curr-func
+  func>int
+  swap
+  drop \ check-arg-count
+  compile, \ DOING: error here. check this function
   curr-args stack-drop-n
   curr-returns stack-push-n ;
 
 : lisp-interpret-pair ( lisp - lisp?)
-  dup car lisp-find-symbol-word
-  dup special? if
+  dup car
+  lisp-find-symbol-function
+  dup func-special? if
     lisp-interpret-special
   else \ function
     lisp-state @ 0= if
@@ -997,51 +1071,64 @@ variable let-bound-names
 
 : handle-args ( arglist - len )
   split-args swap dup push-local-names
-  lisp-list-len swap dup set-func-&rest
-  dup 0<> if push-local-name 1+ else drop then
-  dup set-func-args ;
+  lisp-list-len
+  swap
+  dup func-&rest!
+  dup 0<> if push-local-name
+             1+ else drop then
+  dup func-args! ;
 
 : compile-def ( lisp - )
-  new-function
   1 return-context !
-  dup car symbol->string
-  lisp-create \ create dictionary header
-  set-func-name
-  cdr dup car handle-args
+  dup car
+  symbol->string
+  start-defun \ create dictionary header
+
+  cdr
+  dup car
+
+  handle-args
+  \ DOING: handle-args is setting the indirect bit
+
   dup locals-counter !
-  swap cdr start-compile lisp-compile-progn \ compile function body
+  swap cdr start-compile
+  lisp-compile-progn \ compile function body
   drop locals-counter @ drop-locals
+
   0 return-context ! ;
 
 : defun ( lisp - lisp)
   compile-def end-compile
+  1 func-returns!
   1 check-stack-depth stack-drop
-  postpone exit
+  end-defun
   nil ; special
 
 : defcode ( lisp - lisp)
-  \  postpone def
+  \ postpone def
   compile-def
+  1 func-returns!
   \ TODO: temp workaround - discard the return value
   comp, drop
   end-compile
-  stack-drop 0 check-stack-depth
-  postpone exit
-  immediate nil ; special
+  stack-drop  0 check-stack-depth
+  end-defun
+  func-special!
+  ( immediate) nil ; special
 
 : defmacro ( lisp - lisp)
   compile-def end-compile
-  comp, set-macro-flag
+  \  comp, set-macro-flag
   1 check-stack-depth stack-drop
-  postpone exit
-  immediate nil ; special
+  end-defun
+  func-macro!
+  ( immediate) nil ; special
 
 : lisp-interpret-symbol ( lisp - )
-  lisp-find-symbol-word
-  dup function-lookup dup 0= if
-    drop name>int execute @
+  dup symbol->string function-lookup dup 0= if
+    drop lisp-find-symbol-word name>int execute @ \ eval variable
   else
-    nip
+    nip \ function value
   then ;
 
 variable loop-vars
@@ -1058,9 +1145,11 @@ comp' k drop loop-var-addrs 2 cells + !
   dup loop-vars @ list-index dup -1 <> if
     nip compile-loop-var
   else
-    drop lisp-find-symbol-word
-    dup function-lookup dup 0= if
-      drop name>int compile, comp, @  \ variable
+    drop dup
+    lisp-find-symbol-function
+    dup 0= if
+      drop
+      lisp-find-symbol-word name>int compile, comp, @  \ variable
     else
       nip postpone literal \ function
     then then ;
@@ -1142,30 +1231,20 @@ comp' k drop loop-var-addrs 2 cells + !
   stack-drop-n stack-push*
 ; special
 
-: dis ( func - lisp ) func-name @ name-see cr nil ; f1
-
 : unlist ( list - e1,e2,...,en )
   recursive
   dup 0<> if
     dup car swap cdr unlist
   else drop then ;
 
-: function ( str - func )
-  symbol->string find-name dup 0= if
-    drop ." undefined fn" cr nil
-  else
-    function-lookup
-  then ; f1
-
-: funcall ( fn args - lisp )
-  swap >r unlist r> func-name @ name>int execute ; f2
-
-: func-name ( func - str )
-  func-name @ name>string create-string ; f1
-
-: func-arity ( func - num ) func-args @ tag-num ; f1
+: function ( str - func ) symbol->string function-lookup ; f1
+: funcall ( fn args - lisp ) swap >r unlist r> func>int execute ; f2
+: func-name ( func - str ) func>string create-string ; f1
+: func-arity ( func - num ) func>args ; f1
 
 : boundp ( lisp - lisp ) symbol->string find-name 0<> ; f1
+
+: dis ( func - lisp ) func-name @ name-see cr nil ; f1
 
 variable command-line-args
 : do-process-args ( - )
@@ -1295,11 +1374,10 @@ variable while-stack
 
 : 1+ ( n - n ) 2 + ; f1
 : 1- ( n - n ) 2 - ; f1
-: + ( nn - n ) untag-num swap untag-num + tag-num ; f2
 : - ( nn - n ) untag-num swap untag-num swap - tag-num ; f2
 : * ( nn - n ) untag-num swap untag-num * tag-num ; f2
 : / ( nn - n ) untag-num swap untag-num swap / tag-num ; f2
-
+: + ( nn - n ) untag-num swap untag-num + tag-num ; f2
 : zero? 0= ; f1
 : not 0=  ; f1
 
@@ -1313,6 +1391,8 @@ variable while-stack
 
 : env-mark symbol->string nextname marker nil ; f1
 : env-revert symbol->string find-name name>int execute nil ; f1
+
+: print-stack .s nil ; f0
 
 \ TODO: need to declare built in words as lisp words
 \ temp fix:
