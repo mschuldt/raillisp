@@ -56,7 +56,8 @@ lisp-max-tag cells allocate throw constant type-names
 3 cells constant sizeof-vector
 
 variable curr-func
-variable lisp-latest
+variable last-def
+\ variable lisp-latest
 
 -1 4 rshift constant lisp-len-mask
 1 63 lshift constant lisp-macro-mask
@@ -89,24 +90,24 @@ variable lisp-latest
     1 cells + + aligned @
   then ;
 
-: func-set-bit ( mask - ) lisp-latest @ func>flags dup @ rot or swap ! ;
+: func-set-bit ( mask - ) last-def @ func>flags dup @ rot or swap ! ;
 : func-indirect! lisp-indirect-mask func-set-bit ;
 : func-special! lisp-special-mask func-set-bit ;
 : func-macro! lisp-macro-mask func-set-bit func-special! ;
 : func-&rest! ( sym - )
   drop \ now only indicate with a bit, don't save parameter symbol
   lisp-&rest-mask func-set-bit ;
-: func-args! ( n - ) lisp-latest @ func>args ! ;
-: func-returns! lisp-latest @ func>returns ! ;
+: func-args! ( n - ) last-def @ func>args ! ;
+: func-returns! last-def @ func>returns ! ;
 
 
-: lisp-print-funcs ( - )
-  lisp-latest @
-  begin
-    dup 0<>
-  while
-    dup func>string type ."  " func>parent @
-  repeat drop cr ;
+\ : lisp-print-funcs ( - )
+\   lisp-latest @
+\   begin
+\     dup 0<>
+\   while
+\     dup func>string type ."  " func>parent @
+\   repeat drop cr ;
 
 \ : find-function ( name - ) function-lookup curr-func ! ;
 \ : find-function-check ( name - )
@@ -180,16 +181,17 @@ defined vtcopy, [if]
 
 : start-defun ( namea nameu - )
   2dup str-intern -rot
-  align here
+  align
+  here last-def !
   lisp-function-tag , \ tag
-  lisp-latest dup @ , ! \ parent pointer
+  666 ,  \ parent pointer
   0 , \ argument count
   1 , \ return count
   dup , \ flags + name length
   mem, \ name
   align here 1221 , \ xt
   lisp-header, swap !
-  lisp-latest @ swap sym>value !
+  last-def @ swap sym>value !
 ;
 
 : end-defun postpone exit ;
@@ -209,14 +211,14 @@ defined vtcopy, [if]
   \ makes a lisp wrapper around a forth word
   rot dup name>string
   str-intern >r -rot
-  align here
+  align here last-def !
   lisp-function-tag , \ tag
-  lisp-latest dup @ , ! \ parent pointer
+  666 , \ parent pointer
   swap , \ arg count
   , \ return count
   0 , \ flags
   , \ word
-  lisp-latest @ r> sym>value !
+  last-def @ r> sym>value !
   func-indirect!
 ;
 
@@ -531,14 +533,14 @@ variable stack-depth
 
 : check-stack-depth ( n - )
   dup stack-depth @ <> if
-    ." COMPILATION ERROR: function '" lisp-latest @ func>string type
+    ." COMPILATION ERROR: function '" last-def @ func>string type
     ." ' left " stack-depth @ . ." items on the stack, expected " . cr
     ."   stack: " stack-print cr bye
   then drop ;
 
 : lisp-find-symbol-function ( symbol - func )
   symbol->string
-  function-lookup
+  function-lookup \ TODO: just look at sym>value directly?
 ; \ TODO: error checking
 
 
@@ -1159,7 +1161,7 @@ variable let-bound-names
   1 func-returns!
   1 check-stack-depth stack-drop
   end-defun
-  ( nil) lisp-latest @
+  ( nil) last-def @
 ; special
 
 : defcode ( lisp - lisp)
@@ -1456,14 +1458,11 @@ variable while-stack
 : list-index list-index tag-num ; f2
 \ : words words nil ; f0
 
-variable lisp-latest-marked
 variable lisp-latest-marked-SYM
 : env-mark symbol->string nextname marker
-           lisp-latest @ lisp-latest-marked !
            lisp-latest-SYM @ lisp-latest-marked-SYM !
            nil ; f1
 : env-revert symbol->string find-name name>int execute
-             lisp-latest-marked @ lisp-latest !
              lisp-latest-marked-SYM @ lisp-latest-SYM !
              nil ; f1
 
