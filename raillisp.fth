@@ -1457,11 +1457,14 @@ variable while-stack
 \ : words words nil ; f0
 
 variable lisp-latest-marked
+variable lisp-latest-marked-SYM
 : env-mark symbol->string nextname marker
            lisp-latest @ lisp-latest-marked !
+           lisp-latest-SYM @ lisp-latest-marked-SYM !
            nil ; f1
 : env-revert symbol->string find-name name>int execute
              lisp-latest-marked @ lisp-latest !
+             lisp-latest-marked-SYM @ lisp-latest-SYM !
              nil ; f1
 
 : print-stack .s nil ; f0
