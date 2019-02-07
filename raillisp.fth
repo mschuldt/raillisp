@@ -1317,7 +1317,7 @@ comp' k drop loop-var-addrs 2 cells + !
 
 : boundp ( lisp - lisp ) symbol->string find-name 0<> ; f1
 
-: dis ( func - lisp ) func-name @ name-see cr nil ; f1
+: dis ( func - lisp ) func>int xt-see cr nil ; f1
 
 variable _command-line-args
 s" command-line-args" str-intern sym>value
