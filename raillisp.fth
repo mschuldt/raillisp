@@ -99,22 +99,6 @@ variable lisp-latest
 : func-args! ( n - ) lisp-latest @ func>args ! ;
 : func-returns! lisp-latest @ func>returns ! ;
 
-: function-lookup ( namea nameu - func )
-  lisp-latest
-  @ >r
-  begin
-    r@
-    0<>
-  while
-    2dup r@ func>string
-    compare 0= if
-      2drop r> exit
-    then
-    r> func>parent @ >r
-  repeat
-  2drop
-  r> drop 0
-;
 
 : lisp-print-funcs ( - )
   lisp-latest @
@@ -141,6 +125,52 @@ variable stack-counter
 
 : header-offset align here :noname postpone ; drop here swap - 24 - ;
 
+
+\ Symbol struct formats:
+\ Uninterned symbol: [type tag, name len, name...]
+\ Interned symbol: value, parent ptr, [type tag, name len, name...]
+
+: sym>value 2 cells - ;
+: sym>parent 1 cells - ;
+: sym>name 1 cells + ;
+: sym>string ( sym - namea nameu )
+  \   sym>name dup 1 cells + swap @ ;
+  \ symbol->string ; ( temp fix for compatibility with symbol struct)
+  dup symbol-namea @ swap symbol-nameu @ ;
+
+variable lisp-latest-SYM
+
+: make-sym ( namea nameu - lisp )
+  align 0 , \ symbol value
+  lisp-latest-SYM dup @ , \ parent pointer
+  here dup >r lisp-symbol-tag , \ type tag
+  swap ! \ set lisp-latest
+  dup , \ name length
+  \  mem, \ name
+  here 1 cells + , mem, ( temp fix for compatibility with symbol struct)
+  r>
+;
+
+: sym-lookup ( namea nameu - sym )
+  lisp-latest-SYM @ >r
+  begin
+    r@ 0<>
+  while
+    2dup r@ sym>string
+    compare 0= if
+      2drop r> exit
+    then
+    r> sym>parent @ >r
+  repeat
+  2drop r> drop 0 ;
+
+: str-intern ( namea nameu - sym )
+  2dup sym-lookup dup 0<> if
+    nip nip exit \ already interned
+  else
+    drop make-sym
+  then ;
+
 defined vtcopy, [if]
     : lisp-header, :noname postpone [ 2drop 2drop drop ;
 [else]
@@ -149,6 +179,7 @@ defined vtcopy, [if]
 
 
 : start-defun ( namea nameu - )
+  2dup str-intern -rot
   align here
   lisp-function-tag , \ tag
   lisp-latest dup @ , ! \ parent pointer
@@ -158,6 +189,7 @@ defined vtcopy, [if]
   mem, \ name
   align here 1221 , \ xt
   lisp-header, swap !
+  lisp-latest @ swap sym>value !
 ;
 
 : end-defun postpone exit ;
@@ -168,9 +200,14 @@ defined vtcopy, [if]
          ] ;
 
 : ) postpone exit postpone [ ; immediate
+: sym-print ( sym - )
+  ." sym(" sym>string type ." )" ;
 
-: func ( word args returns - )
+\ TODO: get rid of the wrapper type
+: func ( args returns word - )
   \ makes a lisp wrapper around a forth word
+  rot dup name>string
+  str-intern >r -rot
   align here
   lisp-function-tag , \ tag
   lisp-latest dup @ , ! \ parent pointer
@@ -178,7 +215,9 @@ defined vtcopy, [if]
   , \ return count
   0 , \ flags
   , \ word
-  func-indirect! ;
+  lisp-latest @ r> sym>value !
+  func-indirect!
+;
 
 : f-latest ( args ret - ) latest -rot func ;
 : f0 ( - ) 0 1 f-latest ;
@@ -254,45 +293,12 @@ lisp-true t !
 
 : eq? = ; f2
 
-\ Symbol struct formats:
-\ Uninterned symbol: [type tag, name len, name...]
-\ Interned symbol: value, parent ptr, [type tag, name len, name...]
-
-: sym>value 2 cells - ;
-: sym>parent 1 cells - ;
-: sym>name 1 cells + ;
-: sym>string ( sym - namea nameu )
-  \   sym>name dup 1 cells + swap @ ;
-  symbol->string ; ( temp fix for compatibility with symbol struct)
-
-variable lisp-latest-SYM
-
-: make-sym ( namea nameu - lisp )
-  align 0 , \ symbol value
-  lisp-latest-SYM dup @ , \ parent pointer
-  here dup >r lisp-symbol-tag , \ type tag
-  swap ! \ set lisp-latest
-  dup , \ name length
-  \  mem, \ name
-  here 1 cells + , mem, ( temp fix for compatibility with symbol struct)
-  r>
-;
-
-: sym-lookup ( namea nameu - sym )
-  lisp-latest-SYM @ >r
-  begin
-    r@ 0<>
-  while
-    2dup r@ sym>string
-    compare 0= if
-      2drop r> exit
-    then
-    r> sym>parent @ >r
-  repeat
-  2drop r> drop 0 ;
-
-: sym-print ( sym - )
-  ." sym(" sym>string type ." )" ;
+: function-lookup ( namea nameu - func )
+  2dup sym-lookup dup 0= if
+    drop ." undefined symbol: " type cr bye
+  else
+    nip nip sym>value @
+  then ;
 
 : print-syms ( - )
   ." symbols: "
@@ -303,13 +309,6 @@ variable lisp-latest-SYM
     dup sym>string
     type ."  " sym>parent @
   repeat drop cr ;
-
-: str-intern ( namea nameu - sym )
-  2dup sym-lookup dup 0<> if
-    nip nip exit \ already interned
-  else
-    drop make-sym
-  then ;
 
 : intern ( str - sym )
   symbol->string str-intern ; f1
@@ -1183,14 +1182,11 @@ variable let-bound-names
   ( immediate) nil ; special
 
 : lisp-interpret-symbol ( lisp - )
-  dup symbol->string function-lookup dup 0= if
-    drop dup symbol->string sym-lookup dup 0<> if
-      nip sym>value @
-    else
-      drop lisp-find-symbol-word name>int execute @ \ eval variable
-    then
+  dup symbol->string sym-lookup dup 0<> if
+    nip sym>value @
   else
-    nip \ function value
+    \ still needed?
+    drop lisp-find-symbol-word name>int execute @ \ eval variable
   then ;
 
 variable _loop-vars
@@ -1210,14 +1206,8 @@ comp' k drop loop-var-addrs 2 cells + !
   dup loop-vars@ list-index dup -1 <> if
     nip compile-loop-var
   else
-    drop dup
-    lisp-find-symbol-function
-    dup 0= if
-      drop
-      intern sym>value postpone literal comp, @ \ variable
-    else
-      nip postpone literal \ function
-    then then ;
+    drop intern sym>value postpone literal comp, @ \ variable
+  then ;
 
 : lisp-compile-symbol ( lisp - )
   dup stack @ list-index dup -1 <> if \ local variable reference
@@ -1333,6 +1323,14 @@ s" string" str-intern lisp-string-tag cells type-names + !
 s" vector" str-intern lisp-vector-tag cells type-names + !
 s" function" str-intern lisp-function-tag cells type-names + !
 : type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ ; f1
+
+\ \ temporary workaround...
+\ : set-func-link ( namea nameu - )
+\   2dup function-lookup_old -rot
+\   str-intern sym>value ! ;
+\ s" cons" set-func-link
+\ s" vector" set-func-link
+\ s" function" set-func-link
 
 : make-empty-str ( len - str )
   untag-num dup allocate throw swap create-string ; f1
