@@ -279,6 +279,63 @@ wordlist constant symbols
     r>
   then ; f1
 
+: sym>value 1 cells + ;
+: sym>parent 2 cells + ;
+: sym>name 3 cells + ;
+: sym>string ( sym - namea nameu )
+  sym>name dup 1 cells + swap @ ;
+
+variable lisp-latest-SYM
+
+: make-sym ( namea nameu - lisp )
+  align here dup >r
+  lisp-symbol-tag ,
+  0 , \ symbol value
+  lisp-latest-SYM dup @ , ! \ parent pointer
+  dup , \ name length
+  mem, \ name
+  r>
+;
+
+: sym-lookup ( namea nameu - sym )
+  lisp-latest-SYM @ >r
+  begin
+    r@ 0<>
+  while
+    2dup r@ sym>string
+    compare 0= if
+      2drop r> exit
+    then
+    r> sym>parent @ >r
+  repeat
+  2drop r> drop 0 ;
+
+: sym-print ( sym - )
+  ." sym(" sym>string type ." )" ;
+
+: print-syms ( - )
+  ." symbols: "
+  lisp-latest-SYM @
+  begin
+    dup 0<>
+  while
+    dup sym>string
+    type ."  " sym>parent @
+  repeat drop cr ;
+
+: str-intern ( namea nameu - sym )
+  2dup sym-lookup dup 0<> if
+    nip nip exit \ already interned
+  else
+    drop make-sym
+  then ;
+
+: sym-intern ( str - sym )
+  symbol->string str-intern ;
+
+-1 s" t" str-intern sym>value !
+ 0  s" nil" str-intern sym>value !
+
 : str-equal? ( lisp1 lisp2 -- lisp )
   symbol->string rot symbol->string
   compare 0= if
@@ -1039,8 +1096,8 @@ variable locals-counter
 : var ( sv - v)
   dup car swap cdr car \ symbol value
   lisp-state @ 0= if
-    lisp-interpret dup rot symbol->string
-    nextname create ,
+    lisp-interpret dup rot
+    sym-intern sym>value !
   else
     compile-local-var
   then
@@ -1136,12 +1193,19 @@ variable let-bound-names
 
 : lisp-interpret-symbol ( lisp - )
   dup symbol->string function-lookup dup 0= if
-    drop lisp-find-symbol-word name>int execute @ \ eval variable
+    drop dup symbol->string sym-lookup dup 0<> if
+      nip sym>value @
+    else
+      drop lisp-find-symbol-word name>int execute @ \ eval variable
+    then
   else
     nip \ function value
   then ;
 
-variable loop-vars
+variable _loop-vars
+s" loop-vars" str-intern sym>value _loop-vars !
+: loop-vars@ _loop-vars @ @ ;
+
 3 cells allocate throw constant loop-var-addrs
 comp' i drop loop-var-addrs !
 comp' j drop loop-var-addrs 1 cells + !
@@ -1152,14 +1216,14 @@ comp' k drop loop-var-addrs 2 cells + !
   comp, tag-num ;
 
 : lisp-compile-global-sym ( lisp - )
-  dup loop-vars @ list-index dup -1 <> if
+  dup loop-vars@ list-index dup -1 <> if
     nip compile-loop-var
   else
     drop dup
     lisp-find-symbol-function
     dup 0= if
       drop
-      lisp-find-symbol-word name>int compile, comp, @  \ variable
+      sym-intern sym>value postpone literal comp, @ \ variable
     else
       nip postpone literal \ function
     then then ;
@@ -1177,13 +1241,12 @@ comp' k drop loop-var-addrs 2 cells + !
 ' lisp-compile-symbol compile-dispatch lisp-symbol-tag cells + !
 
 : set-interpret ( symbol value - )
-  lisp-interpret dup rot
-  lisp-find-symbol-word name>int execute ! ;
+  lisp-interpret dup rot sym-intern sym>value ! ;
 
 : set-compile-global ( symbol value - )
   lisp-interpret-r \ compile value
   stack-drop
-  lisp-find-symbol-word name>int compile,
+  sym-intern sym>value postpone literal
   comp, ! ;
 
 : set-compile-local ( symbol value index - )
@@ -1256,7 +1319,10 @@ comp' k drop loop-var-addrs 2 cells + !
 
 : dis ( func - lisp ) func-name @ name-see cr nil ; f1
 
-variable command-line-args
+variable _command-line-args
+s" command-line-args" str-intern sym>value
+_command-line-args !
+
 : do-process-args ( - )
   recursive
   next-arg 2dup 0 0 d<> if
@@ -1265,7 +1331,7 @@ variable command-line-args
     drop
   then ;
 
-: process-args do-process-args command-line-args ! t ; f0
+: process-args do-process-args _command-line-args @ ! t ; f0
 
 : identity ( x - x ) ; f1
 
