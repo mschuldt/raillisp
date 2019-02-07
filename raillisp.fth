@@ -1292,7 +1292,8 @@ comp' k drop loop-var-addrs 2 cells + !
     dup car swap cdr unlist
   else drop then ;
 
-: function ( str - func ) symbol->string function-lookup ; f1
+
+: symbol-value ( str - value ) sym>value @ ; f1
 : funcall ( fn args - lisp ) swap >r unlist r> func>int execute ; f2
 : func-name ( func - str ) func>string create-string ; f1
 : func-arity ( func - num ) func>args ; f1
