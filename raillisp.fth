@@ -57,7 +57,7 @@ lisp-max-tag cells allocate throw constant type-names
 
 variable curr-func
 variable last-def
-\ variable lisp-latest
+variable lisp-latest
 
 -1 4 rshift constant lisp-len-mask
 1 63 lshift constant lisp-macro-mask
@@ -133,11 +133,9 @@ variable stack-counter
 
 : func>string ( f - a u ) func>symbol @ sym>string ;
 
-variable lisp-latest-SYM
-
 : make-sym ( namea nameu - lisp )
   align 0 , \ symbol value
-  lisp-latest-SYM dup @ , \ parent pointer
+  lisp-latest dup @ , \ parent pointer
   here dup >r lisp-symbol-tag , \ type tag
   swap ! \ set lisp-latest
   dup , \ name length
@@ -147,7 +145,7 @@ variable lisp-latest-SYM
 ;
 
 : sym-lookup ( namea nameu - sym )
-  lisp-latest-SYM @ >r
+  lisp-latest @ >r
   begin
     r@ 0<>
   while
@@ -294,7 +292,7 @@ lisp-true t !
 
 : print-syms ( - )
   ." symbols: "
-  lisp-latest-SYM @
+  lisp-latest @
   begin
     dup 0<>
   while
@@ -1448,12 +1446,12 @@ variable while-stack
 : list-index list-index tag-num ; f2
 \ : words words nil ; f0
 
-variable lisp-latest-marked-SYM
+variable lisp-latest-marked
 : env-mark symbol->string nextname marker
-           lisp-latest-SYM @ lisp-latest-marked-SYM !
+           lisp-latest @ lisp-latest-marked !
            nil ; f1
 : env-revert symbol->string find-name name>int execute
-             lisp-latest-marked-SYM @ lisp-latest-SYM !
+             lisp-latest-marked @ lisp-latest !
              nil ; f1
 
 : print-stack .s nil ; f0
