@@ -263,6 +263,17 @@
 )
 (test-list-index)
 
+(defun test-type-of ()
+  (test "type-of 1" (equal? (type-of 4) 'integer))
+  (test "type-of 2" (equal? (type-of (list 1)) 'cons))
+  (test "type-of 3" (equal? (type-of 'x) 'symbol))
+  (test "type-of 4" (equal? (type-of "s") 'string))
+  (test "type-of 5" (equal? (type-of (vector 2 3 4)) 'vector))
+  (test "type-of 6" (equal? (type-of type-of) 'function))
+  (test "type-of 7" (equal? (type-of test) 'function))
+  )
+(test-type-of)
+
 ;; (defun func-with-no-body ()) ; TODO
 
 (print "--forth init time: ")

@@ -1326,12 +1326,12 @@ _command-line-args !
 
 : identity ( x - x ) ; f1
 
-s" xcons" str-intern lisp-pair-tag cells type-names + !
+s" cons" str-intern lisp-pair-tag cells type-names + !
 s" integer" str-intern lisp-number-tag cells type-names + !
 s" symbol" str-intern lisp-symbol-tag cells type-names + !
 s" string" str-intern lisp-string-tag cells type-names + !
 s" vector" str-intern lisp-vector-tag cells type-names + !
-s" xfunction" str-intern lisp-function-tag cells type-names + !
+s" function" str-intern lisp-function-tag cells type-names + !
 : type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ ; f1
 
 : make-empty-str ( len - str )
