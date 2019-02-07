@@ -254,29 +254,8 @@ lisp-true t !
 
 : eq? = ; f2
 
-wordlist constant symbols
-
-: intern ( lisp - lisp )
-  \ Intern a string into the dictionary. Return a symbol
-  dup >r symbol->string 2dup
-  symbols >order find-name previous
-  dup if
-    \ the symbol already exits
-    -rot 2drop name>int execute @ r> drop
-    \ TODO: fix: s" cons" intern
-  else
-    \ create a new variable in the symbols wordlist
-    drop get-current -rot symbols set-current
-    nextname header reveal dovar: cfa, r@ , set-current
-    \ set symbol string to point to header string
-    latest name>string drop r@ symbol-namea !
-    \ change type to symbol
-    lisp-symbol-tag r@ ( symbol-tag) !
-    r>
-  then ; f1
-
-\ Symbol struct formats.
-\ Uninterned ymbol: [type tag, name len, name...]
+\ Symbol struct formats:
+\ Uninterned symbol: [type tag, name len, name...]
 \ Interned symbol: value, parent ptr, [type tag, name len, name...]
 
 : sym>value 2 cells - ;
@@ -406,7 +385,7 @@ variable lisp-latest-SYM
 ' str-equal? equal?-dispatch lisp-string-tag cells + !
 ' cons-equal? equal?-dispatch lisp-pair-tag cells + !
 
-s" &rest" symbol-new intern
+s" &rest" str-intern
 variable &rest
 &rest !
 
@@ -1338,7 +1317,7 @@ _command-line-args !
 : do-process-args ( - )
   recursive
   next-arg 2dup 0 0 d<> if
-    symbol-new intern do-process-args cons
+    str-intern do-process-args cons
   else
     drop
   then ;
@@ -1347,12 +1326,12 @@ _command-line-args !
 
 : identity ( x - x ) ; f1
 
-s" xcons" symbol-new intern lisp-pair-tag cells type-names + !
-s" integer" symbol-new intern lisp-number-tag cells type-names + !
-s" symbol" symbol-new intern lisp-symbol-tag cells type-names + !
-s" string" symbol-new intern lisp-string-tag cells type-names + !
-s" vector" symbol-new intern lisp-vector-tag cells type-names + !
-s" xfunction" symbol-new intern lisp-function-tag cells type-names + !
+s" xcons" str-intern lisp-pair-tag cells type-names + !
+s" integer" str-intern lisp-number-tag cells type-names + !
+s" symbol" str-intern lisp-symbol-tag cells type-names + !
+s" string" str-intern lisp-string-tag cells type-names + !
+s" vector" str-intern lisp-vector-tag cells type-names + !
+s" xfunction" str-intern lisp-function-tag cells type-names + !
 : type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ ; f1
 
 : make-empty-str ( len - str )
