@@ -1,4 +1,6 @@
 
+# // raillisp \\\\
+
 Raillisp is a simple lisp implemented in Forth.
 It aims to be small, fast, and portable.
 
@@ -12,26 +14,28 @@ Raillisp lets you ride the metal in style.
 
 Raillisp works by compiling lisp functions into forth words.
 For example, creating a lisp function and disassembling its forth word:
-#+BEGIN_SRC lisp
+```lisp
   (defun fib (n)
     (if (< n 3)
         1
       (+ (fib (- n 1)) (fib (- n 2)))))
 
   (dis fib)
-#+END_SRC
+```
 prints:
-: : fib
-:   dup 7 <
-:   IF     3
-:   ELSE   dup 3 - fib over 5 - fib +
-:   THEN
-:   nip ;
+```
+ : fib
+   dup 7 <
+   IF     3
+   ELSE   dup 3 - fib over 5 - fib +
+   THEN
+   nip ;
+```
 (the number constants are different because of the lisp type tagging,
-=dis= just calls the forth word =see=)
+`dis` just calls the forth word `see`)
 
 More documentation is forthcoming. For now more example code
-can be found in =raillisp.lsp= and =tests.lsp=.
+can be found in `raillisp.lsp` and `tests.lsp`.
 
 The Raillisp dialect is influenced by Common Lisp and Scheme,
 but there are substantial differences.
@@ -39,17 +43,19 @@ Lots of common features are not currently supported, some never will be.
 Features that compromise the performance of the system will
 not be implemented.
 
-* Usage
+# Usage
 
 To run a file:
-: gforth raillisp.fth FILE.lsp
+```gforth raillisp.fth FILE.lsp```
+
 For the REPL:
-: gforth raillisp.fth
+```gforth raillisp.fth```
+
 Run tests:
-: make test
+```make test```
 
 Be careful...There is currently almost no error checking of any kind.
 When you do something wrong, the helpful error message is probably a backtrace.
 
-The =make= option to build a gforth image does not currently work
+The `make` option to build a gforth image does not currently work
 becuase heap pointers are compiled into the dictionary.
