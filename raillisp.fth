@@ -216,9 +216,6 @@ defined vtcopy, [if]
   r@ symbol-namea !
   r> ;
 
-: symbol-new ( namea nameu -- lisp )
-  string-new create-symbol ;
-
 : symbol->string ( lisp -- namea nameu )
   \  ." *symbol->string:* " dup . cr
   dup symbol-namea @ swap symbol-nameu @ ;
@@ -250,7 +247,6 @@ defined vtcopy, [if]
 : sym? get-lisp-tag lisp-symbol-tag = ; f1
 : str? get-lisp-tag lisp-string-tag =  ; f1
 : vector? get-lisp-tag lisp-vector-tag = ; f1
-
 
 -1 constant lisp-true
 variable t
@@ -336,6 +332,16 @@ variable lisp-latest-SYM
 
 : sym-intern ( str - sym )
   symbol->string str-intern ;
+
+: symbol-new ( namea nameu -- lisp )
+  \ TODO: should all symbols be interned?
+  2dup sym-lookup dup 0<> if
+    \ Return the interned symbol
+    nip nip exit
+  else
+    \ Allocate a new symbol. don't intern it
+    drop string-new create-symbol
+  then ;
 
 -1 s" t" str-intern sym>value !
  0  s" nil" str-intern sym>value !
