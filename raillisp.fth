@@ -279,19 +279,23 @@ wordlist constant symbols
     r>
   then ; f1
 
-: sym>value 1 cells + ;
-: sym>parent 2 cells + ;
-: sym>name 3 cells + ;
+\ Symbol struct formats.
+\ Uninterned ymbol: [type tag, name len, name...]
+\ Interned symbol: value, parent ptr, [type tag, name len, name...]
+
+: sym>value 2 cells - ;
+: sym>parent 1 cells - ;
+: sym>name 1 cells + ;
 : sym>string ( sym - namea nameu )
   sym>name dup 1 cells + swap @ ;
 
 variable lisp-latest-SYM
 
 : make-sym ( namea nameu - lisp )
-  align here dup >r
-  lisp-symbol-tag ,
-  0 , \ symbol value
-  lisp-latest-SYM dup @ , ! \ parent pointer
+  align 0 , \ symbol value
+  lisp-latest-SYM dup @ , \ parent pointer
+  here dup >r lisp-symbol-tag , \ type tag
+  swap ! \ set lisp-latest
   dup , \ name length
   mem, \ name
   r>
