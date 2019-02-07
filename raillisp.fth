@@ -65,7 +65,7 @@ variable last-def
 1 61 lshift constant lisp-&rest-mask
 1 60 lshift constant lisp-indirect-mask
 
-: func>parent 1 cells + ;
+: func>symbol 1 cells + ;
 : func>args 2 cells + ;
 : func>returns 3 cells + ;
 : func>flags 4 cells + ;
@@ -74,14 +74,6 @@ variable last-def
 : func-special? func>flags @ lisp-special-mask and ;
 : func-&rest? func>flags @ lisp-&rest-mask and ;
 : func-indirect? func>flags @ lisp-indirect-mask and ;
-
-\ : lispfunc>string ( f - a u )
-\   func>flags dup @ lisp-len-mask and swap 1 cells + swap ;
-\ : forthfunc>string ( f - a u )
-\   5 cells + @ name>string ;
-: func>string ( f - a u )
-  \  dup func-indirect? if forthfunc>string else lispfunc>string then ;
-  s" <function>" string-new ;
 
 : func>int
   dup func-indirect? if
@@ -139,6 +131,8 @@ variable stack-counter
   \ symbol->string ; ( temp fix for compatibility with symbol struct)
   dup symbol-namea @ swap symbol-nameu @ ;
 
+: func>string ( f - a u ) func>symbol @ sym>string ;
+
 variable lisp-latest-SYM
 
 : make-sym ( namea nameu - lisp )
@@ -181,7 +175,7 @@ defined vtcopy, [if]
 : start-defun ( namea nameu - )
   str-intern align here last-def !
   lisp-function-tag , \ tag
-  666 ,  \ parent pointer
+  dup ,  \ symbol
   0 , \ argument count
   1 , \ return count
   0 , \ flags
@@ -209,7 +203,7 @@ defined vtcopy, [if]
   str-intern >r -rot
   align here last-def !
   lisp-function-tag , \ tag
-  666 , \ parent pointer
+  r@ , \ symbol
   swap , \ arg count
   , \ return count
   0 , \ flags
