@@ -75,19 +75,19 @@ variable last-def
 : func-&rest? func>flags @ lisp-&rest-mask and ;
 : func-indirect? func>flags @ lisp-indirect-mask and ;
 
-: lispfunc>string ( f - a u )
-  func>flags dup @ lisp-len-mask and swap 1 cells + swap ;
-: forthfunc>string ( f - a u )
-  5 cells + @ name>string ;
+\ : lispfunc>string ( f - a u )
+\   func>flags dup @ lisp-len-mask and swap 1 cells + swap ;
+\ : forthfunc>string ( f - a u )
+\   5 cells + @ name>string ;
 : func>string ( f - a u )
-  dup func-indirect? if forthfunc>string else lispfunc>string then ;
+  \  dup func-indirect? if forthfunc>string else lispfunc>string then ;
+  s" <function>" string-new ;
 
 : func>int
   dup func-indirect? if
     5 cells + @
   else
-    func>flags dup @ lisp-len-mask and
-    1 cells + + aligned @
+    5 cells + @
   then ;
 
 : func-set-bit ( mask - ) last-def @ func>flags dup @ rot or swap ! ;
@@ -178,18 +178,14 @@ defined vtcopy, [if]
     : lisp-header, :noname postpone [ 2drop 2drop ;
 [then]
 
-
 : start-defun ( namea nameu - )
-  2dup str-intern -rot
-  align
-  here last-def !
+  str-intern align here last-def !
   lisp-function-tag , \ tag
   666 ,  \ parent pointer
   0 , \ argument count
   1 , \ return count
-  dup , \ flags + name length
-  mem, \ name
-  align here 1221 , \ xt
+  0 , \ flags
+  here 1221 , \ xt
   lisp-header, swap !
   last-def @ swap sym>value !
 ;
