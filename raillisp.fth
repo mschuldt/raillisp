@@ -46,8 +46,8 @@ lisp-max-tag cells allocate throw constant type-names
 3 cells constant sizeof-pair
 
 \ : symbol-tag 0 + ;
-: symbol-namea [ 1 cells ] literal + ;
-: symbol-nameu [ 2 cells ] literal + ;
+: symbol-nameu [ 1 cells ] literal + ;
+: symbol-namea [ 2 cells ] literal + ;
 3 cells constant sizeof-symbol
 
 \ : vector-tag 0 + ;
@@ -283,7 +283,8 @@ wordlist constant symbols
 : sym>parent 1 cells - ;
 : sym>name 1 cells + ;
 : sym>string ( sym - namea nameu )
-  sym>name dup 1 cells + swap @ ;
+  \   sym>name dup 1 cells + swap @ ;
+  symbol->string ; ( temp fix for compatibility with symbol struct)
 
 variable lisp-latest-SYM
 
@@ -293,7 +294,8 @@ variable lisp-latest-SYM
   here dup >r lisp-symbol-tag , \ type tag
   swap ! \ set lisp-latest
   dup , \ name length
-  mem, \ name
+  \  mem, \ name
+  here 1 cells + , mem, ( temp fix for compatibility with symbol struct)
   r>
 ;
 
