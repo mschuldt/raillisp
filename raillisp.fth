@@ -311,8 +311,8 @@ variable lisp-latest-SYM
     drop make-sym
   then ;
 
-: sym-intern ( str - sym )
-  symbol->string str-intern ;
+: intern ( str - sym )
+  symbol->string str-intern ; f1
 
 : symbol-new ( namea nameu -- lisp )
   \ TODO: should all symbols be interned?
@@ -1088,7 +1088,7 @@ variable locals-counter
   dup car swap cdr car \ symbol value
   lisp-state @ 0= if
     lisp-interpret dup rot
-    sym-intern sym>value !
+    intern sym>value !
   else
     compile-local-var
   then
@@ -1214,7 +1214,7 @@ comp' k drop loop-var-addrs 2 cells + !
     lisp-find-symbol-function
     dup 0= if
       drop
-      sym-intern sym>value postpone literal comp, @ \ variable
+      intern sym>value postpone literal comp, @ \ variable
     else
       nip postpone literal \ function
     then then ;
@@ -1232,12 +1232,12 @@ comp' k drop loop-var-addrs 2 cells + !
 ' lisp-compile-symbol compile-dispatch lisp-symbol-tag cells + !
 
 : set-interpret ( symbol value - )
-  lisp-interpret dup rot sym-intern sym>value ! ;
+  lisp-interpret dup rot intern sym>value ! ;
 
 : set-compile-global ( symbol value - )
   lisp-interpret-r \ compile value
   stack-drop
-  sym-intern sym>value postpone literal
+  intern sym>value postpone literal
   comp, ! ;
 
 : set-compile-local ( symbol value index - )
