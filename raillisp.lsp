@@ -81,7 +81,7 @@
   (while 1
     ;;(print-stack)
     (set expr (read-from-input))
-    (if (and (equal? (type-of expr) 'xcons)
+    (if (and (equal? (type-of expr) 'cons)
              (or (equal? (car expr) 'var)
                  (equal? (car expr) 'defun)))
         (println (eval expr))
@@ -90,7 +90,7 @@
             (env-mark 'repl-mark)
             (eval (cons 'defun (cons 'repl_ (cons nil (cons expr nil)))))
             (cr)
-            (println (funcall (function "repl_") nil))
+            (println (funcall (symbol-value (intern "repl_")) nil))
             (env-revert 'repl-mark))
         nil))))
 
