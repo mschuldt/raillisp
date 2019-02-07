@@ -194,8 +194,7 @@ defined vtcopy, [if]
 : sym-print ( sym - )
   ." sym(" sym>string type ." )" ;
 
-\ TODO: get rid of the wrapper type
-: func ( args returns word - )
+: builtin-func ( args returns word - )
   \ makes a lisp wrapper around a forth word
   rot dup name>string
   str-intern >r -rot
@@ -210,7 +209,7 @@ defined vtcopy, [if]
   func-indirect!
 ;
 
-: f-latest ( args ret - ) latest -rot func ;
+: f-latest ( args ret - ) latest -rot builtin-func ;
 : f0 ( - ) 0 1 f-latest ;
 : f1 ( - ) 1 1 f-latest ;
 : f2 ( - ) 2 1 f-latest ;
