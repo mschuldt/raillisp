@@ -197,9 +197,10 @@ defined vtcopy, [if]
 : (defun ( num-args - ) parse-name
          start-defun
          func-args!
-         ] ;
+         postpone ] ;
 
-: ) postpone exit postpone [ ; immediate
+: ) end-defun ; immediate
+
 : sym-print ( sym - )
   ." sym(" sym>string type ." )" ;
 
@@ -280,7 +281,6 @@ defined vtcopy, [if]
     then
   then ;
 
-: type-of get-lisp-tag tag-num ; f1 \ todo: return symbol
 : int? 1 and ; f1
 : cons? get-lisp-tag lisp-pair-tag  = ; f2
 : sym? get-lisp-tag lisp-symbol-tag = ; f1
@@ -1159,7 +1159,8 @@ variable let-bound-names
   1 func-returns!
   1 check-stack-depth stack-drop
   end-defun
-  nil ; special
+  ( nil) lisp-latest @
+; special
 
 : defcode ( lisp - lisp)
   \ postpone def
@@ -1476,9 +1477,6 @@ variable lisp-latest-marked
 : bye bye ; f0
 : quit quit ; f0
 \ \\\\\\\\\\\\\\\
-
-variable nil
-0 nil !
 
 \ : dump ( lisp - lisp ) symbol->string dump-fi lisp-true ; f1
 

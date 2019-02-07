@@ -1,5 +1,5 @@
 
-;; prints: forth-init-time lisp-init-words forth-dict-words lisp-dict-words bench-loop-time bench-tak-time bench-fib-time bench-locals-time
+;; prints: forth-init-time lisp-init-time forth-dict-words lisp-dict-words bench-loop-time bench-tak-time bench-fib-time bench-locals-time
 
 (defun whileloop ()
   (var n 0)
