@@ -1,4 +1,10 @@
 * TODO BUG return stack overflow when tests.lsp gets too long
+lots of strange bugs when that file gets to large
+
+sometimes it exists early when a function is too large
+or sometimes it has compile errors (leaving 0 items on stack)
+when the filename is a few chars longer....
+
 * TODO fix problem with constants/quoted in dumped image
 need to compile allocation code instead of saving pointer as constant?
 
@@ -18,9 +24,12 @@ strings, cons, etc
 * TODO include line and column number in error messages
 * TODO floating point support
 * TODO garbage collection
-* TODO improve string interning
+* DONE improve string interning
 * TODO move all lisp words into their own wordlist?
+
 avoids overwriting common forth words so that a 'forth shell' can still be useful
+
+symbols are currently in their own list but primitive functions are still global
 
 * TODO support 0x, 0b, etc for reading numbers in alternative bases
 
@@ -70,7 +79,7 @@ instead do something like this:
                               (list 1 1 2 3 4 5 6 7))))
 
 (test-locals 0 0)
-* TODO BUG  s" cons" intern
+* DONE BUG  s" cons" intern
 
 then fix s" xcons" for type-of
 * DONE non-recursive version of mapcar
@@ -84,3 +93,4 @@ then fix s" xcons" for type-of
 * TODO BUG (list)
 * TODO combine fields for function arg and return lengths into a single word
 * TODO (set var value) should have better error message if var is undeclared
+* TODO repl in Emacs Eshell echoes the input. normal terminal does not

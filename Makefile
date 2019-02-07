@@ -5,5 +5,8 @@ all: raillisp.fth raillisp.lsp
 test: tests.lsp raillisp.fth raillisp.lsp
 	gforth test.fth
 
+run:
+	gforth raillisp.fth
+
 bench:
 	gforth-fast benchmark/run.fth #TODO: fix
