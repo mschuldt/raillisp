@@ -259,7 +259,7 @@ lisp-true t !
 
 : function-lookup ( namea nameu - func )
   2dup sym-lookup dup 0= if
-    drop ." undefined symbol: " type cr bye
+    drop ." undefined function: " type cr bye
   else
     nip nip sym>value @
   then ;
@@ -560,12 +560,12 @@ variable stack-depth
 \ special forms with < 0 args are passed all the arguments as a list
 : special ( immediate) -1 0 builtin-func func-special! ;
 
-: compile lisp-interpret t ; f1
-: compile-r lisp-interpret-r t ; f1
+: compile lisp-interpret nil ; f1
+: compile-r lisp-interpret-r nil ; f1
 : compile-list lisp-compile-list ; f1
-: compile-list-nr lisp-compile-list-nr t ; f1
+: compile-list-nr lisp-compile-list-nr nil ; f1
 
-: compile-progn lisp-compile-progn t ; f1
+: compile-progn lisp-compile-progn nil ; f1
 : progn lisp-compile-progn ; special
 
 variable macro-flag
@@ -826,7 +826,7 @@ defer lisp-read-lisp
 : load-forth ( lisp - lisp ) symbol->string included nil ; f1
 
 : maybe-ret ( - t ) \ used to return nil if in return context
-  return-context @ if 0 postpone literal stack-push* then t ; f0
+  return-context @ if 0 postpone literal stack-push* then nil ; f0
 
 : lisp-list-len ( list - n )
   0 swap
@@ -1264,7 +1264,7 @@ _command-line-args !
     drop
   then ;
 
-: process-args do-process-args _command-line-args @ ! t ; f0
+: process-args do-process-args _command-line-args @ ! nil ; f0
 
 : identity ( x - x ) ; f1
 
@@ -1362,32 +1362,32 @@ variable while-stack
 : while-push3 while-push while-push while-push ;
 : while-pop3 while-pop while-pop while-pop ;
 
-: if, stack-drop stack-save postpone if if-push3 t ; f0
-: else, stack-reset if-pop3 postpone else if-push3 t ; f0
+: if, stack-drop stack-save postpone if if-push3 nil ; f0
+: else, stack-reset if-pop3 postpone else if-push3 nil ; f0
 : do-then,
   stack-restore if-pop3 postpone then
   return-context @ if stack-push* then ;
 : then, comp, do-then, maybe-ret drop ; special
 
-: begin, postpone begin while-push3 t ; f0
+: begin, postpone begin while-push3 nil ; f0
 : while,
-  stack-drop while-pop3 postpone while while-push3 while-push3 t ; f0
-: repeat, while-pop3 while-pop3 postpone repeat t ; f0
+  stack-drop while-pop3 postpone while while-push3 while-push3 nil ; f0
+: repeat, while-pop3 while-pop3 postpone repeat nil ; f0
 
 : do,
-  stack-drop stack-drop postpone ?do while-push3 t ; f0
+  stack-drop stack-drop postpone ?do while-push3 nil ; f0
 : loop,
-  while-pop3 postpone loop t ; f0
+  while-pop3 postpone loop nil ; f0
 
 \ return-lit used in defcode to return a value from the form
 : return-lit ( n - )
-  return-context @ if postpone literal else drop then t ; f1
-: lit, ( n - ) stack-push* postpone literal t ; f1
+  return-context @ if postpone literal else drop then nil ; f1
+: lit, ( n - ) stack-push* postpone literal nil ; f1
 : untag-lit, ( n - ) untag-num lit, ; f1
-: untag-num, ( - n ) comp, untag-num t ; f0
+: untag-num, ( - n ) comp, untag-num nil ; f0
 
-: stack-push-n ( n - t ) untag-num stack-push-n t ; f0
-: stack-drop-n ( n - t ) untag-num stack-drop-n t ; f0
+: stack-push-n ( n - t ) untag-num stack-push-n nil ; f0
+: stack-drop-n ( n - t ) untag-num stack-drop-n nil ; f0
 
 : 1+ ( n - n ) 2 + ; f1
 : 1- ( n - n ) 2 - ; f1
@@ -1398,10 +1398,10 @@ variable while-stack
 : zero? 0= ; f1
 : not 0=  ; f1
 
-: cr cr t ; f0
+: cr cr nil ; f0
 : exit bye ; f0
 : utime utime drop tag-num ; f0
-: sleep-ms ( ms - ) untag-num ms t ; f1
+: sleep-ms ( ms - ) untag-num ms nil ; f1
 : here here tag-num ; f0
 : list-index list-index tag-num ; f2
 \ : words words nil ; f0
