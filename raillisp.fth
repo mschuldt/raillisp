@@ -265,14 +265,13 @@ lisp-true t !
   then ;
 
 : print-syms ( - )
-  ." symbols: "
   lisp-latest @
   begin
     dup 0<>
   while
     dup sym>string
     type ."  " sym>parent @
-  repeat drop cr ;
+  repeat drop cr 0 ; f0
 
 : intern ( str - sym )
   symbol->string str-intern ; f1
