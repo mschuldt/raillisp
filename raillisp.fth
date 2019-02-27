@@ -249,6 +249,7 @@ defined vtcopy, [if]
 : sym? get-lisp-tag lisp-symbol-tag = ; f1
 : str? get-lisp-tag lisp-string-tag =  ; f1
 : vector? get-lisp-tag lisp-vector-tag = ; f1
+: func? get-lisp-tag lisp-function-tag = ; f1
 
 -1 constant lisp-true
 variable t
