@@ -165,9 +165,9 @@ variable stack-counter
   then ;
 
 defined vtcopy, [if]
-    : lisp-header, :noname postpone [ 2drop 2drop drop ;
+    : lisp-header, :noname postpone [ 2drop 2drop 2drop ;
 [else]
-    : lisp-header, :noname postpone [ 2drop 2drop ;
+    : lisp-header, :noname postpone [ 2drop 2drop drop ;
 [then]
 
 : start-defun ( namea nameu - )
@@ -178,7 +178,7 @@ defined vtcopy, [if]
   1 , \ return count
   0 , \ flags
   here 1221 , \ xt
-  lisp-header, swap !
+  lisp-header, latestxt swap !
   last-def @ swap sym>value !
 ;
 
@@ -194,28 +194,26 @@ defined vtcopy, [if]
 : sym-print ( sym - )
   ." sym(" sym>string type ." )" ;
 
-: builtin-func ( args returns word - )
+: builtin-func ( args returns - )
   \ makes a lisp wrapper around a forth word
-  rot dup name>string
-  str-intern >r -rot
+  latest name>string str-intern >r
   align here last-def !
   lisp-function-tag , \ tag
   r@ , \ symbol
   swap , \ arg count
   , \ return count
   0 , \ flags
-  , \ word
+  latestxt , \ word
   last-def @ r> sym>value !
   func-indirect!
 ;
 
-: f-latest ( args ret - ) latest -rot builtin-func ;
-: f0 ( - ) 0 1 f-latest ;
-: f1 ( - ) 1 1 f-latest ;
-: f2 ( - ) 2 1 f-latest ;
-: f3 ( - ) 3 1 f-latest ;
-: f4 ( - ) 4 1 f-latest ;
-: fn ( - ) -1 1 f-latest 1 func-&rest! ;
+: f0 ( - ) 0 1 builtin-func ;
+: f1 ( - ) 1 1 builtin-func ;
+: f2 ( - ) 2 1 builtin-func ;
+: f3 ( - ) 3 1 builtin-func ;
+: f4 ( - ) 4 1 builtin-func ;
+: fn ( - ) -1 1 builtin-func 1 func-&rest! ;
 
 : create-cons ( car cdr -- lisp )
   sizeof-pair allocate throw check-alloc >r
@@ -582,7 +580,7 @@ variable stack-depth
 
 
 \ special forms with < 0 args are passed all the arguments as a list
-: special ( immediate) -1 0 f-latest func-special! ;
+: special ( immediate) -1 0 builtin-func func-special! ;
 
 : compile lisp-interpret t ; f1
 : compile-r lisp-interpret-r t ; f1
