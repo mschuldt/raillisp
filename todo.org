@@ -13,9 +13,11 @@ strings, cons, etc
 * DONE improve dropping of local values
 =nip= instead =>r drop r>= ...
 
-* TODO BUG (println (println 1))
+* DONE BUG (println (println 1))
 * DONE BUG fix lisp comment parsing error
 * TODO error messages when trying to interpret a compile only form
+-> the repl now compiles all forms before executing, so this is 
+   not as important.
 * TODO support multiple return values
 (set a b (fn))
 * TODO error messages for undefined variable or function
@@ -25,12 +27,13 @@ strings, cons, etc
 * TODO floating point support
 * TODO garbage collection
 * DONE improve string interning
-* TODO move all lisp words into their own wordlist?
+* DONE move all lisp words into their own wordlist?
 
 avoids overwriting common forth words so that a 'forth shell' can still be useful
 
 symbols are currently in their own list but primitive functions are still global
 
+=> not using wordlists, but all symbols are in a custom structure now
 * TODO support 0x, 0b, etc for reading numbers in alternative bases
 
   currently have to use forth number prefixes
@@ -46,7 +49,7 @@ but expose the wordlists as a user type
 * TODO replace maybe-ret with return-lit
 * TODO BUG functions with empty body
 * TODO compile multiple drops with 2drop 
-* TODO improve the compilation of 'list'
+* DONE improve the compilation of 'list'
 
 (list 9 8 7 6 5 4 3 2 1 0)
 =>
@@ -88,9 +91,17 @@ then fix s" xcons" for type-of
 * DONE have the REPL compile forms into temporary function
 * TODO ` , ,@
 * TODO support \ escape when reading character literals
-* TODO BUG (eq? 'defun 'defun) is broken
+* DONE BUG (eq? 'defun 'defun) is broken
+That's expected, symbols are not interned by default
+
+(eq? 'defun 'defun) => nil
+
+(eq? defun defun)  => t
+
+(eq? (intern 'defun) (intern 'defun)) => t
+
 * TODO BUG (str-count string "")
 * TODO BUG (list)
 * TODO combine fields for function arg and return lengths into a single word
 * TODO (set var value) should have better error message if var is undeclared
-* TODO repl in Emacs Eshell echoes the input. normal terminal does not
+* DONE repl in Emacs Eshell echoes the input. normal terminal does not
