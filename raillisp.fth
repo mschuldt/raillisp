@@ -74,13 +74,7 @@ variable lisp-latest
 : func-special? func>flags @ lisp-special-mask and ;
 : func-&rest? func>flags @ lisp-&rest-mask and ;
 : func-indirect? func>flags @ lisp-indirect-mask and ;
-
-: func>int
-  dup func-indirect? if
-    5 cells + @
-  else
-    5 cells + @
-  then ;
+: func>int 5 cells + @ ;
 
 : func-set-bit ( mask - ) last-def @ func>flags dup @ rot or swap ! ;
 : func-indirect! lisp-indirect-mask func-set-bit ;
@@ -92,22 +86,7 @@ variable lisp-latest
 : func-args! ( n - ) last-def @ func>args ! ;
 : func-returns! last-def @ func>returns ! ;
 
-
-\ : lisp-print-funcs ( - )
-\   lisp-latest @
-\   begin
-\     dup 0<>
-\   while
-\     dup func>string type ."  " func>parent @
-\   repeat drop cr ;
-
-\ : find-function ( name - ) function-lookup curr-func ! ;
-\ : find-function-check ( name - )
-\   dup find-function curr-func @ 0= if
-\     ." invalid function: " name>string type cr bye
-\   then drop ;
 : set-curr-func ( func - ) curr-func ! ;
-
 : curr-args ( - n ) curr-func @ dup 0<> if func>args @ then ;
 : curr-returns ( - n ) curr-func @ dup 0<> if func>returns @ then ;
 : curr-&rest ( - x ) curr-func @ dup 0<> if func-&rest? then ;
@@ -115,9 +94,6 @@ variable lisp-latest
 : check-alloc dup 1 and if ." lsb set" 1 throw then ;
 
 variable stack-counter
-
-: header-offset align here :noname postpone ; drop here swap - 24 - ;
-
 
 \ Symbol struct formats:
 \ Uninterned symbol: [type tag, name len, name...]
@@ -591,16 +567,6 @@ variable stack-depth
 
 : compile-progn lisp-compile-progn t ; f1
 : progn lisp-compile-progn ; special
-
-: lisp-find-symbol-word ( lisp - word)
-  symbol->string
-\  ." word: " 2dup type cr
-  2dup find-name
-  dup 0= if
-    drop
-    ." ERROR: invalid word: " type cr 1 throw
-  then
-  -rot 2drop ;
 
 variable macro-flag
 : set-macro-flag 1 macro-flag ! ;
@@ -1172,12 +1138,7 @@ variable let-bound-names
   ( immediate) nil ; special
 
 : lisp-interpret-symbol ( lisp - )
-  dup symbol->string sym-lookup dup 0<> if
-    nip sym>value @
-  else
-    \ still needed?
-    drop lisp-find-symbol-word name>int execute @ \ eval variable
-  then ;
+  symbol->string sym-lookup sym>value @ ;
 
 variable _loop-vars
 s" loop-vars" str-intern sym>value _loop-vars !
