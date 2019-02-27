@@ -1,6 +1,6 @@
 
-(set start-time (utime))
-(set start-here (here))
+(var start-time (utime))
+(var start-here (here))
 
 (var raillisp-version "0.1")
 

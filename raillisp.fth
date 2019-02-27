@@ -310,8 +310,10 @@ lisp-true t !
     drop string-new create-symbol
   then ;
 
--1 s" t" str-intern sym>value !
- 0  s" nil" str-intern sym>value !
+: lisp-variable ( val name) str-intern sym>value ! ;
+
+-1 s" t" lisp-variable
+ 0  s" nil" lisp-variable
 
 : str-equal? ( lisp1 lisp2 -- lisp )
   symbol->string rot symbol->string
@@ -1361,7 +1363,7 @@ s" function" str-intern lisp-function-tag cells type-names + !
   stack-drop-n stack-push* ; special
 
 : make-empty-vec ( n - )
-  \ Contains unintialized lisp objects. Should ever be printed.
+  \ Contains uninitialized lisp objects. Should ever be printed.
   untag-num create-vector ; f1
 
 : vec-ref ( v i - lisp )
@@ -1468,9 +1470,7 @@ variable lisp-latest-marked
 
 \ : dump ( lisp - lisp ) symbol->string dump-fi lisp-true ; f1
 
-variable forth-init-time
-variable forth-dict-space
-utime start-time @ tag-num - forth-init-time !
-here start-here @ tag-num - forth-dict-space !
+utime start-time @ tag-num - s" forth-init-time" lisp-variable
+here start-here @ tag-num - s" forth-dict-space" lisp-variable
 
 s" raillisp.lsp" lisp-load-from-file drop
