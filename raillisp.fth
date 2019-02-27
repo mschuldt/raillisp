@@ -1222,6 +1222,11 @@ comp' k drop loop-var-addrs 2 cells + !
   r> pop-local-names
 ; special
 
+: n-cons ( ... n - )
+    >r begin r@ 0>
+    while cons r> 1- >r
+    repeat r> drop ;
+
 : list ( lisp - lisp )
   0 >r
   begin dup 0<>
@@ -1229,10 +1234,13 @@ comp' k drop loop-var-addrs 2 cells + !
     dup car lisp-interpret cdr r> 1+ >r
   repeat drop
   0 postpone literal
-  r> dup
-  begin dup 0>
-  while comp, cons 1-
-  repeat drop
+  r> dup 3 < if
+      dup begin dup 0>
+      while comp, cons 1-
+      repeat drop
+  else
+      dup postpone literal comp, n-cons
+  then
   stack-drop-n stack-push*
 ; special
 
