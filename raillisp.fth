@@ -65,16 +65,16 @@ variable lisp-latest
 1 61 lshift constant lisp-&rest-mask
 1 60 lshift constant lisp-indirect-mask
 
-: func>symbol 1 cells + ;
-: func>args 2 cells + ;
-: func>returns 3 cells + ;
-: func>flags 4 cells + ;
+: func>symbol [ 1 cells ] literal + ;
+: func>args [ 2 cells ] literal + ;
+: func>returns [ 3 cells ] literal + ;
+: func>flags [ 4 cells ] literal + ;
 
 : func-macro? func>flags @ lisp-macro-mask and ;
 : func-special? func>flags @ lisp-special-mask and ;
 : func-&rest? func>flags @ lisp-&rest-mask and ;
 : func-indirect? func>flags @ lisp-indirect-mask and ;
-: func>int 5 cells + @ ;
+: func>int [ 5 cells ] literal + @ ;
 
 : func-set-bit ( mask - ) last-def @ func>flags dup @ rot or swap ! ;
 : func-indirect! lisp-indirect-mask func-set-bit ;
@@ -99,9 +99,9 @@ variable stack-counter
 \ Uninterned symbol: [type tag, name len, name...]
 \ Interned symbol: value, parent ptr, [type tag, name len, name...]
 
-: sym>value 2 cells - ;
-: sym>parent 1 cells - ;
-: sym>name 1 cells + ;
+: sym>value [ 2 cells ] literal - ;
+: sym>parent [ 1 cells ] literal - ;
+: sym>name [ 1 cells ] literal + ;
 : sym>string ( sym - namea nameu )
   \   sym>name dup 1 cells + swap @ ;
   \ symbol->string ; ( temp fix for compatibility with symbol struct)
@@ -116,7 +116,7 @@ variable stack-counter
   swap ! \ set lisp-latest
   dup , \ name length
   \  mem, \ name
-  here 1 cells + , mem, ( temp fix for compatibility with symbol struct)
+  here [ 1 cells ] literal + , mem, ( temp fix for compatibility with symbol struct)
   r>
 ;
 
@@ -1310,7 +1310,7 @@ s" function" str-intern lisp-function-tag cells type-names + !
   dup create-vector \ n v
   dup >r vector-vec @ \ n a
   swap 0 ?do
-    dup rot swap ! 1 cells +
+    dup rot swap ! [ 1 cells ] literal +
   loop
   r> ;
 
