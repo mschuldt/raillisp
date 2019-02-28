@@ -75,25 +75,6 @@
   (print obj)
   (cr))
 
-(defun repl ()
-  (var expr nil)
-  (cr)
-  (while 1
-    ;;(print-stack)
-    (set expr (read-from-input))
-    (if (and (equal? (type-of expr) 'cons)
-             (or (equal? (car expr) 'var)
-                 (equal? (car expr) 'defun)))
-        (println (eval expr))
-      (if expr
-          (progn
-            (env-mark 'repl-mark)
-            (eval (cons 'defun (cons 'repl_ (cons nil (cons expr nil)))))
-            (cr)
-            (println (funcall (symbol-value (intern "repl_")) nil))
-            (env-revert 'repl-mark))
-        nil))))
-
 (defun map (fn lst)
   (while lst
     (funcall fn (list (car lst)))
@@ -326,6 +307,32 @@
         (set c (1+ c))
       nil))
   c)
+
+(defun repl ()
+  (var expr nil)
+  (var var-name nil)
+  (cr)
+  (while 1
+    ;; (print-stack) (cr)
+    (set expr (read-from-input))
+    (set var-name nil)
+    (cond ((not (equal? (type-of expr) 'cons))
+           nil)
+          ((equal? (car expr) 'var)
+           (set var-name (cadr expr))
+           (set expr (car (cddr expr)))
+           (eval (list 'var var-name nil)))
+          ((equal? (car expr) 'defun)
+           (println (eval expr))
+           (set expr nil)))
+    (when expr
+      (env-mark 'repl-mark)
+      (eval (cons 'defun (cons 'repl_ (cons nil (cons expr nil)))))
+      (cr)
+      (println (if var-name
+                   (eval (list 'set var-name (cons (intern "repl_") nil)))
+                 (funcall (symbol-value (intern "repl_")) nil)))
+      (env-revert 'repl-mark))))
 
 (defun load (file)
   (if (str-end? file ".lsp")
