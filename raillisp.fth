@@ -80,9 +80,7 @@ variable lisp-latest
 : func-indirect! lisp-indirect-mask func-set-bit ;
 : func-special! lisp-special-mask func-set-bit ;
 : func-macro! lisp-macro-mask func-set-bit func-special! ;
-: func-&rest! ( sym - )
-  drop \ now only indicate with a bit, don't save parameter symbol
-  lisp-&rest-mask func-set-bit ;
+: func-&rest! lisp-&rest-mask func-set-bit ;
 : func-args! ( n - ) last-def @ func>args ! ;
 : func-returns! last-def @ func>returns ! ;
 
@@ -189,7 +187,6 @@ defined vtcopy, [if]
 : f2 ( - ) 2 1 builtin-func ;
 : f3 ( - ) 3 1 builtin-func ;
 : f4 ( - ) 4 1 builtin-func ;
-: fn ( - ) -1 1 builtin-func 1 func-&rest! ;
 
 : create-cons ( car cdr -- lisp )
   sizeof-pair allocate throw check-alloc >r
@@ -874,7 +871,7 @@ defer lisp-read-lisp
         swap cdr r> 1- >r
       repeat
       r> ( count) drop
-      r> ( &rest @ flag) if drop then
+      r> ( &rest flag) if drop then
     else
       drop
     then
@@ -1085,7 +1082,7 @@ variable let-bound-names
   split-args swap dup push-local-names
   lisp-list-len
   swap
-  dup func-&rest!
+  dup if func-&rest! then
   dup 0<> if push-local-name
              1+ else drop then
   dup func-args! ;
