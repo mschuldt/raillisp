@@ -292,7 +292,7 @@ lisp-true t !
 
 : function-lookup ( namea nameu - func )
   2dup sym-lookup dup 0= if
-    drop ." undefined function: " type cr bye
+    drop ." Undefined function: " type raise
   else
     nip nip sym>value @
   then ;
@@ -529,9 +529,12 @@ variable stack-depth
 
 : check-stack-depth ( n - )
   dup stack-depth @ <> if
-    ." COMPILATION ERROR: function '" last-def @ func>string type
+    cr
+    ." Compilation error" cr
+    ." :: function '" last-def @ func>string type
     ." ' left " stack-depth @ . ." items on the stack, expected " . cr
-    ."   stack: " stack-print cr bye
+    ." ::  stack: " stack-print cr
+    raise
   then drop ;
 
 : lisp-interpret ( lisp - lisp? )
@@ -880,12 +883,11 @@ defer lisp-read-lisp
   \ ARGC is the arg count curr-func is being called with
   curr-args 2dup
   curr-&rest if
-    ." => " over . dup . cr <
-    if ." invalid arg count, expected at least " . ." got " . cr bye
+    < if ." invalid arg count, expected at least " . ." got " . cr raise
     then
   else
     <> curr-args 0> and
-    if ." invalid arg count, expected " . ." got " . cr bye
+    if ." invalid arg count, expected " . ." got " . cr raise
     then
   then 2drop ;
 
