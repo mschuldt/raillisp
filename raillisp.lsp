@@ -106,6 +106,9 @@
   (compile-progn body)
   (then,))
 
+(defmacro unless (test &rest body)
+  (cons 'when (cons (list 'not test) body)))
+
 (defun caar (x) (car (car x)))
 (defun cadr (x) (car (cdr x)))
 (defun cdar (x) (cdr (car x)))
