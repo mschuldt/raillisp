@@ -187,6 +187,7 @@ defined vtcopy, [if]
 : f2 ( - ) 2 1 builtin-func ;
 : f3 ( - ) 3 1 builtin-func ;
 : f4 ( - ) 4 1 builtin-func ;
+: f5 ( - ) 5 1 builtin-func ;
 
 : create-cons ( car cdr -- lisp )
   sizeof-pair allocate throw check-alloc >r
@@ -1304,11 +1305,14 @@ s" function" str-intern lisp-function-tag cells type-names + !
 : str-set ( s i v - lisp )
   untag-num swap untag-num rot symbol-namea @ + c! nil ; f3
 
-: str-move! ( s1 s2 i - lisp )
-  \ copy s2 into s1 at offset i
-  untag-num rot dup >r
-  symbol-namea @ + swap dup symbol-namea @
-  swap symbol-nameu @ swap -rot cmove r> ; f3
+: str-move! ( s1 s2 i1 i2 len - lisp )
+  \ Copy LEN chars from S2 at offset I2 into S1 at offset I1
+  \ If LEN is nil, copy the full length of S2
+  \ Returns S1
+  dup if untag-num >r else drop 2 pick symbol-nameu @ >r then
+  untag-num rot symbol-namea @ + -rot
+  untag-num swap dup >r symbol-namea @ +
+  r> -rot r> cmove ; f5
 
 : stack-to-vec ( x1...xn n - vector )
   dup create-vector \ n v

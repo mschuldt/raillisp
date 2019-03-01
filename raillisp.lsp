@@ -188,8 +188,8 @@
 
 (defun str-concat (a b)
   (var s (make-empty-str (+ (str-len a) (str-len b))))
-  (str-move! s a 0)
-  (str-move! s b (str-len a)))
+  (str-move! s a 0 0 nil)
+  (str-move! s b (str-len a) 0 nil))
 
 (defun str->list (s)
   (var end (1- (str-len s)))
@@ -220,15 +220,15 @@
     (dotimes (i (1- strings-len))
       (let* ((s (car strings)))
         (set strings (cdr strings))
-        (str-move! ret s offset)
+        (str-move! ret s offset 0 nil)
         (set offset (+ offset (str-len s))))
-      (str-move! ret sep offset)
+      (str-move! ret sep offset 0 nil)
       (set offset (+ offset sep-len)))
-    (str-move! ret (car strings) offset))
+    (str-move! ret (car strings) offset 0 nil))
   ret)
 
 (defun str-copy (s)
-  (str-move! (make-empty-str (str-len s)) s 0))
+  (str-move! (make-empty-str (str-len s)) s 0 0 nil))
 
 (defun str-start? (s sub)
   (str-sub-equal? s sub 0))
