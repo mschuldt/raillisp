@@ -24,11 +24,11 @@ variable exit-on-error
 5 constant lisp-function-tag
 6 constant lisp-max-tag
 
-lisp-max-tag cells allocate throw constant display-dispatch
-lisp-max-tag cells allocate throw constant equal?-dispatch
-lisp-max-tag cells allocate throw constant interpret-dispatch
-lisp-max-tag cells allocate throw constant compile-dispatch
-lisp-max-tag cells allocate throw constant type-names
+create display-dispatch lisp-max-tag cells allot
+create equal?-dispatch lisp-max-tag cells allot
+create interpret-dispatch lisp-max-tag cells allot
+create compile-dispatch lisp-max-tag cells allot
+create type-names lisp-max-tag cells allot
 
 \ lisp structs. The forth struct feature is not used for portability
 
@@ -667,7 +667,7 @@ variable read-from-string
 
 : lisp-skip lisp-skip-ws lisp-skip-comments ;
 
-128 allocate throw constant token-buffer
+create token-buffer 128 allot
 
 : lisp-read-token ( e a -- e a a u )
   lisp-skip
@@ -1141,7 +1141,7 @@ variable _loop-vars
 s" loop-vars" str-intern sym>value _loop-vars !
 : loop-vars@ _loop-vars @ @ ;
 
-3 cells allocate throw constant loop-var-addrs
+create loop-var-addrs 3 cells allot
 comp' i drop loop-var-addrs !
 comp' j drop loop-var-addrs 1 cells + !
 comp' k drop loop-var-addrs 2 cells + !
