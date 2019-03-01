@@ -879,16 +879,19 @@ defer lisp-read-lisp
     then
   then ;
 
+: curr-func-name curr-func @ func>string ;
+
+: arity-error ( actual expected u a - )
+  curr-func-name type
+  ."  - Invalid arg count, expected "
+  type . ." got " . cr raise ;
+
 : check-arg-count ( argc - )
   \ ARGC is the arg count curr-func is being called with
-  curr-args 2dup
-  curr-&rest if
-    < if ." invalid arg count, expected at least " . ." got " . cr raise
-    then
+  curr-args 2dup curr-&rest
+  if < if s" at least " arity-error then
   else
-    <> curr-args 0> and
-    if ." invalid arg count, expected " . ." got " . cr raise
-    then
+    <> curr-args 0> and if s" " arity-error then
   then 2drop ;
 
 : lisp-interpret-special ( lisp func - )
@@ -1170,7 +1173,11 @@ variable let-bound-names
   ( immediate) nil ; special
 
 : lisp-interpret-symbol ( lisp - )
-  symbol->string sym-lookup sym>value @ ;
+  dup symbol->string sym-lookup
+  dup 0= if
+    drop ." undefined: " sym>string type cr raise
+  else
+    nip sym>value @ then ;
 
 variable _loop-vars
 s" loop-vars" str-intern sym>value _loop-vars !
