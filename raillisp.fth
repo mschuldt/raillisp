@@ -1435,8 +1435,15 @@ variable lisp-latest-marked
 : min min ; f2
 : max max ; f2
 : bye bye ; f0
-: quit quit ; f0
-\ \\\\\\\\\\\\\\\
+
+: call-lisp ( *lisp namea nameu )
+  function-lookup dup if func>int execute else drop then ;
+
+: forth \ drop into forth from the repl
+  2drop ( drop repl locals ) quit ; f0
+
+: repl \ enter the lisp repl
+  s" repl" call-lisp ;
 
 \ : dump ( lisp - lisp ) symbol->string dump-fi lisp-true ; f1
 
