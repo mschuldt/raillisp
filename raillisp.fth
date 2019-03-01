@@ -10,8 +10,6 @@ here start-here !
 variable exit-on-error
 1 exit-on-error !
 
-: maybe-bye exit-on-error @ if 1 throw then ;
-
 : string-new ( a u -- a u )
   dup rot over allocate drop
   dup >r rot cmove r> swap ;
@@ -473,7 +471,7 @@ variable &rest
 ' lisp-display-function display-dispatch lisp-function-tag cells + !
 
 : error-undefined-value
-  cr ." undefined value: " lisp-display cr maybe-bye ;
+  cr ." undefined value: " lisp-display cr raise ;
 
 \ interpretation words must return a single lisp value
 \ compilation words must return nothing
@@ -761,7 +759,7 @@ defer lisp-read-lisp
       dup [char] " = if
         drop [char] "
       else
-        cr ." invalid escape code: " emit cr maybe-bye
+        cr ." invalid escape code: " emit cr throw
       then
     then
   then ;
