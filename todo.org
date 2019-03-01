@@ -1,4 +1,8 @@
-* TODO BUG return stack overflow when tests.lsp gets too long
+
+This is an org-mode file.
+If viewing on Github, note that the 'TODO' and 'DONE' tags are not rendered
+
+* DONE BUG return stack overflow when tests.lsp gets too long
 lots of strange bugs when that file gets to large
 
 sometimes it exists early when a function is too large
@@ -104,4 +108,14 @@ That's expected, symbols are not interned by default
 * TODO BUG (list)
 * TODO combine fields for function arg and return lengths into a single word
 * TODO (set var value) should have better error message if var is undeclared
+
 * DONE repl in Emacs Eshell echoes the input. normal terminal does not
+* DONE BUG (var x (list 3 4 2))
+The repl should evaluate the arguments in a function
+and assign back to var instead of interpreting the whole
+expression
+* TODO lambda functions
+* TODO repl limitation - symbols cannot be interned
+or anything else that allocates space on the dictionary
+
+maybe compile the _repl function at an offset?

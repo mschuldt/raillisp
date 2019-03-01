@@ -187,6 +187,7 @@ defined vtcopy, [if]
 : f2 ( - ) 2 1 builtin-func ;
 : f3 ( - ) 3 1 builtin-func ;
 : f4 ( - ) 4 1 builtin-func ;
+: f5 ( - ) 5 1 builtin-func ;
 
 : create-cons ( car cdr -- lisp )
   sizeof-pair allocate throw check-alloc >r
@@ -248,6 +249,41 @@ defined vtcopy, [if]
 : vector? get-lisp-tag lisp-vector-tag = ; f1
 : func? get-lisp-tag lisp-function-tag = ; f1
 
+: find-xt-sym ( xt - sym )
+  lisp-latest @
+  begin
+    dup 0<>
+  while
+    \ TODO: should not assume symbols and functions have the same ordering
+    dup sym>value @
+    dup func? if
+      func>int rot dup rot
+      > if drop exit else  swap then
+    else
+      drop
+    then
+    sym>parent @
+  repeat
+  2drop 0 ;
+
+r@ constant rstack-base
+
+: print-stack-trace
+  r> 0
+  begin
+    r> dup rstack-base <>
+  while
+    swap dup . 1 + swap ."  "
+    dup . ."  "
+    find-xt-sym dup if
+      sym>string type cr
+    else drop ." -----" cr
+    then
+  repeat
+  >r drop >r ;
+
+defer raise
+
 -1 constant lisp-true
 variable t
 lisp-true t !
@@ -256,7 +292,7 @@ lisp-true t !
 
 : function-lookup ( namea nameu - func )
   2dup sym-lookup dup 0= if
-    drop ." undefined function: " type cr bye
+    drop ." Undefined function: " type raise
   else
     nip nip sym>value @
   then ;
@@ -493,16 +529,13 @@ variable stack-depth
 
 : check-stack-depth ( n - )
   dup stack-depth @ <> if
-    ." COMPILATION ERROR: function '" last-def @ func>string type
+    cr
+    ." Compilation error" cr
+    ." :: function '" last-def @ func>string type
     ." ' left " stack-depth @ . ." items on the stack, expected " . cr
-    ."   stack: " stack-print cr bye
+    ." ::  stack: " stack-print cr
+    raise
   then drop ;
-
-: lisp-find-symbol-function ( symbol - func )
-  symbol->string
-  function-lookup \ TODO: just look at sym>value directly?
-; \ TODO: error checking
-
 
 : lisp-interpret ( lisp - lisp? )
   dup 0<> if
@@ -790,14 +823,14 @@ defer lisp-read-lisp
   over + swap
   lisp-skip lisp-read-lisp >r 2drop r> ;
 
-8192 allocate throw constant read-buffer
+16384 allocate throw constant read-buffer
 
 : lisp-load-from-file ( a u -- lisp )
   r/o open-file
   0<> if
     drop 0
   else
-    >r read-buffer 8192 r@ read-file
+    >r read-buffer 16384 r@ read-file
     0<> if
       r> 2drop 0
     else
@@ -848,11 +881,15 @@ defer lisp-read-lisp
 
 : check-arg-count ( argc - )
   \ ARGC is the arg count curr-func is being called with
-  curr-&rest 0= if
-    curr-args 2dup <>
-    if ." invalid arg count, expected " . ." got " . cr bye
-    else 2drop then
-  else drop then ;
+  curr-args 2dup
+  curr-&rest if
+    < if ." invalid arg count, expected at least " . ." got " . cr raise
+    then
+  else
+    <> curr-args 0> and
+    if ." invalid arg count, expected " . ." got " . cr raise
+    then
+  then 2drop ;
 
 : lisp-interpret-special ( lisp func - )
   \ special form or macro
@@ -860,7 +897,7 @@ defer lisp-read-lisp
   \       they have seporate type bits
   0 macro-flag !
   dup set-curr-func >r
-  cdr ( dup check-arg-count )
+  cdr dup lisp-list-len check-arg-count
   dup 0= if drop then \ drop empty list. TODO: but what about passing nil?
   curr-func @ 0<> if
     curr-args dup 0> if
@@ -891,16 +928,14 @@ defer lisp-read-lisp
   swap cdr lisp-compile-list
   swap return-context !
   r> dup set-curr-func
-  func>int
-  swap
-  drop \ check-arg-count
+  func>int swap check-arg-count
   compile, \ DOING: error here. check this function
   curr-args stack-drop-n
   curr-returns stack-push-n ;
 
 : lisp-interpret-pair ( lisp - lisp?)
   dup car
-  lisp-find-symbol-function
+  symbol->string function-lookup
   dup func-special? if
     lisp-interpret-special
   else \ function
@@ -1281,14 +1316,6 @@ s" vector" str-intern lisp-vector-tag cells type-names + !
 s" function" str-intern lisp-function-tag cells type-names + !
 : type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ ; f1
 
-\ \ temporary workaround...
-\ : set-func-link ( namea nameu - )
-\   2dup function-lookup_old -rot
-\   str-intern sym>value ! ;
-\ s" cons" set-func-link
-\ s" vector" set-func-link
-\ s" function" set-func-link
-
 : make-empty-str ( len - str )
   untag-num dup allocate throw swap create-string ; f1
 
@@ -1304,11 +1331,14 @@ s" function" str-intern lisp-function-tag cells type-names + !
 : str-set ( s i v - lisp )
   untag-num swap untag-num rot symbol-namea @ + c! nil ; f3
 
-: str-move! ( s1 s2 i - lisp )
-  \ copy s2 into s1 at offset i
-  untag-num rot dup >r
-  symbol-namea @ + swap dup symbol-namea @
-  swap symbol-nameu @ swap -rot cmove r> ; f3
+: str-move! ( s1 s2 i1 i2 len - lisp )
+  \ Copy LEN chars from S2 at offset I2 into S1 at offset I1
+  \ If LEN is nil, copy the full length of S2
+  \ Returns S1
+  dup if untag-num >r else drop 2 pick symbol-nameu @ >r then
+  untag-num rot symbol-namea @ + -rot
+  untag-num swap dup >r symbol-namea @ +
+  r> -rot r> cmove ; f5
 
 : stack-to-vec ( x1...xn n - vector )
   dup create-vector \ n v
@@ -1431,8 +1461,20 @@ variable lisp-latest-marked
 : min min ; f2
 : max max ; f2
 : bye bye ; f0
-: quit quit ; f0
-\ \\\\\\\\\\\\\\\
+
+: call-lisp ( *lisp namea nameu )
+  function-lookup dup if func>int execute else drop then ;
+
+: forth \ drop into forth from the repl
+  2drop ( drop repl locals ) quit ; f0
+
+: repl \ enter the lisp repl
+  s" repl" call-lisp ;
+
+: _raise ( - )
+  stack-reset
+  cr print-stack-trace repl
+; ' _raise is raise
 
 \ : dump ( lisp - lisp ) symbol->string dump-fi lisp-true ; f1
 
