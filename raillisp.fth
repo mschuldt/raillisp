@@ -534,12 +534,6 @@ variable stack-depth
     ."   stack: " stack-print cr bye
   then drop ;
 
-: lisp-find-symbol-function ( symbol - func )
-  symbol->string
-  function-lookup \ TODO: just look at sym>value directly?
-; \ TODO: error checking
-
-
 : lisp-interpret ( lisp - lisp? )
   dup 0<> if
     dup get-lisp-tag cells
@@ -936,7 +930,7 @@ defer lisp-read-lisp
 
 : lisp-interpret-pair ( lisp - lisp?)
   dup car
-  lisp-find-symbol-function
+  symbol->string function-lookup
   dup func-special? if
     lisp-interpret-special
   else \ function
