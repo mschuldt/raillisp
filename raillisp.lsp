@@ -186,6 +186,14 @@
 (defun subseq (lst start end)
   (take (nthcdr start lst) (- end start)))
 
+(defmacro pop (sym)
+  (list 'progn (list 'var '__first (list 'car sym))
+        (list 'set sym (list 'cdr sym))
+        '__first))
+
+(defmacro push (elt sym)
+  (list 'progn (list 'set sym (list 'cons elt sym))))
+
 (defun str-concat (a b)
   (var s (make-empty-str (+ (str-len a) (str-len b))))
   (str-move! s a 0 0 nil)
