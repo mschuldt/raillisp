@@ -249,6 +249,41 @@ defined vtcopy, [if]
 : vector? get-lisp-tag lisp-vector-tag = ; f1
 : func? get-lisp-tag lisp-function-tag = ; f1
 
+: find-xt-sym ( xt - sym )
+  lisp-latest @
+  begin
+    dup 0<>
+  while
+    \ TODO: should not assume symbols and functions have the same ordering
+    dup sym>value @
+    dup func? if
+      func>int rot dup rot
+      > if drop exit else  swap then
+    else
+      drop
+    then
+    sym>parent @
+  repeat
+  2drop 0 ;
+
+r@ constant rstack-base
+
+: print-stack-trace
+  r> 0
+  begin
+    r> dup rstack-base <>
+  while
+    swap dup . 1 + swap ."  "
+    dup . ."  "
+    find-xt-sym dup if
+      sym>string type cr
+    else drop ." -----" cr
+    then
+  repeat
+  >r drop >r ;
+
+defer raise
+
 -1 constant lisp-true
 variable t
 lisp-true t !
@@ -1436,6 +1471,10 @@ variable lisp-latest-marked
 
 : repl \ enter the lisp repl
   s" repl" call-lisp ;
+
+: _raise ( a u - )
+  ." Exception: " type cr print-stack-trace repl
+; ' _raise is raise
 
 \ : dump ( lisp - lisp ) symbol->string dump-fi lisp-true ; f1
 
