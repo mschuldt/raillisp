@@ -1467,6 +1467,7 @@ variable lisp-latest-marked
   s" repl" call-lisp ;
 
 : _raise ( a u - )
+  stack-reset
   ." Exception: " type cr print-stack-trace repl
 ; ' _raise is raise
 
