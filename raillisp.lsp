@@ -391,7 +391,8 @@
               (repl))
           (load (car command-line-args))
           (bye))
-        nil)))
+        nil)
+    nil))
 
 (var lisp-init-time (- (utime) start-time))
 (var lisp-dict-space (- (here) start-here))
