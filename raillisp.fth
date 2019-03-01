@@ -1282,14 +1282,6 @@ s" vector" str-intern lisp-vector-tag cells type-names + !
 s" function" str-intern lisp-function-tag cells type-names + !
 : type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ ; f1
 
-\ \ temporary workaround...
-\ : set-func-link ( namea nameu - )
-\   2dup function-lookup_old -rot
-\   str-intern sym>value ! ;
-\ s" cons" set-func-link
-\ s" vector" set-func-link
-\ s" function" set-func-link
-
 : make-empty-str ( len - str )
   untag-num dup allocate throw swap create-string ; f1
 
