@@ -791,14 +791,14 @@ defer lisp-read-lisp
   over + swap
   lisp-skip lisp-read-lisp >r 2drop r> ;
 
-8192 allocate throw constant read-buffer
+16384 allocate throw constant read-buffer
 
 : lisp-load-from-file ( a u -- lisp )
   r/o open-file
   0<> if
     drop 0
   else
-    >r read-buffer 8192 r@ read-file
+    >r read-buffer 16384 r@ read-file
     0<> if
       r> 2drop 0
     else
