@@ -878,11 +878,16 @@ defer lisp-read-lisp
 
 : check-arg-count ( argc - )
   \ ARGC is the arg count curr-func is being called with
-  curr-&rest 0= if
-    curr-args 2dup <>
+  curr-args 2dup
+  curr-&rest if
+    ." => " over . dup . cr <
+    if ." invalid arg count, expected at least " . ." got " . cr bye
+    then
+  else
+    <> curr-args 0> and
     if ." invalid arg count, expected " . ." got " . cr bye
-    else 2drop then
-  else drop then ;
+    then
+  then 2drop ;
 
 : lisp-interpret-special ( lisp func - )
   \ special form or macro
@@ -890,7 +895,7 @@ defer lisp-read-lisp
   \       they have seporate type bits
   0 macro-flag !
   dup set-curr-func >r
-  cdr ( dup check-arg-count )
+  cdr dup lisp-list-len check-arg-count
   dup 0= if drop then \ drop empty list. TODO: but what about passing nil?
   curr-func @ 0<> if
     curr-args dup 0> if
@@ -921,9 +926,7 @@ defer lisp-read-lisp
   swap cdr lisp-compile-list
   swap return-context !
   r> dup set-curr-func
-  func>int
-  swap
-  drop \ check-arg-count
+  func>int swap check-arg-count
   compile, \ DOING: error here. check this function
   curr-args stack-drop-n
   curr-returns stack-push-n ;
