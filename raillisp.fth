@@ -1478,7 +1478,13 @@ variable lisp-latest-marked
 
 : _raise ( - )
   stack-reset
-  cr print-stack-trace repl
+  cr drop print-stack-trace
+  s" repl" sym-lookup
+  dup if
+    symbol-value func>int execute
+  else
+    drop ." (repl not defined yet)" cr drop ." forth:" quit
+  then
 ; ' _raise is raise
 
 \ : dump ( lisp - lisp ) symbol->string dump-fi lisp-true ; f1
