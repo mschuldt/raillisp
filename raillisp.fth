@@ -1437,7 +1437,7 @@ variable while-stack
 : * ( nn - n ) untag-num swap untag-num * tag-num ; f2
 : / ( nn - n ) untag-num swap untag-num swap / tag-num ; f2
 : + ( nn - n ) untag-num swap untag-num + tag-num ; f2
-: zero? 0= ; f1
+: zero? untag-num 0= ; f1
 : not 0=  ; f1
 
 : cr cr nil ; f0
