@@ -241,7 +241,7 @@ defined vtcopy, [if]
   then ;
 
 : int? 1 and ; f1
-: cons? get-lisp-tag lisp-pair-tag  = ; f2
+: cons? get-lisp-tag lisp-pair-tag  = ; f1
 : sym? get-lisp-tag lisp-symbol-tag = ; f1
 : str? get-lisp-tag lisp-string-tag =  ; f1
 : vector? get-lisp-tag lisp-vector-tag = ; f1
