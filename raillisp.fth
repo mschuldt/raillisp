@@ -893,10 +893,7 @@ defer lisp-read-lisp
   then 2drop ;
 
 : lisp-interpret-special ( lisp func - )
-  \ special form or macro
-  \ TODO: macros can be seporated from special forms now that
-  \       they have seporate type bits
-  0 macro-flag !
+  \ special form
   dup set-curr-func >r
   cdr dup lisp-list-len check-arg-count
   dup 0= if drop then \ drop empty list. TODO: but what about passing nil?
@@ -914,8 +911,10 @@ defer lisp-read-lisp
       drop
     then
   then
-  r@ func>int execute
-  r> func-macro? if lisp-interpret then ;
+  r> func>int execute ;
+
+: lisp-interpret-macro ( lisp func - )
+  lisp-interpret-special lisp-interpret ;
 
 : lisp-interpret-function ( lisp func - )
   >r return-context @ >r 1 return-context !
@@ -937,16 +936,19 @@ defer lisp-read-lisp
 : lisp-interpret-pair ( lisp - lisp?)
   dup car
   symbol->string function-lookup
-  dup func-special? if
-    lisp-interpret-special
-  else \ function
-    lisp-state @ 0= if
-      lisp-interpret-function
-    else
-      lisp-compile-function
-    then
-    maybe-drop
-  then ;
+  dup func-macro? if
+    lisp-interpret-macro
+  else
+    dup func-special? if
+      lisp-interpret-special
+    else \ function
+      lisp-state @ 0= if
+        lisp-interpret-function
+      else
+        lisp-compile-function
+      then
+      maybe-drop
+    then then ;
 
 ' lisp-interpret-pair interpret-dispatch lisp-pair-tag cells + !
 ' lisp-interpret-pair compile-dispatch lisp-pair-tag cells + !
