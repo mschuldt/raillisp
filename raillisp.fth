@@ -1290,6 +1290,7 @@ variable lisp-latest-marked
 : _raise ( - )
   stack-reset
   cr drop print-stack-trace
+  clearstack
   s" repl" sym-lookup
   dup if
     sym>value @ func>int execute
