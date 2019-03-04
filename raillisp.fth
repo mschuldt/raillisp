@@ -553,52 +553,52 @@ create read-buffer 64 allot
 variable fd
 
 : read-next-line ( - e a )
-    pad dup 100 accept
-    2dup + 10 swap c! 1+
-    over + swap ;
+  pad dup 100 accept
+  2dup + 10 swap c! 1+
+  over + swap ;
 
 : next-line-from-file ( - e a )
-    fd @ dup if
-        begin
-            dup read-buffer 64 rot read-line throw
-            \ while not EOF and line is empty
-            2dup swap 0= and
-        while
-                2drop \ empty line
-        repeat
-        0= if \ EOF flag
-            over close-file throw 0 fd !
-        then
-        dup 0<> if \ read count
-            swap drop read-buffer
-            over 64 < if
-                \ reached end of line, insert a newline at end of buffer
-                2dup + 10 swap c! swap 1 +
-            else
-                swap
-            then
-            over + swap
-        else
-            2drop 0 dup
-        then
+  fd @ dup if
+    begin
+      dup read-buffer 64 rot read-line throw
+      \ while not EOF and line is empty
+      2dup swap 0= and
+    while
+      2drop \ empty line
+    repeat
+    0= if \ EOF flag
+      over close-file throw 0 fd !
+    then
+    dup 0<> if \ read count
+      swap drop read-buffer
+      over 64 < if
+        \ reached end of line, insert a newline at end of buffer
+        2dup + 10 swap c! swap 1 +
+      else
+        swap
+      then
+      over + swap
     else
-        drop 0 dup
-    then ;
+      2drop 0 dup
+    then
+  else
+    drop 0 dup
+  then ;
 
 : next-key ( e a - e a c )
-    2dup <= if
-        \ TODO: reading multi-line strings
-        paren-count @ 0<> if
-            \ End of line but not end of list, read another line
-            cr ." :  "
-            drop drop read-next-line
-        else
-            \ End of line
-            0 exit
-        then
+  2dup <= if
+    \ TODO: reading multi-line strings
+    paren-count @ 0<> if
+      \ End of line but not end of list, read another line
+      cr ." :  "
+      drop drop read-next-line
+    else
+      \ End of line
+      0 exit
     then
-    dup c@ swap 1+ swap
-    update-paren-count \ TODO: only do this when reading lists
+  then
+  dup c@ swap 1+ swap
+  update-paren-count \ TODO: only do this when reading lists
 ;
 
 : lisp-char-from-input
@@ -615,13 +615,13 @@ variable fd
   recursive
   read-from-string @ if
     2dup <= if
-        fd @ if
-            2drop next-line-from-file lisp-read-char
-        else
-            0
-        then
+      fd @ if
+        2drop next-line-from-file lisp-read-char
+      else
+        0
+      then
     else
-        dup c@ swap 1+ swap
+      dup c@ swap 1+ swap
     then
   else
     lisp-char-from-input
@@ -765,8 +765,8 @@ defer lisp-read-lisp
         else
           [char] ? = if
             lisp-read-char tag-num \ char literal
-            else
-	      lisp-unread-char lisp-read-symbol
+          else
+	    lisp-unread-char lisp-read-symbol
           then
         then
       then
@@ -778,8 +778,8 @@ defer lisp-read-lisp
   1 read-from-string !
   over + swap 0 >r
   begin
-      lisp-skip 2dup >
-      fd @ 0<> or
+    lisp-skip 2dup >
+    fd @ 0<> or
   while
     r> drop lisp-read-lisp lisp-interpret >r
   repeat
@@ -791,13 +791,13 @@ defer lisp-read-lisp
   lisp-skip lisp-read-lisp >r 2drop r> ;
 
 : lisp-load-from-file ( a u -- lisp )
-    r/o open-file
-    0<> if
-        drop ( 0 fd !) 0
-    else
-        fd ! 0 0 lisp-load-from-string
-        fd @ throw
-    then ;
+  r/o open-file
+  0<> if
+    drop ( 0 fd !) 0
+  else
+    fd ! 0 0 lisp-load-from-string
+    fd @ throw
+  then ;
 
 : maybe-ret ( - t ) \ used to return nil if in return context
   return-context @ if 0 postpone literal stack-push* then nil ;
@@ -1182,9 +1182,9 @@ comp' k drop loop-var-addrs 2 cells + !
 ; special
 
 : n-cons ( ... n - )
-    >r begin r@ 0>
-    while cons r> 1- >r
-    repeat r> drop ;
+  >r begin r@ 0>
+     while cons r> 1- >r
+     repeat r> drop ;
 
 : list ( lisp - lisp )
   0 >r
@@ -1194,11 +1194,11 @@ comp' k drop loop-var-addrs 2 cells + !
   repeat drop
   0 postpone literal
   r> dup 3 < if
-      dup begin dup 0>
-      while comp, cons 1-
-      repeat drop
+    dup begin dup 0>
+        while comp, cons 1-
+        repeat drop
   else
-      dup postpone literal comp, n-cons
+    dup postpone literal comp, n-cons
   then
   stack-drop-n stack-push*
 ; special
@@ -1220,7 +1220,6 @@ variable _command-line-args
   then ;
 
 : process-args do-process-args _command-line-args @ ! nil ;
-
 
 s" cons" str-intern lisp-pair-tag cells type-names + !
 s" integer" str-intern lisp-number-tag cells type-names + !
