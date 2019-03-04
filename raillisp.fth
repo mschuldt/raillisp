@@ -10,10 +10,6 @@ here start-here !
 variable exit-on-error
 1 exit-on-error !
 
-: string-new ( a u -- a u )
-  dup rot over allocate drop
-  dup >r rot cmove r> swap ;
-
 0 constant lisp-pair-tag
 1 constant lisp-number-tag
 2 constant lisp-symbol-tag
@@ -180,13 +176,6 @@ defined vtcopy, [if]
   func-indirect!
 ;
 
-: f0 ( - ) 0 1 builtin-func ;
-: f1 ( - ) 1 1 builtin-func ;
-: f2 ( - ) 2 1 builtin-func ;
-: f3 ( - ) 3 1 builtin-func ;
-: f4 ( - ) 4 1 builtin-func ;
-: f5 ( - ) 5 1 builtin-func ;
-
 : cons ( car cdr -- lisp )
   sizeof-pair allocate throw check-alloc >r
   r@ ( pair-tag) lisp-pair-tag swap !
@@ -281,6 +270,10 @@ defer raise
   else
     nip nip sym>value @
   then ;
+
+: string-new ( a u -- a u )
+  dup rot over allocate drop
+  dup >r rot cmove r> swap ;
 
 : symbol-new ( namea nameu -- lisp )
   \ TODO: should all symbols be interned?
@@ -712,9 +705,6 @@ defer lisp-read-lisp
     repeat
     r> drop r>
   then ;
-
-: str->int ( lisp - lisp )
-  symbol->string s>number? if drop tag-num else nil then ; f1
 
 : lisp-read-symbol ( e a -- e a lisp )
   lisp-read-token 2dup s>number? if
@@ -1238,31 +1228,6 @@ s" symbol" str-intern lisp-symbol-tag cells type-names + !
 s" string" str-intern lisp-string-tag cells type-names + !
 s" vector" str-intern lisp-vector-tag cells type-names + !
 s" function" str-intern lisp-function-tag cells type-names + !
-: type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ ; f1
-
-: make-empty-str ( len - str )
-  untag-num dup allocate throw swap create-string ; f1
-
-: make-str ( len init - str )
-  untag-num swap untag-num swap
-  over dup >r allocate throw dup >r
-  rot 0 ?do 2dup c! 1+ loop
-  2drop r> r> create-string ; f2
-
-: str-ref ( s i - lisp )
-  untag-num swap symbol-namea @ + c@ tag-num ; f2
-
-: str-set ( s i v - lisp )
-  untag-num swap untag-num rot symbol-namea @ + c! nil ; f3
-
-: str-move! ( s1 s2 i1 i2 len - lisp )
-  \ Copy LEN chars from S2 at offset I2 into S1 at offset I1
-  \ If LEN is nil, copy the full length of S2
-  \ Returns S1
-  dup if untag-num >r else drop 2 pick symbol-nameu @ >r then
-  untag-num rot symbol-namea @ + -rot
-  untag-num swap dup >r symbol-namea @ +
-  r> -rot r> cmove ; f5
 
 : stack-to-vec ( x1...xn n - vector )
   dup create-vector \ n v
@@ -1281,24 +1246,6 @@ s" function" str-intern lisp-function-tag cells type-names + !
   drop r> dup postpone literal
   comp, stack-to-vec
   stack-drop-n stack-push* ; special
-
-: make-empty-vec ( n - )
-  \ Contains uninitialized lisp objects. Should ever be printed.
-  untag-num create-vector ; f1
-
-: vec-ref ( v i - lisp )
-  untag-num cells swap vector-vec @ + @ ; f2
-
-: vec-set ( v i e - lisp )
-  swap untag-num cells rot vector-vec @ + ! nil ; f3
-
-: vec-len ( vec - len ) vector-len @ tag-num ; f1
-
-: vec-move! ( v1 v2 i - lisp )
-  \ copy v2 into v1 at offset i
-  untag-num cells rot dup >r
-  vector-vec @ + swap dup vector-vec @
-  swap vector-len @ cells swap -rot cmove r> ; f3
 
 variable saved-stack-depth
 : stack-save ( - )
@@ -1320,77 +1267,23 @@ variable while-stack
 : if-pop3 if-pop if-pop if-pop ;
 : while-push3 while-push while-push while-push ;
 : while-pop3 while-pop while-pop while-pop ;
-
-: if, stack-drop stack-save postpone if if-push3 nil ; f0
-: else, stack-reset if-pop3 postpone else if-push3 nil ; f0
 : do-then,
   stack-restore if-pop3 postpone then
   return-context @ if stack-push* then ;
 : then, comp, do-then, maybe-ret drop ; special
 
-: begin, postpone begin while-push3 nil ; f0
-: while,
-  stack-drop while-pop3 postpone while while-push3 while-push3 nil ; f0
-: repeat, while-pop3 while-pop3 postpone repeat nil ; f0
-
-: do,
-  stack-drop stack-drop postpone ?do while-push3 nil ; f0
-: loop,
-  while-pop3 postpone loop nil ; f0
-
 \ return-lit used in defcode to return a value from the form
-: return-lit ( n - )
-  return-context @ if postpone literal else drop then nil ; f1
-: lit, ( n - ) stack-push* postpone literal nil ; f1
-: untag-lit, ( n - ) untag-num lit, ; f1
-: untag-num, ( - n ) comp, untag-num nil ; f0
 
-: stack-push-n ( n - t ) untag-num stack-push-n nil ; f0
-: stack-drop-n ( n - t ) untag-num stack-drop-n nil ; f0
+: lit, ( n - ) stack-push* postpone literal nil ;
+: untag-lit, ( n - ) untag-num lit, ;
+: untag-num, ( - n ) comp, untag-num nil ;
 
-: 1+ ( n - n ) 2 + ; f1
-: 1- ( n - n ) 2 - ; f1
-: - ( nn - n ) untag-num swap untag-num swap - tag-num ; f2
-: * ( nn - n ) untag-num swap untag-num * tag-num ; f2
-: / ( nn - n ) untag-num swap untag-num swap / tag-num ; f2
-: + ( nn - n ) untag-num swap untag-num + tag-num ; f2
-: zero? untag-num 0= ; f1
-: not 0=  ; f1
-
-: cr cr nil ; f0
-0 (defun exit bye )
-: utime utime drop tag-num ; f0
-: sleep-ms ( ms - ) untag-num ms nil ; f1
-: here here tag-num ; f0
-: list-index list-index tag-num ; f2
 \ : words words nil ; f0
 
 variable lisp-latest-marked
-: env-mark symbol->string nextname marker
-           lisp-latest @ lisp-latest-marked !
-           nil ; f1
-: env-revert symbol->string find-name name>int execute
-             lisp-latest-marked @ lisp-latest !
-             nil ; f1
-
-: print-stack .s nil ; f0
-
-\ TODO: need to declare built in words as lisp words
-\ temp fix:
-: = = ; f2
-: > > ; f2
-: < < ; f2
-: <= <= ; f2
-: >= >= ; f2
-: min min ; f2
-: max max ; f2
-: bye bye ; f0
 
 : call-lisp ( *lisp namea nameu )
   function-lookup dup if func>int execute else drop then ;
-
-: forth \ drop into forth from the repl
-  2drop ( drop repl locals ) quit ; f0
 
 : repl \ enter the lisp repl
   s" repl" call-lisp ;
@@ -1411,7 +1304,7 @@ variable lisp-latest-marked
 : lisp-variable ( val name) str-intern sym>value ! ;
 
 \ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-\ only lisp definitions below this point
+\ Only lisp definitions are allowed below this point.
 
 -1 s" t" lisp-variable
  0  s" nil" lisp-variable
@@ -1431,11 +1324,12 @@ here s" lisp-dict-top" lisp-variable
 1 (defun vector? get-lisp-tag lisp-vector-tag = )
 1 (defun func? get-lisp-tag lisp-function-tag = )
 
+1 (defun type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ )
+
 2 (defun eq? = )
 2 (defun equal? equal? )
 1 (defun str-equal? str-equal? )
 1 (defun sym-equal? str-equal? )
-
 
 0 (defun print-syms ( - )
   lisp-latest @
@@ -1486,7 +1380,7 @@ here s" lisp-dict-top" lisp-variable
   >r 2drop
     read-from-string !
     r> )
- 
+
 1 (defun read ( str - lisp ) symbol->string lisp-read-from-string )
 1 (defun eval ( lisp - lisp ) lisp-interpret )
 
@@ -1529,15 +1423,117 @@ here s" lisp-dict-top" lisp-variable
 1 (defun boundp ( lisp - lisp ) symbol->string find-name 0<> )
 1 (defun dis ( func - lisp ) func>int xt-see cr nil )
 
-
 s" command-line-args" str-intern sym>value _command-line-args !
 
 0 (defun process-args process-args )
 
 1 (defun identity )
 
+1 (defun make-empty-str ( len - str )
+  untag-num dup allocate throw swap create-string )
 
-utime start-time @ tag-num - s" forth-init-time" lisp-variable
-here start-here @ tag-num - s" forth-dict-space" lisp-variable
+2 (defun make-str ( len init - str )
+  untag-num swap untag-num swap
+  over dup >r allocate throw dup >r
+  rot 0 ?do 2dup c! 1+ loop
+  2drop r> r> create-string )
+
+2 (defun str-ref ( s i - lisp )
+  untag-num swap symbol-namea @ + c@ tag-num )
+
+3 (defun str-set ( s i v - lisp )
+  untag-num swap untag-num rot symbol-namea @ + c! nil )
+
+5 (defun str-move! ( s1 s2 i1 i2 len - lisp )
+  \ Copy LEN chars from S2 at offset I2 into S1 at offset I1
+  \ If LEN is nil, copy the full length of S2
+  \ Returns S1
+  dup if untag-num >r else drop 2 pick symbol-nameu @ >r then
+  untag-num rot symbol-namea @ + -rot
+  untag-num swap dup >r symbol-namea @ +
+  r> -rot r> cmove )
+
+1 (defun str->int ( lisp - lisp )
+  symbol->string s>number? if drop tag-num else nil then )
+
+1 (defun make-empty-vec ( n - )
+  \ Contains uninitialized lisp objects. Should ever be printed.
+  untag-num create-vector )
+
+2 (defun vec-ref ( v i - lisp )
+  untag-num cells swap vector-vec @ + @ )
+
+3 (defun vec-set ( v i e - lisp )
+  swap untag-num cells rot vector-vec @ + ! nil )
+
+1 (defun vec-len ( vec - len ) vector-len @ tag-num )
+
+3 (defun vec-move! ( v1 v2 i - lisp )
+  \ copy v2 into v1 at offset i
+  untag-num cells rot dup >r
+  vector-vec @ + swap dup vector-vec @
+  swap vector-len @ cells swap -rot cmove r> )
+
+0 (defun if, stack-drop stack-save postpone if if-push3 nil )
+0 (defun else, stack-reset if-pop3 postpone else if-push3 nil )
+0 (defun begin, postpone begin while-push3 nil )
+0 (defun while,
+  stack-drop while-pop3 postpone while while-push3 while-push3 nil )
+0 (defun repeat, while-pop3 while-pop3 postpone repeat nil )
+
+0 (defun do,
+  stack-drop stack-drop postpone ?do while-push3 nil )
+0 (defun loop,
+  while-pop3 postpone loop nil )
+
+1 (defun return-lit ( n - )
+  return-context @ if postpone literal else drop then nil )
+
+1 (defun lit, ( n - ) stack-push* postpone literal nil )
+1 (defun untag-lit, ( n - ) untag-num lit, )
+0 (defun untag-num, ( - n ) comp, untag-num nil )
+
+0 (defun stack-push-n ( n - t ) untag-num stack-push-n nil )
+0 (defun stack-drop-n ( n - t ) untag-num stack-drop-n nil )
+
+1 (defun 1+ ( n - n ) 2 + )
+1 (defun 1- ( n - n ) 2 - )
+2 (defun - ( nn - n ) untag-num swap untag-num swap - tag-num )
+2 (defun * ( nn - n ) untag-num swap untag-num * tag-num )
+2 (defun / ( nn - n ) untag-num swap untag-num swap / tag-num )
+2 (defun + ( nn - n ) untag-num swap untag-num + tag-num )
+1 (defun zero? untag-num 0= )
+1 (defun not 0=  )
+
+0 (defun cr cr nil )
+0 (defun exit bye )
+0 (defun utime utime drop tag-num )
+1 (defun sleep-ms ( ms - ) untag-num ms nil )
+0 (defun here here tag-num )
+2 (defun list-index list-index tag-num )
+
+1 (defun env-mark symbol->string nextname marker
+           lisp-latest @ lisp-latest-marked !
+           nil )
+1 (defun env-revert symbol->string find-name name>int execute
+             lisp-latest-marked @ lisp-latest !
+             nil )
+
+0 (defun print-stack .s nil )
+
+2 (defun = = )
+2 (defun > > )
+2 (defun < < )
+2 (defun <= <= )
+2 (defun >= >= )
+2 (defun min min )
+2 (defun max max )
+0 (defun bye bye )
+
+0 (defun forth \ drop into forth from the repl
+  2drop ( drop repl locals ) quit )
+
+utime drop start-time @ - tag-num s" forth-init-time" lisp-variable
+here start-here @ - tag-num s" forth-dict-space" lisp-variable
 
 s" raillisp.lsp" lisp-load-from-file drop
