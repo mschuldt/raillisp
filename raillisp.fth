@@ -1293,8 +1293,6 @@ variable lisp-latest-marked
   then
 ; ' _raise is raise
 
-\ : dump ( lisp - lisp ) symbol->string dump-fi lisp-true ; f1
-
 : lisp-variable ( val name) str-intern sym>value ! ;
 
 \ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -1526,6 +1524,8 @@ s" command-line-args" str-intern sym>value _command-line-args !
 
 0 (defun forth \ drop into forth from the repl
   2drop ( drop repl locals ) quit )
+
+2 (defun dump ( addr u - lisp ) untag-num swap untag-num swap dump nil )
 
 utime drop start-time @ - tag-num s" forth-init-time" lisp-variable
 here start-here @ - tag-num s" forth-dict-space" lisp-variable
