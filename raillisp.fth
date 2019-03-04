@@ -1289,13 +1289,13 @@ variable lisp-latest-marked
 
 : _raise ( - )
   stack-reset
-  cr drop print-stack-trace
   clearstack
+  cr print-stack-trace
   s" repl" sym-lookup
   dup if
     sym>value @ func>int execute
   else
-    drop ." (repl not defined yet)" cr drop ." forth:" quit
+    drop ." (repl not defined yet)" cr ." forth:" quit
   then
 ; ' _raise is raise
 
