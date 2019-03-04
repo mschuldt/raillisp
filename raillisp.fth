@@ -188,10 +188,6 @@ defined vtcopy, [if]
 
 : setcar ( pair x -- x ) dup rot pair-car ! ;
 : setcdr ( pair x -- x ) dup rot pair-cdr ! ;
-
-: <<1 1 lshift ;
-: >>1 1 rshift ;
-
 : tag-num ( number -- lisp ) 1 lshift 1 or ;
 : untag-num ( lisp - number ) 1 rshift ;
 
