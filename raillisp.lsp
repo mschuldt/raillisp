@@ -348,6 +348,34 @@
       nil))
   c)
 
+(defun make-q ()
+  (cons nil nil))
+
+(defun q-put! (q item)
+  (var new (cons item nil))
+  (var tail (cdr q))
+  (unless (car q)
+    (setcar q new))
+  (when tail
+    (setcdr tail new))
+  (setcdr q new)
+  q)
+
+(defun q-get! (q)
+  (var first (car q))
+  (when first
+    (setcar q (cdr first))
+    (when (eq? first (cdr q))
+      (setcdr q nil)))
+  (car first))
+
+(defun q-len (q)
+  (list-len (car q)))
+
+(defun q->list (q)
+  (list-copy (car q)))
+
+
 (defun repl ()
   (var expr nil)
   (var var-name nil)
