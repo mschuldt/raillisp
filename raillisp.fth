@@ -156,12 +156,12 @@ defined vtcopy, [if]
 
 : end-defun postpone exit ;
 
-: (defun ( num-args - ) parse-name
-         start-defun
-         func-args!
-         postpone ] ;
+: (defun ( num-args - )
+  parse-name start-defun
+  func-args! 1 func-returns!
+  ] ;
 
-: ) end-defun ; immediate
+: ) postpone [ end-defun ; immediate
 
 : sym-print ( sym - )
   ." sym(" sym>string type ." )" ;
