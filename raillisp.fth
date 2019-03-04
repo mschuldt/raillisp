@@ -187,20 +187,18 @@ defined vtcopy, [if]
 : f4 ( - ) 4 1 builtin-func ;
 : f5 ( - ) 5 1 builtin-func ;
 
-: create-cons ( car cdr -- lisp )
+: cons ( car cdr -- lisp )
   sizeof-pair allocate throw check-alloc >r
   r@ ( pair-tag) lisp-pair-tag swap !
   r@ pair-cdr !
   r@ pair-car !
   r> ;
 
-: cons create-cons ; f2
+: car ( pair -- lisp ) dup 0<> if pair-car @ then ;
+: cdr ( pair -- lisp ) dup 0<> if pair-cdr @ then ;
 
-: car ( pair -- lisp ) dup 0<> if pair-car @ then ; f1
-: cdr ( pair -- lisp ) dup 0<> if pair-cdr @ then ; f1
-
-: setcar ( pair x -- x ) dup rot pair-car ! ; f2
-: setcdr ( pair x -- x ) dup rot pair-cdr ! ; f2
+: setcar ( pair x -- x ) dup rot pair-car ! ;
+: setcdr ( pair x -- x ) dup rot pair-cdr ! ;
 
 : <<1 1 lshift ;
 : >>1 1 rshift ;
@@ -240,13 +238,6 @@ defined vtcopy, [if]
     then
   then ;
 
-: int? 1 and ; f1
-: cons? get-lisp-tag lisp-pair-tag  = ; f1
-: sym? get-lisp-tag lisp-symbol-tag = ; f1
-: str? get-lisp-tag lisp-string-tag =  ; f1
-: vector? get-lisp-tag lisp-vector-tag = ; f1
-: func? get-lisp-tag lisp-function-tag = ; f1
-
 : find-xt-sym ( xt - sym )
   lisp-latest @
   begin
@@ -254,7 +245,7 @@ defined vtcopy, [if]
   while
     \ TODO: should not assume symbols and functions have the same ordering
     dup sym>value @
-    dup func? if
+    dup get-lisp-tag lisp-function-tag = if
       func>int rot dup rot
       > if drop exit else  swap then
     else
@@ -283,10 +274,6 @@ r@ constant rstack-base
 defer raise
 
 -1 constant lisp-true
-variable t
-lisp-true t !
-
-: eq? = ; f2
 
 : function-lookup ( namea nameu - func )
   2dup sym-lookup dup 0= if
@@ -294,18 +281,6 @@ lisp-true t !
   else
     nip nip sym>value @
   then ;
-
-: print-syms ( - )
-  lisp-latest @
-  begin
-    dup 0<>
-  while
-    dup sym>string
-    type ."  " sym>parent @
-  repeat drop cr 0 ; f0
-
-: intern ( str - sym )
-  symbol->string str-intern ; f1
 
 : symbol-new ( namea nameu -- lisp )
   \ TODO: should all symbols be interned?
@@ -317,39 +292,13 @@ lisp-true t !
     drop string-new create-symbol
   then ;
 
-: lisp-variable ( val name) str-intern sym>value ! ;
-
--1 s" t" lisp-variable
- 0  s" nil" lisp-variable
-
 : str-equal? ( lisp1 lisp2 -- lisp )
   symbol->string rot symbol->string
   compare 0= if
     lisp-true
   else
     nil
-  then ; f2
-
-: sym-equal? str-equal? ;  f2 \ TODO: symbol interning
-
-: str-sub-equal? ( str sub index - bool )
-  \ check that SUB matches STR from INDEX
-  dup 0< if
-    drop 2drop nil exit
-  then
-  untag-num >r
-  swap >r
-  symbol->string r> symbol->string
-  rot 2dup r@ + >r
-  drop -rot r>
-  over <= >r drop over
-  r> if
-    swap r> + swap
-    compare 0= if lisp-true else nil then
-  else
-    r> drop 2drop 2drop nil
-  then
-; f3
+  then ;
 
 : equal? ( lisp lisp - lisp )
   2dup = if
@@ -368,7 +317,7 @@ lisp-true t !
         then
       then
     then
-  then ; f2
+  then ;
 
 : cons-equal? ( lisp lisp - lisp )
   \ todo: non recursive version
@@ -389,7 +338,7 @@ variable &rest
   \ return the vararg symbol and remove from arglist
   dup 0<> if
     dup cdr 0<> if
-      dup cdr car &rest @ sym-equal? if
+      dup cdr car &rest @ str-equal? if
         dup cdr cdr car  \ vararg
         swap pair-cdr 0 swap !
       else
@@ -404,7 +353,7 @@ variable &rest
 
 : split-args ( arglist - args vararg)
   dup 0<> if
-    dup car &rest @ sym-equal? if
+    dup car &rest @ str-equal? if
       0 swap cdr car
     else
       dup get-vararg
@@ -423,8 +372,6 @@ variable &rest
       dup get-lisp-tag
       cells display-dispatch + @ execute
     then then ;
-
-: print ( lisp -- lisp ) dup lisp-display ; f1
 
 : lisp-display-pair ( lisp -- )
   [char] ( emit ( 32 emit)
@@ -588,12 +535,6 @@ variable stack-depth
 \ special forms with < 0 args are passed all the arguments as a list
 : special ( immediate) -1 0 builtin-func func-special! ;
 
-: compile lisp-interpret nil ; f1
-: compile-r lisp-interpret-r nil ; f1
-: compile-list lisp-compile-list ; f1
-: compile-list-nr lisp-compile-list-nr nil ; f1
-
-: compile-progn lisp-compile-progn nil ; f1
 : progn lisp-compile-progn ; special
 
 variable macro-flag
@@ -783,8 +724,8 @@ defer lisp-read-lisp
   then ;
 
 : lisp-read-quote ( e a -- e a lisp )
-  lisp-read-lisp nil create-cons
-  s" quote" symbol-new swap create-cons ;
+  lisp-read-lisp nil cons
+  s" quote" symbol-new swap cons ;
 
 : lisp-escape-char ( c - c )
   dup [char] n = if
@@ -868,27 +809,8 @@ defer lisp-read-lisp
         fd @ throw
     then ;
 
-: read-from-input
-  read-from-string @
-  0 read-from-string !
-  -1 stdin-lastchar !
-  0 stdin-unread !
-  0 paren-count !
-  ." > " read-next-line
-  lisp-read-lisp
-  >r 2drop
-    read-from-string !
-    r>
-; f0
-
-: read ( str - lisp ) symbol->string lisp-read-from-string ; f1
-: eval ( lisp - lisp ) lisp-interpret ; f1
-
-: load-lisp ( lisp - lisp ) symbol->string lisp-load-from-file ; f1
-: load-forth ( lisp - lisp ) symbol->string included nil ; f1
-
 : maybe-ret ( - t ) \ used to return nil if in return context
-  return-context @ if 0 postpone literal stack-push* then nil ; f0
+  return-context @ if 0 postpone literal stack-push* then nil ;
 
 : lisp-list-len ( list - n )
   0 swap
@@ -1111,39 +1033,12 @@ variable locals-counter
   dup car swap cdr car \ symbol value
   lisp-state @ 0= if
     lisp-interpret dup rot
-    intern sym>value !
+    symbol->string str-intern sym>value !
   else
     compile-local-var
   then
   maybe-ret drop
 ; special
-
-: member ( key list - list )
-  begin
-    dup 0<> if
-      2dup car equal? 0=
-    else 0 then
-  while
-    cdr
-  repeat
-  nip ; f2
-
-: assoc ( key list - list )
-  begin
-    2dup car
-    dup cons? if
-      car equal? if
-        car nip exit
-      then
-    else
-      2drop
-    then
-    cdr dup 0= until
-  nip ; f2
-
-: list-len lisp-list-len tag-num ; f1
-
-: str-len ( lisp - lisp ) symbol-nameu @ tag-num ; f1
 
 \ counts the number of let bound names in the current word
 \ or other names that have been cleaned up with pop-local-names
@@ -1230,7 +1125,8 @@ comp' k drop loop-var-addrs 2 cells + !
   dup loop-vars@ list-index dup -1 <> if
     nip compile-loop-var
   else
-    drop intern sym>value postpone literal comp, @ \ variable
+    drop symbol->string str-intern sym>value
+    postpone literal comp, @ \ variable
   then ;
 
 : lisp-compile-symbol ( lisp - )
@@ -1246,13 +1142,13 @@ comp' k drop loop-var-addrs 2 cells + !
 ' lisp-compile-symbol compile-dispatch lisp-symbol-tag cells + !
 
 : set-interpret ( symbol value - )
-  lisp-interpret dup rot intern sym>value ! ;
+  lisp-interpret dup rot symbol->string str-intern sym>value ! ;
 
 : set-compile-global ( symbol value - )
   lisp-interpret-r \ compile value
   stack-drop
-  intern sym>value postpone literal
-  comp, ! ;
+  symbol->string str-intern sym>value
+  postpone literal comp, ! ;
 
 : set-compile-local ( symbol value index - )
   swap lisp-interpret-r
@@ -1323,19 +1219,7 @@ comp' k drop loop-var-addrs 2 cells + !
     dup car swap cdr unlist
   else drop then ;
 
-
-: symbol-value ( str - value ) sym>value @ ; f1
-: funcall ( fn args - lisp ) swap >r unlist r> func>int execute ; f2
-: func-name ( func - str ) func>string create-string ; f1
-: func-arity ( func - num ) func>args ; f1
-
-: boundp ( lisp - lisp ) symbol->string find-name 0<> ; f1
-
-: dis ( func - lisp ) func>int xt-see cr nil ; f1
-
 variable _command-line-args
-s" command-line-args" str-intern sym>value
-_command-line-args !
 
 : do-process-args ( - )
   recursive
@@ -1345,9 +1229,8 @@ _command-line-args !
     drop
   then ;
 
-: process-args do-process-args _command-line-args @ ! nil ; f0
+: process-args do-process-args _command-line-args @ ! nil ;
 
-: identity ( x - x ) ; f1
 
 s" cons" str-intern lisp-pair-tag cells type-names + !
 s" integer" str-intern lisp-number-tag cells type-names + !
@@ -1475,7 +1358,7 @@ variable while-stack
 : not 0=  ; f1
 
 : cr cr nil ; f0
-: exit bye ; f0
+0 (defun exit bye )
 : utime utime drop tag-num ; f0
 : sleep-ms ( ms - ) untag-num ms nil ; f1
 : here here tag-num ; f0
@@ -1517,13 +1400,142 @@ variable lisp-latest-marked
   cr drop print-stack-trace
   s" repl" sym-lookup
   dup if
-    symbol-value func>int execute
+    sym>value @ func>int execute
   else
     drop ." (repl not defined yet)" cr drop ." forth:" quit
   then
 ; ' _raise is raise
 
 \ : dump ( lisp - lisp ) symbol->string dump-fi lisp-true ; f1
+
+: lisp-variable ( val name) str-intern sym>value ! ;
+
+\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\ only lisp definitions below this point
+
+-1 s" t" lisp-variable
+ 0  s" nil" lisp-variable
+
+here s" lisp-dict-top" lisp-variable
+
+1 (defun car car )
+1 (defun cdr cdr )
+2 (defun cons cons )
+2 (defun setcar setcar )
+2 (defun setcdr setcdr )
+
+1 (defun int? 1 and )
+1 (defun cons? get-lisp-tag lisp-pair-tag  = )
+1 (defun sym? get-lisp-tag lisp-symbol-tag = )
+1 (defun str? get-lisp-tag lisp-string-tag =  )
+1 (defun vector? get-lisp-tag lisp-vector-tag = )
+1 (defun func? get-lisp-tag lisp-function-tag = )
+
+2 (defun eq? = )
+2 (defun equal? equal? )
+1 (defun str-equal? str-equal? )
+1 (defun sym-equal? str-equal? )
+
+
+0 (defun print-syms ( - )
+  lisp-latest @
+  begin
+    dup 0<>
+  while
+    dup sym>string
+    type ."  " sym>parent @
+  repeat drop cr 0 )
+
+1 (defun intern symbol->string str-intern )
+
+3 (defun str-sub-equal? ( str sub index - bool )
+  \ check that SUB matches STR from INDEX
+  dup 0< if
+    drop 2drop nil exit
+  then
+  untag-num >r
+  swap >r
+  symbol->string r> symbol->string
+  rot 2dup r@ + >r
+  drop -rot r>
+  over <= >r drop over
+  r> if
+    swap r> + swap
+    compare 0= if lisp-true else nil then
+  else
+    r> drop 2drop 2drop nil
+  then )
+
+1 (defun print dup lisp-display )
+
+1 (defun compile lisp-interpret nil )
+1 (defun compile-r lisp-interpret-r nil )
+1 (defun compile-list lisp-compile-list )
+1 (defun compile-list-nr lisp-compile-list-nr nil )
+1 (defun compile-progn lisp-compile-progn nil )
+
+
+0 (defun read-from-input
+  read-from-string @
+  0 read-from-string !
+  -1 stdin-lastchar !
+  0 stdin-unread !
+  0 paren-count !
+  ." > " read-next-line
+  lisp-read-lisp
+  >r 2drop
+    read-from-string !
+    r> )
+ 
+1 (defun read ( str - lisp ) symbol->string lisp-read-from-string )
+1 (defun eval ( lisp - lisp ) lisp-interpret )
+
+1 (defun load-lisp ( lisp - lisp ) symbol->string lisp-load-from-file )
+1 (defun load-forth ( lisp - lisp ) symbol->string included nil )
+
+0 (defun maybe-ret maybe-ret )
+
+2 (defun member ( key list - list )
+  begin
+    dup 0<> if
+      2dup car equal? 0=
+    else 0 then
+  while
+    cdr
+  repeat
+  nip )
+
+2 (defun assoc ( key list - list )
+  begin
+    2dup car
+    dup get-lisp-tag lisp-pair-tag = if
+      car equal? if
+        car nip exit
+      then
+    else
+      2drop
+    then
+    cdr dup 0= until
+  nip )
+
+1 (defun list-len lisp-list-len tag-num )
+
+1 (defun str-len ( lisp - lisp ) symbol-nameu @ tag-num )
+
+1 (defun symbol-value ( str - value ) sym>value @ )
+2 (defun funcall ( fn args - lisp ) swap >r unlist r> func>int execute )
+1 (defun func-name ( func - str ) func>string create-string )
+1 (defun func-arity ( func - num ) func>args )
+1 (defun boundp ( lisp - lisp ) symbol->string find-name 0<> )
+1 (defun dis ( func - lisp ) func>int xt-see cr nil )
+
+
+s" command-line-args" str-intern sym>value _command-line-args !
+
+0 (defun process-args process-args )
+
+1 (defun identity )
+
 
 utime start-time @ tag-num - s" forth-init-time" lisp-variable
 here start-here @ tag-num - s" forth-dict-space" lisp-variable

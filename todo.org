@@ -1,6 +1,4 @@
-
-This is an org-mode file.
-If viewing on Github, note that the 'TODO' and 'DONE' tags are not rendered
+#+OPTIONS: todo:t
 
 * DONE BUG return stack overflow when tests.lsp gets too long
 lots of strange bugs when that file gets to large
