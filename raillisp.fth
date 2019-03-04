@@ -617,10 +617,41 @@ variable read-from-string
       then
   then ;
 
+create read-buffer 64 allot
+variable fd
+
 : read-next-line ( - e a )
     pad dup 100 accept
     2dup + 10 swap c! 1+
     over + swap ;
+
+: next-line-from-file ( - e a )
+    fd @ dup if
+        begin
+            dup read-buffer 64 rot read-line throw
+            \ while not EOF and line is empty
+            2dup swap 0= and
+        while
+                2drop \ empty line
+        repeat
+        0= if \ EOF flag
+            over close-file throw 0 fd !
+        then
+        dup 0<> if \ read count
+            swap drop read-buffer
+            over 64 < if
+                \ reached end of line, insert a newline at end of buffer
+                2dup + 10 swap c! swap 1 +
+            else
+                swap
+            then
+            over + swap
+        else
+            2drop 0 dup
+        then
+    else
+        drop 0 dup
+    then ;
 
 : next-key ( e a - e a c )
     2dup <= if
@@ -647,12 +678,18 @@ variable read-from-string
     dup stdin-lastchar !
   then ;
 
+
 : lisp-read-char ( e a -- e a c )
+  recursive
   read-from-string @ if
     2dup <= if
-      0
+        fd @ if
+            2drop next-line-from-file lisp-read-char
+        else
+            0
+        then
     else
-      dup c@ swap 1+ swap
+        dup c@ swap 1+ swap
     then
   else
     lisp-char-from-input
@@ -812,7 +849,8 @@ defer lisp-read-lisp
   1 read-from-string !
   over + swap 0 >r
   begin
-    lisp-skip 2dup >
+      lisp-skip 2dup >
+      fd @ 0<> or
   while
     r> drop lisp-read-lisp lisp-interpret >r
   repeat
@@ -823,36 +861,32 @@ defer lisp-read-lisp
   over + swap
   lisp-skip lisp-read-lisp >r 2drop r> ;
 
-16384 allocate throw constant read-buffer
-
 : lisp-load-from-file ( a u -- lisp )
-  r/o open-file
-  0<> if
-    drop 0
-  else
-    >r read-buffer 16384 r@ read-file
+    r/o open-file
     0<> if
-      r> 2drop 0
+        drop ( 0 fd !) 0
     else
-      r> close-file drop
-      read-buffer swap lisp-load-from-string
-    then
-  then ;
+        fd ! 0 0 lisp-load-from-string
+        fd @ throw
+    then ;
 
 : read-from-input
+  read-from-string @
   0 read-from-string !
   -1 stdin-lastchar !
   0 stdin-unread !
   0 paren-count !
   ." > " read-next-line
   lisp-read-lisp
-  >r 2drop r>
+  >r 2drop
+    read-from-string !
+    r>
 ; f0
 
 : read ( str - lisp ) symbol->string lisp-read-from-string ; f1
 : eval ( lisp - lisp ) lisp-interpret ; f1
 
-: load-lisp ( lisp - lisp ) symbol->string lisp-load-from-file nil ; f1
+: load-lisp ( lisp - lisp ) symbol->string lisp-load-from-file ; f1
 : load-forth ( lisp - lisp ) symbol->string included nil ; f1
 
 : maybe-ret ( - t ) \ used to return nil if in return context
