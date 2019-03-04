@@ -1303,8 +1303,8 @@ variable lisp-latest-marked
 
 here s" lisp-dict-top" lisp-variable
 
-1 (defun car car )
-1 (defun cdr cdr )
+1 (defun car dup 0<> if pair-car @ then )
+1 (defun cdr dup 0<> if pair-cdr @ then )
 2 (defun cons cons )
 2 (defun setcar dup rot pair-car ! )
 2 (defun setcdr dup rot pair-cdr ! )
