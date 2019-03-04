@@ -186,8 +186,6 @@ defined vtcopy, [if]
 : car ( pair -- lisp ) dup 0<> if pair-car @ then ;
 : cdr ( pair -- lisp ) dup 0<> if pair-cdr @ then ;
 
-: setcar ( pair x -- x ) dup rot pair-car ! ;
-: setcdr ( pair x -- x ) dup rot pair-cdr ! ;
 : tag-num ( number -- lisp ) 1 lshift 1 or ;
 : untag-num ( lisp - number ) 1 rshift ;
 
@@ -1310,8 +1308,8 @@ here s" lisp-dict-top" lisp-variable
 1 (defun car car )
 1 (defun cdr cdr )
 2 (defun cons cons )
-2 (defun setcar setcar )
-2 (defun setcdr setcdr )
+2 (defun setcar dup rot pair-car ! )
+2 (defun setcdr dup rot pair-cdr ! )
 
 1 (defun int? 1 and )
 1 (defun cons? get-lisp-tag lisp-pair-tag  = )
