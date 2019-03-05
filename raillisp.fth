@@ -517,7 +517,7 @@ variable stack-depth
 : lisp-compile-list-nr 0 rcontext{ lisp-compile-list drop }rcontext ;
 
 : lisp-compile-progn ( lisp - )
-  >r return-context @
+  >r return-context @ dup
   0 return-context !
   begin
     r@ 0<>
@@ -527,8 +527,8 @@ variable stack-depth
     then
     r> dup car lisp-interpret cdr >r
   repeat
+  return-context !
   r> drop ;
-
 
 \ special forms with < 0 args are passed all the arguments as a list
 : special ( immediate) -1 0 builtin-func func-special! ;
