@@ -71,6 +71,12 @@
   (dolist (x conditions)
     (then,)))
 
+(defmacro when (test &rest body)
+  (list 'if test (cons 'progn body) nil))
+
+(defmacro unless (test &rest body)
+  (cons 'when (cons (list 'not test) body)))
+
 (defun println (obj)
   (print obj)
   (cr))
@@ -99,15 +105,6 @@
     (set tail (cdr tail))
     (set lst (cdr lst)))
   head)
-
-(defcode when (test &rest body)
-  (compile-r test)
-  (if,)
-  (compile-progn body)
-  (then,))
-
-(defmacro unless (test &rest body)
-  (cons 'when (cons (list 'not test) body)))
 
 (defun caar (x) (car (car x)))
 (defun cadr (x) (car (cdr x)))
@@ -407,22 +404,17 @@
       (load-lisp file)
     (load-forth file)))
 
-(defun init ()
-  (if (not (boundp '_noinit_))
-      (progn
-        (process-args)
-        (if (= (list-len command-line-args) 0)
-            (progn
-              (print "// Raillisp ")
-              (print raillisp-version)
-              (println " \\\\")
-              (repl))
-          (load (car command-line-args))
-          (bye))
-        nil)
-    nil))
+(defun init (doinit)
+  (when doinit
+    (process-args)
+    (if (= (list-len command-line-args) 0)
+        (progn
+          (print "// Raillisp ")
+          (print raillisp-version)
+          (println " \\\\")
+          (repl))
+      (load (car command-line-args))
+      (bye))))
 
 (var lisp-init-time (- (utime) start-time))
 (var lisp-dict-space (- (here) start-here))
-
-(init)

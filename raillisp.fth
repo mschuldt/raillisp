@@ -469,13 +469,18 @@ variable stack-depth
     raise
   then drop ;
 
+: maybe-ret ( - t ) \ used to return nil if in return context
+  return-context @ if 0 postpone literal stack-push* then nil ;
+
 : lisp-interpret ( lisp - lisp? )
   dup 0<> if
     dup get-lisp-tag cells
     lisp-state @
     0= if interpret-dispatch else compile-dispatch then
     + @ execute
-  then ;
+   else
+    lisp-state @ 1 = if maybe-ret 2drop then
+   then ;
 
 : lisp-interpret-list ( lisp - a1...an n )
   0 >r
@@ -506,7 +511,7 @@ variable stack-depth
 : lisp-compile-list-nr 0 rcontext{ lisp-compile-list drop }rcontext ;
 
 : lisp-compile-progn ( lisp - )
-  >r return-context @
+  >r return-context @ dup
   0 return-context !
   begin
     r@ 0<>
@@ -516,8 +521,8 @@ variable stack-depth
     then
     r> dup car lisp-interpret cdr >r
   repeat
+  return-context !
   r> drop ;
-
 
 \ special forms with < 0 args are passed all the arguments as a list
 : special ( immediate) -1 0 builtin-func func-special! ;
@@ -792,9 +797,6 @@ defer lisp-read-lisp
     fd ! 0 0 lisp-load-from-string
     fd @ throw
   then ;
-
-: maybe-ret ( - t ) \ used to return nil if in return context
-  return-context @ if 0 postpone literal stack-push* then nil ;
 
 : lisp-list-len ( list - n )
   0 swap
@@ -1412,7 +1414,7 @@ here s" lisp-dict-top" lisp-variable
 2 (defun funcall ( fn args - lisp ) swap >r unlist r> func>int execute )
 1 (defun func-name ( func - str ) func>string create-string )
 1 (defun func-arity ( func - num ) func>args )
-1 (defun boundp ( lisp - lisp ) symbol->string find-name 0<> )
+1 (defun boundp ( lisp - lisp ) symbol->string sym-lookup 0<> )
 1 (defun dis ( func - lisp ) func>int xt-see cr nil )
 
 s" command-line-args" str-intern sym>value _command-line-args !
@@ -1531,3 +1533,4 @@ utime drop start-time @ - tag-num s" forth-init-time" lisp-variable
 here start-here @ - tag-num s" forth-dict-space" lisp-variable
 
 s" raillisp.lsp" lisp-load-from-file drop
+s" _noinit_" find-name 0= s" init" call-lisp drop
