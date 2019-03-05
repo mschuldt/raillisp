@@ -407,22 +407,17 @@
       (load-lisp file)
     (load-forth file)))
 
-(defun init ()
-  (if (not (boundp '_noinit_))
-      (progn
-        (process-args)
-        (if (= (list-len command-line-args) 0)
-            (progn
-              (print "// Raillisp ")
-              (print raillisp-version)
-              (println " \\\\")
-              (repl))
-          (load (car command-line-args))
-          (bye))
-        nil)
-    nil))
+(defun init (doinit)
+  (when doinit
+    (process-args)
+    (if (= (list-len command-line-args) 0)
+        (progn
+          (print "// Raillisp ")
+          (print raillisp-version)
+          (println " \\\\")
+          (repl))
+      (load (car command-line-args))
+      (bye))))
 
 (var lisp-init-time (- (utime) start-time))
 (var lisp-dict-space (- (here) start-here))
-
-(init)

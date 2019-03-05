@@ -1422,7 +1422,7 @@ here s" lisp-dict-top" lisp-variable
 2 (defun funcall ( fn args - lisp ) swap >r unlist r> func>int execute )
 1 (defun func-name ( func - str ) func>string create-string )
 1 (defun func-arity ( func - num ) func>args )
-1 (defun boundp ( lisp - lisp ) symbol->string find-name 0<> )
+1 (defun boundp ( lisp - lisp ) symbol->string sym-lookup 0<> )
 1 (defun dis ( func - lisp ) func>int xt-see cr nil )
 
 s" command-line-args" str-intern sym>value _command-line-args !
@@ -1539,3 +1539,4 @@ utime drop start-time @ - tag-num s" forth-init-time" lisp-variable
 here start-here @ - tag-num s" forth-dict-space" lisp-variable
 
 s" raillisp.lsp" lisp-load-from-file drop
+s" _noinit_" find-name 0= s" init" call-lisp drop
