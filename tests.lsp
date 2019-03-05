@@ -106,6 +106,13 @@
      (test "string 8" (= (str->int "-5") -5)))
 (test-string)
 
+(defun test-progn ()
+  (test "progn 1" (eq? (progn 1) 1))
+  (test "progn 2" (eq? (progn (progn 1)) 1))
+  (test "progn 2" (eq? (progn (progn (var x 3)) x) 3))
+  )
+(test-progn)
+
 (defun test-if ()
      (var x 1)
      (test "if 1" (eq? (if (eq? 1 1) 1 2) 1))
@@ -165,7 +172,17 @@
          1
        (* n (factorial (- n 1)))))
 
-(test "recursion" (eq? (factorial 5) 120))
+(defun let-recursion (n)
+  (let* ((x (if (> n 0)
+                (* n (let-recursion (- n 1)))
+              1)))
+    x))
+
+(defun test-recursion ()
+  (test "recursion" (eq? (factorial 5) 120))
+  (test "recursion 2" (eq? (let-recursion 5) 120))
+  )
+(test-recursion)
 
 (defun test-dolist ()
      (let* ((v nil))
@@ -179,7 +196,12 @@
          (dolist (x (list 11 22))
            (set v (cons x v)))
          (set v (cons x v)))
-       (test "dolist 2" (equal? v (list 2 22 11 1 22 11)))))
+       (test "dolist 2" (equal? v (list 2 22 11 1 22 11)))
+       (set v nil)
+       (dolist (x nil)
+         (set v (cons 'x v)))
+       (test "dolist 3" (eq? v nil))
+       ))
 (test-dolist)
 
 (defun cond-x (x)
@@ -187,18 +209,25 @@
            ((= x 2) "two")
            (t "default")))
 
+(defun cond2 (x)
+  (let* ((ret (cond ((= x 1) 1)
+                    ((= x nil) 1)
+                    (t (* x (cond2 (1- x)))))))
+    ret))
+
 (defun test-cond ()
-     (test "cond 1" (equal? (cond-x 1) "one"))
-     (test "cond 2" (equal? (cond-x 2) "two"))
-     (test "cond 3" (equal? (cond-x 32) "default"))
-     ;;(test "cond 4" (eq? (cond ((= 1 2) t)) nil)) ; TODO
-     (var x nil)
-     (cond (t
-            (set x (cons 1 x))
-            (set x (cons 2 x))))
-     (test "cond 4" (equal? x (list 2 1)))
-     (cond (t (cond (t (set x 4)))))
-     (test "cond 5" (eq? x 4)))
+  (test "cond 1" (equal? (cond-x 1) "one"))
+  (test "cond 2" (equal? (cond-x 2) "two"))
+  (test "cond 3" (equal? (cond-x 32) "default"))
+  ;;(test "cond 4" (eq? (cond ((= 1 2) t)) nil)) ; TODO
+  (var x nil)
+  (cond (t
+         (set x (cons 1 x))
+         (set x (cons 2 x))))
+  (test "cond 4" (equal? x (list 2 1)))
+  (cond (t (cond (t (set x 4)))))
+  (test "cond 5" (eq? x 4))
+  (test "cond 6" (eq? (cond2 5) 120)))
 
 (test-cond)
 
@@ -345,6 +374,28 @@
   (test "str-join 4" (equal? (str-join (list "" "" "") "a") "aa"))
   (test "str-join 5" (equal? (str-join (list "a" "b" "c") "") "abc")))
 (test-str-join)
+
+(defun test-append ()
+  (var x (list 1 2 3))
+  (var y (list 'x 'y))
+  (test "append 1" (equal? (append x y) (list 1 2 3 'x 'y)))
+  (test "append 2" (equal? x (list 1 2 3)))
+  (test "append 3" (equal? y (list 'x 'y)))
+  (test "append 4" (equal? (append x nil) (list 1 2 3)))
+  (test "append 5" (equal? (append nil y) (list 'x 'y)))
+  (append! x y)
+  (test "append! 1" (equal? x (list 1 2 3 'x 'y)))
+  (test "append! 2" (equal? y (list 'x 'y)))
+  (setcar (nthcdr 4 x) 'hi)
+  (test "append! 3" (equal? x (list 1 2 3 'x 'hi)))
+  (test "append! 4" (equal? y (list 'x 'hi)))
+  (append! y nil)
+  (test "append! 5" (equal? y (list 'x 'hi)))
+  (var z nil)
+  (var zz (append! nil y))
+  (test "append! 6" (eq? z nil))
+  (test "append! 7" (equal? zz (list 'x 'hi))))
+(test-append)
 
 ;; (defun func-with-no-body ()) ; TODO
 
