@@ -475,13 +475,18 @@ variable stack-depth
     raise
   then drop ;
 
+: maybe-ret ( - t ) \ used to return nil if in return context
+  return-context @ if 0 postpone literal stack-push* then nil ;
+
 : lisp-interpret ( lisp - lisp? )
   dup 0<> if
     dup get-lisp-tag cells
     lisp-state @
     0= if interpret-dispatch else compile-dispatch then
     + @ execute
-  then ;
+   else
+    lisp-state @ 1 = if maybe-ret 2drop then
+   then ;
 
 : lisp-interpret-list ( lisp - a1...an n )
   0 >r
@@ -798,9 +803,6 @@ defer lisp-read-lisp
         fd ! 0 0 lisp-load-from-string
         fd @ throw
     then ;
-
-: maybe-ret ( - t ) \ used to return nil if in return context
-  return-context @ if 0 postpone literal stack-push* then nil ;
 
 : lisp-list-len ( list - n )
   0 swap
