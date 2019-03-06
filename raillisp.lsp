@@ -396,7 +396,8 @@
            (set var-name (cadr expr))
            (set expr (car (cddr expr)))
            (eval (list 'var var-name nil)))
-          ((equal? (car expr) 'defun)
+          ((or (equal? (car expr) 'defun)
+               (equal? (car expr) 'defmacro))
            (println (eval expr))
            (set expr nil)))
     (when expr
