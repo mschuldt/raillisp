@@ -2,9 +2,6 @@
 
 0 warnings !
 
-
-variable exit-on-error
-1 exit-on-error !
 utime drop constant start-time
 here constant start-here
 
