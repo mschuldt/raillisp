@@ -48,6 +48,7 @@
     (if,)
     (compile-progn (cdr x))
     (else,))
+  (maybe-ret)
   (dolist (x forms)
     (then,)))
 

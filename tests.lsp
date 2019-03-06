@@ -215,6 +215,9 @@
                     (t (* x (cond2 (1- x)))))))
     ret))
 
+(defun cond3 (x)
+  (cond ((= x 1) x)))
+
 (defun test-cond ()
   (test "cond 1" (equal? (cond-x 1) "one"))
   (test "cond 2" (equal? (cond-x 2) "two"))
@@ -227,7 +230,9 @@
   (test "cond 4" (equal? x (list 2 1)))
   (cond (t (cond (t (set x 4)))))
   (test "cond 5" (eq? x 4))
-  (test "cond 6" (eq? (cond2 5) 120)))
+  (test "cond 6" (eq? (cond2 5) 120))
+  (test "cond 7" (eq? (cond3 2) nil)))
+
 
 (test-cond)
 
