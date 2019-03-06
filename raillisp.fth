@@ -704,7 +704,20 @@ defer lisp-read-lisp
   lisp-read-token 2dup s>number? if
     drop tag-num nip nip
   else
-    drop drop string-new create-symbol
+    2drop
+    \ Return interned symbol if it exists
+    2dup s" nil" compare 0= if
+      nil -rot 2drop
+    else
+      2dup sym-lookup dup if
+        -rot 2drop
+      else
+        \ If not interned, create uninterned symbol
+        \ interned syms cannot be deleted. don't want to use
+        \ up space for temp symbols like parameter names
+        drop string-new create-symbol
+      then
+    then
   then ;
 
 : lisp-read-quote ( e a -- e a lisp )
