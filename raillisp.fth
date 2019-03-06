@@ -59,6 +59,89 @@ variable lisp-latest
 : func>returns [ 3 cells ] literal + ;
 : func>flags [ 4 cells ] literal + ;
 
+: get-lisp-tag ( lisp - type )
+  dup 1 and if
+    drop lisp-number-tag
+  else
+    dup 0= over -1 = or if
+      drop lisp-number-tag
+    else
+      ( lisp-tag) @
+    then
+  then ;
+
+: car ( pair -- lisp ) dup 0<> if pair-car @ then ;
+: cdr ( pair -- lisp ) dup 0<> if pair-cdr @ then ;
+
+: tag-num ( number -- lisp ) 1 lshift 1 or ;
+: untag-num ( lisp - number ) 1 rshift ;
+
+: symbol->string ( lisp -- namea nameu )
+  \  ." *symbol->string:* " dup . cr
+  dup symbol-namea @ swap symbol-nameu @ ;
+
+: sym>string ( sym - namea nameu )
+  \   sym>name dup 1 cells + swap @ ;
+  \ symbol->string ; ( temp fix for compatibility with symbol struct)
+  dup symbol-namea @ swap symbol-nameu @ ;
+
+: func>string ( f - a u ) func>symbol @ sym>string ;
+
+: lisp-display ( lisp -- )
+  dup 0= if
+    drop ." nil"
+  else
+    dup -1 = if
+      drop ." t"
+    else
+      dup get-lisp-tag
+      cells display-dispatch + @ execute
+    then then ;
+
+: lisp-display-pair ( lisp -- )
+  [char] ( emit ( 32 emit)
+  begin
+    dup car lisp-display 32 emit
+    cdr
+    dup 0<> if
+      dup get-lisp-tag lisp-pair-tag <> if
+        [char] . emit 32 emit lisp-display 0
+      then
+    then
+    dup 0=
+  until
+  drop
+  [char] ) emit ;
+
+' lisp-display-pair display-dispatch lisp-pair-tag cells + !
+
+: lisp-display-number ( lisp -- ) untag-num . ;
+
+' lisp-display-number display-dispatch lisp-number-tag cells + !
+
+: lisp-display-symbol ( lisp -- ) symbol->string type ;
+
+' lisp-display-symbol display-dispatch lisp-symbol-tag cells + !
+
+: lisp-display-string ( lisp -- ) symbol->string type ;
+
+' lisp-display-string display-dispatch lisp-string-tag cells + !
+
+: lisp-display-vector ( lisp -- )
+  [char] [ emit
+  dup vector-vec @ swap vector-len @ 0 ?do
+    dup i cells + @ lisp-display ."  "
+  loop
+  drop
+  [char] ] emit ;
+
+' lisp-display-vector display-dispatch lisp-vector-tag cells + !
+
+: lisp-display-function ( lisp - )
+  [char] $ emit func>string type ;
+
+' lisp-display-function display-dispatch lisp-function-tag cells + !
+
 : func-macro? func>flags @ lisp-macro-mask and ;
 : func-special? func>flags @ lisp-special-mask and ;
 : func-&rest? func>flags @ lisp-&rest-mask and ;
@@ -89,12 +172,6 @@ variable stack-counter
 : sym>value [ 2 cells ] literal - ;
 : sym>parent [ 1 cells ] literal - ;
 : sym>name [ 1 cells ] literal + ;
-: sym>string ( sym - namea nameu )
-  \   sym>name dup 1 cells + swap @ ;
-  \ symbol->string ; ( temp fix for compatibility with symbol struct)
-  dup symbol-namea @ swap symbol-nameu @ ;
-
-: func>string ( f - a u ) func>symbol @ sym>string ;
 
 : make-sym ( namea nameu - lisp )
   align 0 , \ symbol value
@@ -178,22 +255,12 @@ defined vtcopy, [if]
   r@ pair-car !
   r> ;
 
-: car ( pair -- lisp ) dup 0<> if pair-car @ then ;
-: cdr ( pair -- lisp ) dup 0<> if pair-cdr @ then ;
-
-: tag-num ( number -- lisp ) 1 lshift 1 or ;
-: untag-num ( lisp - number ) 1 rshift ;
-
 : create-symbol ( namea nameu -- lisp )
   sizeof-symbol allocate throw check-alloc >r
   r@ ( symbol-tag) lisp-symbol-tag swap !
   r@ symbol-nameu !
   r@ symbol-namea !
   r> ;
-
-: symbol->string ( lisp -- namea nameu )
-  \  ." *symbol->string:* " dup . cr
-  dup symbol-namea @ swap symbol-nameu @ ;
 
 : create-string ( namea nameu -- lisp )
   create-symbol
@@ -204,17 +271,6 @@ defined vtcopy, [if]
   r@ ( vector-tag) lisp-vector-tag swap !
   dup r@ vector-len !
   cells allocate throw r@ vector-vec ! r> ;
-
-: get-lisp-tag ( lisp - type )
-  dup 1 and if
-    drop lisp-number-tag
-  else
-    dup 0= over -1 = or if
-      drop lisp-number-tag
-    else
-      ( lisp-tag) @
-    then
-  then ;
 
 : find-xt-sym ( xt - sym )
   lisp-latest @
@@ -341,61 +397,6 @@ s" &rest" str-intern constant &rest
   else
     dup
   then ;
-
-: lisp-display ( lisp -- )
-  dup 0= if
-    drop ." nil"
-  else
-    dup -1 = if
-      drop ." t"
-    else
-      dup get-lisp-tag
-      cells display-dispatch + @ execute
-    then then ;
-
-: lisp-display-pair ( lisp -- )
-  [char] ( emit ( 32 emit)
-  begin
-    dup car lisp-display 32 emit
-    cdr
-    dup 0<> if
-      dup get-lisp-tag lisp-pair-tag <> if
-        [char] . emit 32 emit lisp-display 0
-      then
-    then
-    dup 0=
-  until
-  drop
-  [char] ) emit ;
-
-' lisp-display-pair display-dispatch lisp-pair-tag cells + !
-
-: lisp-display-number ( lisp -- ) untag-num . ;
-
-' lisp-display-number display-dispatch lisp-number-tag cells + !
-
-: lisp-display-symbol ( lisp -- ) symbol->string type ;
-
-' lisp-display-symbol display-dispatch lisp-symbol-tag cells + !
-
-: lisp-display-string ( lisp -- ) symbol->string type ;
-
-' lisp-display-string display-dispatch lisp-string-tag cells + !
-
-: lisp-display-vector ( lisp -- )
-  [char] [ emit
-  dup vector-vec @ swap vector-len @ 0 ?do
-    dup i cells + @ lisp-display ."  "
-  loop
-  drop
-  [char] ] emit ;
-
-' lisp-display-vector display-dispatch lisp-vector-tag cells + !
-
-: lisp-display-function ( lisp - )
-  [char] $ emit func>string type ;
-
-' lisp-display-function display-dispatch lisp-function-tag cells + !
 
 : error-undefined-value
   cr ." undefined value: " lisp-display cr raise ;
