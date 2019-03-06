@@ -2,13 +2,11 @@
 
 0 warnings !
 
-variable start-time
-variable start-here
-utime drop start-time !
-here start-here !
 
 variable exit-on-error
 1 exit-on-error !
+utime drop constant start-time
+here constant start-here
 
 0 constant lisp-pair-tag
 1 constant lisp-number-tag
@@ -316,16 +314,14 @@ defer raise
 ' str-equal? equal?-dispatch lisp-string-tag cells + !
 ' cons-equal? equal?-dispatch lisp-pair-tag cells + !
 
-s" &rest" str-intern
-variable &rest
-&rest !
+s" &rest" str-intern constant &rest
 
 : get-vararg
   recursive ( arglist - vararg)
   \ return the vararg symbol and remove from arglist
   dup 0<> if
     dup cdr 0<> if
-      dup cdr car &rest @ str-equal? if
+      dup cdr car &rest str-equal? if
         dup cdr cdr car  \ vararg
         swap pair-cdr 0 swap !
       else
@@ -340,7 +336,7 @@ variable &rest
 
 : split-args ( arglist - args vararg)
   dup 0<> if
-    dup car &rest @ str-equal? if
+    dup car &rest str-equal? if
       0 swap cdr car
     else
       dup get-vararg
@@ -1535,8 +1531,8 @@ s" command-line-args" str-intern sym>value _command-line-args !
 
 2 (defun dump ( addr u - lisp ) untag-num swap untag-num swap dump nil )
 
-utime drop start-time @ - tag-num s" forth-init-time" lisp-variable
-here start-here @ - tag-num s" forth-dict-space" lisp-variable
+utime drop start-time - tag-num s" forth-init-time" lisp-variable
+here start-here - tag-num s" forth-dict-space" lisp-variable
 
 s" raillisp.lsp" lisp-load-from-file drop
 s" _noinit_" find-name 0= s" init" call-lisp drop
