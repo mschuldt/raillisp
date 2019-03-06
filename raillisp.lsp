@@ -376,6 +376,11 @@
 (defun q->list (q)
   (list-copy (car q)))
 
+(defun macroexpand-all (form)
+  (set form (macroexpand form))
+  (when (cons? form)
+    (map! macroexpand-all form))
+  form)
 
 (defun repl ()
   (var expr nil)
