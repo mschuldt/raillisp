@@ -1326,7 +1326,7 @@ here s" lisp-dict-top" lisp-variable
 1 (defun cons? get-lisp-tag lisp-pair-tag = )
 1 (defun sym? get-lisp-tag lisp-symbol-tag = )
 1 (defun str? get-lisp-tag lisp-string-tag =  )
-1 (defun vector? get-lisp-tag lisp-vector-tag = )
+1 (defun vec? get-lisp-tag lisp-vector-tag = )
 1 (defun func? get-lisp-tag lisp-function-tag = )
 
 1 (defun type-of ( lisp - lisp ) get-lisp-tag cells type-names + @ )
