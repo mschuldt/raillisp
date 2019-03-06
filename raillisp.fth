@@ -48,11 +48,12 @@ variable curr-func
 variable last-def
 variable lisp-latest
 
--1 4 rshift constant lisp-len-mask
-1 63 lshift constant lisp-macro-mask
-1 62 lshift constant lisp-special-mask
-1 61 lshift constant lisp-&rest-mask
-1 60 lshift constant lisp-indirect-mask
+-1 1 rshift invert dup
+dup constant lisp-macro-mask
+1 rshift dup constant lisp-special-mask
+dup rot or swap 1 rshift dup constant lisp-&rest-mask
+dup rot or swap 1 rshift dup constant lisp-indirect-mask
+or invert constant lisp-len-mask
 
 : func>symbol [ 1 cells ] literal + ;
 : func>args [ 2 cells ] literal + ;
