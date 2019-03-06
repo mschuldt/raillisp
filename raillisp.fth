@@ -473,9 +473,9 @@ variable stack-depth
     lisp-state @
     0= if interpret-dispatch else compile-dispatch then
     + @ execute
-   else
+  else
     lisp-state @ 1 = if maybe-ret 2drop then
-   then ;
+  then ;
 
 : lisp-interpret-list ( lisp - a1...an n )
   0 >r
@@ -691,13 +691,14 @@ defer lisp-read-lisp
   lisp-read-list-char if
     nil
   else
-    lisp-read-list-cons dup >r >r
+    lisp-read-list-cons dup >r ( last item ) >r ( first item)
     begin
       lisp-read-list-char 0=
     while
+      \ read next item, attach the cell to tail, set as new tail
       lisp-read-list-cons dup r> pair-cdr ! >r
     repeat
-    r> drop r>
+    r> drop ( drop tail) r> ( return first)
   then ;
 
 : lisp-read-symbol ( e a -- e a lisp )
