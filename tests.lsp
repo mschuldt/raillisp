@@ -138,7 +138,9 @@
       (test "let* 4" (eq? z 23)))
     (test "let* 5" (eq? x 11))
     (test "let* 6" (eq? z 50)))
-  (test "let* 7" (eq? x xx)))
+  (test "let* 7" (eq? x xx))
+  (test "let* 8" (eq? (let* ((ret 5)) (* ret ret)) 25))
+  )
 (test-let* 100)
 
 (defun test-while1 ()

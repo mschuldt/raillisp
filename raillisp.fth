@@ -941,7 +941,11 @@ variable locals-counter
   recursive
   dup 0> if
     stack-drop
-    comp, drop
+    return-context @ 1 = if
+      comp, nip
+    else
+      comp, drop
+    then
     1- pop-local-names
   else drop then ;
 
