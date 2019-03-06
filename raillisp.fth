@@ -321,12 +321,13 @@ defer raise
   dup >r rot cmove r> swap ;
 
 : symbol-new ( namea nameu -- lisp )
-  \ TODO: should all symbols be interned?
   2dup sym-lookup dup 0<> if
     \ Return the interned symbol
     nip nip exit
   else
-    \ Allocate a new symbol. don't intern it
+    \ Allocate a new symbol. Don't intern it.
+    \ Interned syms cannot be deleted. Don't want to use
+    \ up space for temp symbols like parameter names.
     drop string-new create-symbol
   then ;
 
@@ -705,19 +706,10 @@ defer lisp-read-lisp
   lisp-read-token 2dup s>number? if
     drop tag-num nip nip
   else
-    2drop
-    \ Return interned symbol if it exists
-    2dup s" nil" compare 0= if
+    2drop 2dup s" nil" compare 0= if
       nil -rot 2drop
     else
-      2dup sym-lookup dup if
-        -rot 2drop
-      else
-        \ If not interned, create uninterned symbol
-        \ interned syms cannot be deleted. don't want to use
-        \ up space for temp symbols like parameter names
-        drop string-new create-symbol
-      then
+      symbol-new
     then
   then ;
 
