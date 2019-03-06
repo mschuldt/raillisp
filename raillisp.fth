@@ -445,6 +445,7 @@ variable stack-depth
 
 : stack-drop ( - )
   stack-depth dup @ dup 0= if
+    ." compiler error: stack underflow" cr raise
   then
   1- swap !
   stack do-list-pop drop ;
