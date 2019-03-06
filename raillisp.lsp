@@ -319,7 +319,8 @@
 
 (defun vec-map! (v fn)
   (dotimes (i (vec-len v))
-    (vec-set v i (funcall fn (list (vec-ref v i))))))
+    (vec-set v i (funcall fn (list (vec-ref v i)))))
+  v)
 
 (defun vec-copy (v)
   (vec-move! (make-empty-vec (vec-len v)) v 0))
