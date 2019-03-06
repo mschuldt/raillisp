@@ -230,7 +230,7 @@ defined vtcopy, [if]
     dup sym>value @
     dup get-lisp-tag lisp-function-tag = if
       func>int rot dup rot
-      > if drop exit else  swap then
+      > if drop exit else swap then
     else
       drop
     then
@@ -1166,20 +1166,21 @@ comp' k drop loop-var-addrs 2 cells + !
   then
 ; special
 
-: let* ( lisp - )   \ todo: interpret
-  dup car 0 >r
-  begin
+: let* ( lisp - )         \ todo: interpret
+  0 >r                    \ locals counter
+  dup car begin           \ loop through var list
     dup 0<>
   while
-    dup car
-    dup car swap cdr car
-    lisp-interpret-r
-    stack-drop stack-push \ name it
-    r> 1+ >r cdr
+    dup car               \ (varname form)
+    dup car               \ varname
+    swap cdr car          \ form
+    lisp-interpret-r      \ interpret form
+    stack-drop stack-push \ name stack location
+    r> 1+ >r cdr          \ next binding
   repeat
-  drop cdr
-  lisp-compile-progn
-  r> pop-local-names
+  drop cdr                \ drop varlist, get body
+  lisp-compile-progn      \ compile body
+  r> pop-local-names      \ pop local variables
 ; special
 
 : n-cons ( ... n - )
@@ -1317,7 +1318,7 @@ here s" lisp-dict-top" lisp-variable
 2 (defun setcdr dup rot pair-cdr ! )
 
 1 (defun int? 1 and )
-1 (defun cons? get-lisp-tag lisp-pair-tag  = )
+1 (defun cons? get-lisp-tag lisp-pair-tag = )
 1 (defun sym? get-lisp-tag lisp-symbol-tag = )
 1 (defun str? get-lisp-tag lisp-string-tag =  )
 1 (defun vector? get-lisp-tag lisp-vector-tag = )
