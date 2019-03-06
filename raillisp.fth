@@ -908,6 +908,17 @@ defer lisp-read-lisp
 ' lisp-interpret-number interpret-dispatch lisp-string-tag cells + !
 ' lisp-compile-string compile-dispatch lisp-string-tag cells + !
 
+: get-list-func ( list - func?)
+  \ returns the function from the car of LIST
+  \ return 0 if it does not exist
+  dup get-lisp-tag lisp-pair-tag = if
+    dup car dup get-lisp-tag lisp-symbol-tag = if
+      symbol->string sym-lookup dup 0<> if
+        nip ( drop list) sym>value @ \ return
+      else 2drop 0 ( drop list, sym) then
+    else 2drop 0 ( drop list, car) then
+  else drop 0 ( drop list) then ;
+
 : quote
   lisp-state @ 0= if
     car
@@ -1528,6 +1539,13 @@ s" command-line-args" str-intern sym>value _command-line-args !
   2drop ( drop repl locals ) quit )
 
 2 (defun dump ( addr u - lisp ) untag-num swap untag-num swap dump nil )
+
+1 (defun macroexpand ( lisp - lisp )
+  dup get-list-func dup if
+    dup func-macro? if
+      lisp-interpret-special
+    else drop then
+  else drop then )
 
 utime drop start-time - tag-num s" forth-init-time" lisp-variable
 here start-here - tag-num s" forth-dict-space" lisp-variable
