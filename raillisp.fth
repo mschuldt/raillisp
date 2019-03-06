@@ -87,7 +87,7 @@ variable lisp-latest
 
 : func>string ( f - a u ) func>symbol @ sym>string ;
 
-: lisp-display ( lisp -- )
+: lisp. ( lisp -- )
   dup 0= if
     drop ." nil"
   else
@@ -101,11 +101,11 @@ variable lisp-latest
 : lisp-display-pair ( lisp -- )
   [char] ( emit ( 32 emit)
   begin
-    dup car lisp-display 32 emit
+    dup car lisp. 32 emit
     cdr
     dup 0<> if
       dup get-lisp-tag lisp-pair-tag <> if
-        [char] . emit 32 emit lisp-display 0
+        [char] . emit 32 emit lisp. 0
       then
     then
     dup 0=
@@ -130,7 +130,7 @@ variable lisp-latest
 : lisp-display-vector ( lisp -- )
   [char] [ emit
   dup vector-vec @ swap vector-len @ 0 ?do
-    dup i cells + @ lisp-display ."  "
+    dup i cells + @ lisp. ."  "
   loop
   drop
   [char] ] emit ;
@@ -399,7 +399,7 @@ s" &rest" str-intern constant &rest
   then ;
 
 : error-undefined-value
-  cr ." undefined value: " lisp-display cr raise ;
+  cr ." undefined value: " lisp. cr raise ;
 
 \ interpretation words must return a single lisp value
 \ compilation words must return nothing
@@ -427,7 +427,7 @@ variable stack
 variable stack-depth
 0 stack-depth !
 
-: stack-print stack @ lisp-display cr ;
+: stack-print stack @ lisp. cr ;
 
 : stack-push ( v - )
   stack-depth dup @ 1+ swap !
@@ -1365,7 +1365,7 @@ here s" lisp-dict-top" lisp-variable
     r> drop 2drop 2drop nil
   then )
 
-1 (defun print dup lisp-display )
+1 (defun print dup lisp. )
 
 1 (defun compile lisp-interpret nil )
 1 (defun compile-r lisp-interpret-r nil )
