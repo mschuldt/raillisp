@@ -130,7 +130,7 @@ or invert constant lisp-len-mask
 
 : lisp-display-vector ( lisp -- )
   [char] [ emit
-  dup vector-vec @ swap vector-len @ 0 ?do
+  dup vector-vec swap vector-len @ 0 ?do
     dup i cells + @ lisp. ."  "
   loop
   drop
@@ -268,10 +268,10 @@ defined vtcopy, [if]
   dup ( symbol-tag) lisp-string-tag swap ! ;
 
 : create-vector ( length -- lisp )
-  sizeof-vector allocate throw check-alloc >r
+  \ TODO: allocate vector header as part of the vector block
+  dup cells sizeof-vector + allocate throw check-alloc >r
   r@ ( vector-tag) lisp-vector-tag swap !
-  dup r@ vector-len !
-  cells allocate throw r@ vector-vec ! r> ;
+  r@ vector-len ! r> ;
 
 : find-xt-sym ( xt - sym )
   lisp-latest @
@@ -1244,7 +1244,7 @@ s" function" str-intern lisp-function-tag cells type-names + !
 
 : stack-to-vec ( x1...xn n - vector )
   dup create-vector \ n v
-  dup >r vector-vec @ \ n a
+  dup >r vector-vec \ n a
   swap 0 ?do
     dup rot swap ! [ 1 cells ] literal +
   loop
@@ -1473,17 +1473,17 @@ s" command-line-args" str-intern sym>value _command-line-args !
   untag-num create-vector )
 
 2 (defun vec-ref ( v i - lisp )
-  untag-num cells swap vector-vec @ + @ )
+  untag-num cells swap vector-vec + @ )
 
 3 (defun vec-set ( v i e - lisp )
-  swap untag-num cells rot vector-vec @ + ! nil )
+  swap untag-num cells rot vector-vec + ! nil )
 
 1 (defun vec-len ( vec - len ) vector-len @ tag-num )
 
 3 (defun vec-move! ( v1 v2 i - lisp )
   \ copy v2 into v1 at offset i
   untag-num cells rot dup >r
-  vector-vec @ + swap dup vector-vec @
+  vector-vec + swap dup vector-vec
   swap vector-len @ cells swap -rot cmove r> )
 
 0 (defun if, stack-drop stack-save postpone if if-push3 nil )
