@@ -340,6 +340,18 @@ defer raise
     nil
   then ;
 
+: vec-compare ( v1 v2 len - )
+  0 do
+    2dup @ swap @ <> if unloop 2drop nil exit then
+    1+ swap 1+
+  loop
+  2drop lisp-true ;
+
+: vec-equal? ( lisp1 lisp2 -- lisp )
+  2dup vector-len @ swap vector-len @ dup >r
+  = if r> drop 2drop lisp-true
+    else  vector-vec swap vector-vec r> vec-compare then ;
+
 : equal? ( lisp lisp - lisp )
   2dup = if
     2drop lisp-true
@@ -368,6 +380,7 @@ defer raise
 ' str-equal? equal?-dispatch lisp-symbol-tag cells + !
 ' str-equal? equal?-dispatch lisp-string-tag cells + !
 ' cons-equal? equal?-dispatch lisp-pair-tag cells + !
+' vec-equal? equal?-dispatch lisp-vector-tag cells + !
 
 s" &rest" str-intern constant &rest
 
