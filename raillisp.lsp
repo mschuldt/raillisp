@@ -83,9 +83,11 @@
   (cr))
 
 (defun map (fn lst)
-  (while lst
-    (funcall fn (list (car lst)))
-    (set lst (cdr lst))))
+  (var tmp lst)
+  (while tmp
+    (funcall fn (list (car tmp)))
+    (set tmp (cdr tmp)))
+  lst)
 
 (defun map! (fn lst)
   (var curr lst)
