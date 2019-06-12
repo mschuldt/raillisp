@@ -1342,6 +1342,14 @@ variable lisp-latest-marked
 
 : lisp-variable ( val name) str-intern sym>value ! ;
 
+: var. ( - )
+  \ used for debugging lisp from forth.
+  cr parse-name 2dup sym-lookup dup if
+    -rot type ." =  " dup . ." lisp: " sym>value @ lisp. cr
+  else
+    drop ." Undefined: " type cr
+  then ;
+
 \ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \ Only lisp definitions are allowed below this point.
 
