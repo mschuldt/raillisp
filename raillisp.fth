@@ -845,7 +845,7 @@ defer lisp-read-lisp
 : check-arg-count ( argc - )
   \ ARGC is the arg count curr-func is being called with
   curr-args 2dup curr-&rest
-  if < if s" at least " arity-error then
+  if swap 1+ > if s" at least " arity-error then
   else
     <> curr-args 0> and if s" " arity-error then
   then 2drop ;

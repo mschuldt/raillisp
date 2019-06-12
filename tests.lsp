@@ -467,7 +467,7 @@
   (vec-set v 0 1)
   (vec-map! v double)
   (test "vector 8" (equal? v (vector 2 4 6)))
-  ;; (test "vector 9" (eq? (vector-len (vector)) 0)) TODO: fix
+  (test "vector 9" (eq? (vec-len (vector)) 0))
   (test "vector 10" (equal? (list->vec (vec->list v)) v))
   (var vv (vec-copy v))
   (test "vector 11" (equal? v vv))
