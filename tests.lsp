@@ -88,11 +88,11 @@
 
 (defun test-list ()
   (var l (list 1 2 3))
-  ;;(test "list 0" (equal? (list) nil))
+  (test "list 0" (equal? (list) nil))
   (test "list 1" (eq? (car l) 1))
   (test "list 2" (equal? (cdr l) (list 2 3)))
   (test "list 3" (equal? l (cons 1 (cons 2 (cons 3 nil)))))
-  ;;(test "list len 1" (eq? (list-len (list)) 0))
+  (test "list len 1" (eq? (list-len (list)) 0))
   (test "list len 2" (eq? (list-len (list 1)) 1))
   (test "list len 3" (eq? (list-len (list 1 nil t)) 3))
   (set l (list (cons 1 2) (cons 2 3) (cons "s" 4)))

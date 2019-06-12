@@ -536,8 +536,9 @@ variable stack-depth
 
 \ special forms with < 0 args are passed all the arguments as a list
 : special ( immediate) -1 0 builtin-func func-special! ;
+: special* special func-&rest! ;
 
-: progn lisp-compile-progn ; special
+: progn lisp-compile-progn ; special*
 
 variable macro-flag
 : set-macro-flag 1 macro-flag ! ;
@@ -851,19 +852,22 @@ defer lisp-read-lisp
 
 : lisp-interpret-special ( lisp func - )
   \ special form
+  \ FUNC is a function struct
+  \ LISP has form: (function args...)
   dup set-curr-func >r
-  cdr dup lisp-list-len check-arg-count
-  dup 0= if drop then \ drop empty list. TODO: but what about passing nil?
+  cdr ( drop func) dup lisp-list-len check-arg-count
+  \ drop empty arglist if no arguments are expected
+  dup 0= curr-&rest 0= and if drop then
   curr-func @ 0<> if
-    curr-args dup 0> if
+    curr-args dup 0> if \ unpack arg list onto stack
       curr-&rest if
-        1- 0 >r else 1 >r then >r
+        1- 0 >r else 1 >r then >r \ rstack: &rest-flag arg-count
       begin r@ 0> while
-        dup car
-        swap cdr r> 1- >r
+        dup car swap cdr \ unpack arg
+        r> 1- >r
       repeat
       r> ( count) drop
-      r> ( &rest flag) if drop then
+      r> ( &rest flag) if drop then \ leave list tail for &rest arg
     else
       drop
     then
@@ -1095,7 +1099,7 @@ variable let-bound-names
   1 check-stack-depth stack-drop
   end-defun
   ( nil) last-def @
-; special
+; special*
 
 : defcode ( lisp - lisp)
   \ postpone def
@@ -1107,7 +1111,7 @@ variable let-bound-names
   stack-drop  0 check-stack-depth
   end-defun
   func-special!
-  ( immediate) nil ; special
+  ( immediate) nil ; special*
 
 : defmacro ( lisp - lisp)
   compile-def end-compile
@@ -1115,7 +1119,7 @@ variable let-bound-names
   1 check-stack-depth stack-drop
   end-defun
   func-macro!
-  ( immediate) nil ; special
+  ( immediate) nil ; special*
 
 : lisp-interpret-symbol ( lisp - )
   dup symbol->string sym-lookup
@@ -1206,7 +1210,7 @@ comp' k drop loop-var-addrs 2 cells + !
   drop cdr                \ drop varlist, get body
   lisp-compile-progn      \ compile body
   r> pop-local-names      \ pop local variables
-; special
+; special*
 
 : n-cons ( ... n - )
   >r begin r@ 0>
@@ -1228,7 +1232,7 @@ comp' k drop loop-var-addrs 2 cells + !
     dup postpone literal comp, n-cons
   then
   stack-drop-n stack-push*
-; special
+; special*
 
 : unlist ( list - e1,e2,...,en )
   recursive
@@ -1271,7 +1275,7 @@ s" function" str-intern lisp-function-tag cells type-names + !
   repeat
   drop r> dup postpone literal
   comp, stack-to-vec
-  stack-drop-n stack-push* ; special
+  stack-drop-n stack-push* ; special*
 
 variable saved-stack-depth
 : stack-save ( - )
