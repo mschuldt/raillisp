@@ -177,16 +177,6 @@
     (set l (cdr l)))
   ret)
 
-(defun nreverse (l)
-  (var prev nil)
-  (var next nil)
-  (while l
-    (set next (cdr l))
-    (setcdr l prev)
-    (set prev l)
-    (set l next))
-  prev)
-
 (defun take (l n)
   (var head nil)
   (dotimes (_ n)

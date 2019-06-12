@@ -1259,6 +1259,14 @@ s" string" str-intern lisp-string-tag cells type-names + !
 s" vector" str-intern lisp-vector-tag cells type-names + !
 s" function" str-intern lisp-function-tag cells type-names + !
 
+: nreverse ( list - list )
+  0 begin
+    over 0<>
+  while
+    swap dup >r dup cdr
+    -rot pair-cdr ! r>
+  repeat nip ;
+
 : stack-to-vec ( x1...xn n - vector )
   dup create-vector \ n v
   dup >r vector-vec \ n a
@@ -1359,6 +1367,8 @@ here s" lisp-dict-top" lisp-variable
 2 (defun equal? equal? )
 1 (defun str-equal? str-equal? )
 1 (defun sym-equal? str-equal? )
+
+1 (defun nreverse nreverse )
 
 0 (defun print-syms ( - )
   lisp-latest @
