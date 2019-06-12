@@ -301,9 +301,6 @@
     (set l (cdr l)))
   v)
 
-(defmacro vector (&rest objects)
-  (cons 'list->vec (cons (cons 'list objects) nil)))
-
 (defun vec-map (v fn)
   (dotimes (i (vec-len v))
     (funcall fn (list (vec-ref v i))))

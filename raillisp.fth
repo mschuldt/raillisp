@@ -1268,14 +1268,15 @@ s" function" str-intern lisp-function-tag cells type-names + !
   repeat nip ;
 
 : stack-to-vec ( x1...xn n - vector )
-  dup create-vector \ n v
-  dup >r vector-vec \ n a
-  swap 0 ?do
-    dup rot swap ! [ 1 cells ] literal +
-  loop
-  r> ;
+  dup create-vector dup >r \ save vector for return
+  vector-vec over 1- cells + \ start from back of vector
+  begin over 0>
+  while
+    rot over ! [ 1 cells ] literal -
+    swap 1- swap
+  repeat 2drop r> ;
 
-: vector
+: vector ( lisp - lisp)
   0 >r
   begin dup 0<>
   while
@@ -1283,7 +1284,8 @@ s" function" str-intern lisp-function-tag cells type-names + !
   repeat
   drop r> dup postpone literal
   comp, stack-to-vec
-  stack-drop-n stack-push* ; special*
+  stack-drop-n stack-push*
+; special*
 
 variable saved-stack-depth
 : stack-save ( - )
