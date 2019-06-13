@@ -790,7 +790,7 @@ defer lisp-read-lisp
 ' _lisp-read-lisp is lisp-read-lisp
 
 : lisp-load-from-string ( a u -- lisp )
-  1 read-from-string !
+  read-from-string @ 1 read-from-string !
   over + swap 0 >r
   begin
     lisp-skip 2dup >
@@ -798,20 +798,23 @@ defer lisp-read-lisp
   while
     r> drop lisp-read-lisp lisp-interpret >r
   repeat
-  2drop r> ;
+  2drop read-from-string ! r> ;
 
 : lisp-read-from-string ( a u -- lisp )
-  1 read-from-string !
-  over + swap
-  lisp-skip lisp-read-lisp >r 2drop r> ;
+  \ save file reading state as we may be in the process of reading
+  fd @ -rot read-from-string @ -rot
+  0 fd ! 1 read-from-string !
+  over + swap lisp-skip lisp-read-lisp >r 2drop
+  read-from-string ! fd ! \ restore
+  r> ;
 
 : lisp-load-from-file ( a u -- lisp )
   r/o open-file
   0<> if
     drop ( 0 fd !) 0
   else
-    fd ! 0 0 lisp-load-from-string
-    fd @ throw
+    fd @ swap fd ! 0 0 lisp-load-from-string
+    fd @ throw swap fd !
   then ;
 
 : lisp-list-len ( list - n )
