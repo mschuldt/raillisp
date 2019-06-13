@@ -365,6 +365,15 @@
 (defun q->list (q)
   (list-copy (car q)))
 
+(defun deep-copy (form)
+  (cond ((cons? form)
+         (mapcar deep-copy form))
+        ((str? form)
+         (str-copy form))
+        ((vec? form)
+         (vec-map! (vec-copy form) deep-copy))
+        (t form)))
+
 (defun macroexpand-all (form)
   (set form (macroexpand form))
   (when (cons? form)
