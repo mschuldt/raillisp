@@ -341,7 +341,7 @@ defer raise
   then ;
 
 : vec-compare ( v1 v2 len - )
-  0 do
+  0 ?do
     2dup @ swap @ <> if unloop 2drop nil exit then
     1+ swap 1+
   loop
