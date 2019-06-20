@@ -41,16 +41,3 @@
 : constant create docol , ['] lit , , ['] exit , ;
 : variable 1 cells allot constant ;
 
-: test 10 begin 0<> while 1- cr 5555555 . cr repeat ;
-: test 1 >r 2 >r 3 >r rpick rdrop rdrop rdrop ;
-: test 1000000 10 0 ?do 555555 . cr 1+ dup . cr loop ;
-: test 10 0 ?do 5555 . cr i . cr loop ;
-
-: bench
-  0 begin
-    dup 100000000 <
-  while
-    1+
-  repeat
-  555555 .
-;
