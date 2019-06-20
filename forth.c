@@ -361,7 +361,7 @@ void forth(){
  CODE("0<>", zero_not_eq): tos = (tos != 0); NEXT;
  CODE("0<", zero_less_than): tos = (tos < 0); NEXT;
  CODE("0>", zero_greater_than): tos = (tos > 0); NEXT;
- CODE("invert", invert): tos = ~tos;
+ CODE("invert", invert): tos = ~tos; NEXT;
  CODE("2/", two_div): tos >>= 1; NEXT;
  CODE("2*", two_times): tos <<= 1; NEXT;
  CODE("lshift", lshift): tos <<= *--sp; NEXT;
@@ -434,6 +434,7 @@ void forth(){
  CODE("latest", _latest): push(&latest); NEXT;
  CODE("base", _base): push(&base); NEXT;
  CODE("dp", here): push(&dp); NEXT;
+ CODE("state", state): push(&state); NEXT;
  CODE(":", colon):
   parse_name();
   create(word_a, word_c);
