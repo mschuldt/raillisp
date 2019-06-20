@@ -17,7 +17,6 @@ cell* rp;
 cell* dp0; // dictionary
 cell* dp;
 cell* ip=0;  // instruction pointer
-cell* wp=0; // word pointer
 //int here = 0; // top of dictionary
 cell* latest = 0; // last word
 #define COMPILE  1
@@ -34,9 +33,9 @@ int state = INTERPRET; // forth compiler state
 #define true 1
 
 cell* LIT_XT;
-cell* QUIT_XT;
 cell* DOCOL_XT;
 cell* EXIT_XT;
+cell* EXEC_XT;
 
 // stack pointers point at next item
 #define push(x) *sp++ = tos; tos = (cell)(x)
@@ -210,8 +209,9 @@ void words(){
 }
 
 cell* handle_word(cell* word){
-  if (state == 0 || *word & IMM_BIT)
-    return (cell*)*cfa(word); // interpret
+  if (state == INTERPRET || *word & IMM_BIT){
+    return (cell*)cfa(word); // interpret
+  }
   dict_append(cfa(word)); // compile
   return 0;
 }
@@ -222,7 +222,7 @@ void literal(cell num){
 }
 
 cell* handle_num(int num){
-  if (state == 0) {
+  if (state == INTERPRET) {
     push(num);
   } else {
     literal(num);
@@ -234,7 +234,6 @@ cell* do_interpret(){
   cell num, imm;
   cell* word = find_word(word_a, word_c, &imm);
   if (word) {
-    wp = cfa(word);
     return handle_word(word);
   }
   int ok = parse_num(word_a, word_c, &num);
@@ -291,41 +290,41 @@ int forth_initialized = false;
 
 #define CODE(name, label) label
 #define iCODE(name, label) label
-#define NEXT wp = (cell*)(*ip++); goto **wp
+#define NEXT goto **(cell*)(*ip++)
 
 void forth(){
   cell* xt;
   cell x, imm;
   char* str;
-  cell* start = &&quit;
-  cell* start2;
 
 #include "_forthwords.c"
   LIT_XT = get_xt("lit");
-  QUIT_XT = get_xt("quit");
   DOCOL_XT = &&docol;
   EXIT_XT = get_xt("exit");
-  start2 = get_xt("quit");
+  EXEC_XT = get_xt("exec");
+
+  // Reserve space used by INTERPRET for executing words.
+  dict_append(0); // space for destination address
+  cell* interpret_ip = dp;
+  dict_append(get_xt("interpret")); // return addres
 
  CODE("quit", quit):
-  ip = (cell*)&start2;
   rp = rp0;
-  //input_device = stdin;
-  goto skip;
-  while (true) { //TODO: fix this
-    while (read_line()){
-    skip:
-      while (parse_name()){
-      CODE("interpret", interpret):
-        if (xt = do_interpret()) goto *xt;
-      }
+  while (true) {
+    if (!read_line()){
+      if(input_device != stdin) fclose(input_device);
+      input_device = stdin;
+      continue; //TODO: fix potential loop
     }
-    if(input_device != stdin) fclose(input_device);
-    input_device = stdin;
+  CODE("interpret", interpret):
+    while (parse_name()){
+      xt = do_interpret();
+      if (xt) goto execute_xt;
+    }
   }
  docol:
   rpush(ip);
-  ip = ++wp;
+  ip = (cell*)(*(ip-1)) + 1;
   NEXT;
  CODE("exit", exit): ip = (cell*)(*--rp); NEXT;
  CODE("drop", drop): tos = *--sp; NEXT;
@@ -410,7 +409,22 @@ void forth(){
  CODE(".", dot): xt=(cell*)pop(); printf("%llu\n", (cell)xt); NEXT;
  CODE(".s", print_stack):  print_stack(); NEXT;
  CODE("type", _type):      type((char*)*--sp, tos); tos = *--sp; NEXT;
- CODE("execute", execute): wp = (cell*)pop(); goto **wp; NEXT;
+ iCODE("execute", execute):
+  if (state==COMPILE){
+    dict_append(EXEC_XT);
+    dict_append(0);
+  } else {
+    xt = (cell*)pop();
+  execute_xt:
+    *(interpret_ip - 1) = (cell)xt;
+    ip = interpret_ip;
+    goto **xt;
+  }
+  NEXT;
+ CODE("exec", exec):
+  xt = (cell*)pop();
+  *ip++ = (cell)xt;
+  goto **xt;
  CODE("bye", bye): exit(0);
  CODE("literal", _literal): x = pop(); literal(x); NEXT;
  CODE("lit", lit): push(*ip++); NEXT;
