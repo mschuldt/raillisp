@@ -124,6 +124,20 @@ char next_char(){
   return tib[tib_i++];
 }
 
+char key(){
+  char c = next_char();
+  if (c) {
+    return c;
+  }
+  read_line();
+  c = next_char();
+  if (c){
+    return c;
+  }
+  printf("KEY.EXIT\n");
+  exit(1);
+}
+
 char* word_a = 0;
 int word_c = 0;
 
@@ -639,6 +653,9 @@ void forth(){
   NEXT;
  iCODE("(", _open_paren):
   while((c = next_char()) && c != ')');
+  NEXT;
+ CODE("key", _key):
+  push(key());
   NEXT;
 }
 
