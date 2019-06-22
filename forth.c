@@ -333,7 +333,7 @@ int forth_initialized = false;
 void forth(){
   cell* xt;
   cell x, imm;
-  char* str;
+  char* str, c;
 
 #include "_forthwords.c"
   LIT_XT = get_xt("lit");
@@ -629,6 +629,12 @@ void forth(){
   NEXT;
  CODE("docol", _docol):
   push(DOCOL_XT);
+  NEXT;
+ iCODE("\\", _slash):
+  tib_i = tib_max;
+  NEXT;
+ iCODE("(", _open_paren):
+  while((c = next_char()) && c != ')');
   NEXT;
 }
 
