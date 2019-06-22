@@ -22,7 +22,7 @@ cell* latest = 0; // last word
 #define COMPILE  1
 #define INTERPRET 0
 #define bytes_per_cell sizeof(cell)
-int state = INTERPRET; // forth compiler state
+cell state = INTERPRET; // forth compiler state
 
 #define IMM_BIT    0x100000 //TODO
 #define CODE_BIT   0x1000000 //TODO
