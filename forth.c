@@ -45,7 +45,6 @@ cell* EXEC_XT;
 #define dict_append(x) *dp++ = (cell)(x)
 
 #define tib_max 128
-static char *linebuf;
 static char *tib; // Text Input Buffer
 int tib_i = 0;
 FILE *input_device;
@@ -321,10 +320,13 @@ void see(char* a, int c){
   else printf("  ;\n");
 }
 
-int forth_initialized = false;
+void immediate() {
+  *(cell*)(latest) |= IMM_BIT;
+}
 
-#define immediate() *(cell*)(latest) |= IMM_BIT
-#define hide() *(cell*)(latest) |= HIDDEN_BIT
+void hide(){
+  *(cell*)(latest) |= HIDDEN_BIT;
+}
 
 #define CODE(name, label) label
 #define iCODE(name, label) label
