@@ -352,11 +352,13 @@ void forth(){
   rp = rp0;
   while (true) {
     if (!read_line()){
-      if(input_device != stdin) {
+      if(input_device != stdin) { // actually, this will always be true
         fclose(input_device);
+        input_device = stdin;
+        lineno = 0;
+        continue;
       }
-      input_device = stdin;
-      continue; //TODO: fix potential loop
+      exit(1);
     }
   CODE("interpret", interpret):
     while (parse_name()){
