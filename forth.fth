@@ -4,6 +4,7 @@
 : not 0= ;
 
 : tuck swap over ;
+: align dp @ aligned dp ! ;
 
 : decimal 10 base ! ;
 : hex 16 base ! ;

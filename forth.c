@@ -342,6 +342,10 @@ void hide(){
   *(cell*)(latest) |= HIDDEN_BIT;
 }
 
+cell aligned(cell x){
+  return (x + sizeof(cell)-1) & ~(sizeof(cell)-1);
+}
+
 #define CODE(name, label) label
 #define iCODE(name, label) label
 #define NEXT goto **(cell*)(*ip++)
@@ -656,6 +660,9 @@ void forth(){
   NEXT;
  CODE("key", _key):
   push(key());
+  NEXT;
+ CODE("aligned", _aligned):
+  tos = aligned(tos);
   NEXT;
 }
 
