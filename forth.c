@@ -428,7 +428,7 @@ void forth(){
   BINOP("and", and, &);
   BINOP("or", or, |);
   BINOP("xor", xor, ^);
-  BINOP("=", equal, =);
+  BINOP("=", equal, ==);
   BINOP("<>", not_equal, !=);
   BINOP("<", less_than, <);
   BINOP(">", greater_than, >);
