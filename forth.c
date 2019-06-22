@@ -607,18 +607,11 @@ void forth(){
   *(cell*)(tos) ^= HIDDEN_BIT;
   pop();
   NEXT;
- CODE("latest", _latest):
-  push(&latest);
-  NEXT;
- CODE("base", _base):
-  push(&base);
-  NEXT;
- CODE("dp", here):
-  push(&dp);
-  NEXT;
- CODE("state", state):
-  push(&state);
-  NEXT;
+  #define VAR(name, label, var) CODE(name, label): push( & var ); NEXT
+  VAR("latest", _latest, latest);
+  VAR("base", _base, base);
+  VAR("dp", _dp, dp);
+  VAR("state", _state, state);
  CODE(":", colon):
   parse_name();
   create(word_a, word_c);
