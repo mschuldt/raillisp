@@ -294,15 +294,17 @@ cell* get_xt(char* word){
 }
 
 int depth(){
-  return (sp - sp0) / 4 + 1;
+  return sp - sp0;
 }
 
 void print_stack(){
   printf("<%d> ", depth());   //TODO: depth is wrong
   for (cell* p = sp0+1; p < sp; p++) {
-    printf("%lld ", (cell)*p);
+    printf("%llu ", (cell)*p);
   }
-  printf("%lld\n", tos);
+  if (depth()){
+    printf("%llu\n", tos);
+  }
 }
 
 void cmove(char *from, char *to, u_cell length) {
@@ -480,10 +482,10 @@ void forth(){
   tos <<= 1;
   NEXT;
  CODE("lshift", lshift):
-  tos <<= *--sp;
+  tos = *--sp << tos;
   NEXT;
  CODE("rshift", rshift):
-  tos >>= *--sp;
+  tos = *--sp >> tos;
   NEXT;
  CODE("!", store):
   *((cell*)tos) = *--sp;
