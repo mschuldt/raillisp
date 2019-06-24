@@ -66,8 +66,15 @@ void print_word(char* a, int c){
   printf("\n");
 }
 
+cell digit(unsigned char c) {
+  if ('0' <= c && c <= '9') return c - '0';
+  if ('a' <= c && c <= 'z') return 10 + c - 'a';
+  if ('A' <= c && c <= 'Z') return 10 + c - 'A';
+  return -1;
+}
+
 int parse_num(char *a, cell len, cell* res) {
-  int b = base;
+  cell b = base;
   int isminus = 0;
   cell n=0;
   if (len <= 0) {
@@ -83,12 +90,10 @@ int parse_num(char *a, cell len, cell* res) {
     len--;
     a++;
   }
-  for( char c; len > 0; len-- ) {
-    c = *a++;
-    if (c < '0' || c > '9') {
-      return false;
-    }
-    n = (n * b) + c - '0';
+  for( unsigned char c; len > 0; len-- ) {
+    c = digit(*a++);
+    if (c >= b ) return false;
+    n = (n * b) + c;
   }
   *res = isminus ? -n : n;
   return true;
@@ -260,7 +265,7 @@ void literal(cell num){
   dict_append((cell)num);
 }
 
-cell* handle_num(int num){
+cell* handle_num(cell num){
   if (state == INTERPRET) {
     push(num);
   } else {
