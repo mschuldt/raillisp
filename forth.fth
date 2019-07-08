@@ -11,7 +11,7 @@
 : hex 16 base ! ;
 : ? @ . ;
 
-: literal immediate ['] lit , , ;
+: literal ['] lit , , ; immediate
 : postpone parse-name find-name name>int , ; immediate
 : [char] char postpone literal ; immediate
 
@@ -34,10 +34,9 @@
 : _do-next r> r> r> 1+ 2dup >r >r rot >r ;
 : ?do ['] _do-setup , postpone begin ['] > , postpone while ; immediate
 : loop ['] _do-next , postpone repeat ['] unloop , ; immediate
-: i [ 2 cells ] literal rpick ;
-: j [ 4 cells ] literal rpick ;
-: k [ 6 cells ] literal rpick ;
-
+: i ['] lit compile, 1 , ['] rpick compile, ; immediate
+: j ['] lit compile, 2 , ['] rpick compile, ; immediate
+: k ['] lit compile, 3 , ['] rpick compile, ; immediate
 : allot	here swap dp +! ;
 
 : constant create docol , ['] lit , , ['] exit , ;
