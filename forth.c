@@ -603,7 +603,7 @@ void forth(){
   NEXT;
  CODE(".", dot):
   xt=(cell*)pop();
-  printf("%llu\n", (cell)xt);
+  printf("%llu ", (cell)xt);
   NEXT;
  CODE(".s", print_stack):
   print_stack();
