@@ -565,6 +565,7 @@ void forth(){
   xt = find_word(word_a, word_c, &imm);
   push(cfa(xt));
   NEXT;
+ CODE("compile,", compile_comma):
  CODE(",", comma):
   x = pop();
   dict_append(x);
@@ -585,7 +586,11 @@ void forth(){
   }
   NEXT;
  CODE("litstring", litstring):
-  NEXT; //TODO
+  x = *ip++; // len
+  push(ip); // addr
+  push(x);
+  ip = (cell*)aligned((cell)(ip) + x);
+  NEXT;
  CODE("char", _char):
   parse_name();
   push(*word_a);
@@ -598,7 +603,7 @@ void forth(){
   print_stack();
   NEXT;
  CODE("type", _type):
-  type((char*)*--sp, tos);
+  type(((char*)*--sp)+1, tos); //TODO: should not need +1
   tos = *--sp;
   NEXT;
  iCODE("execute", execute):

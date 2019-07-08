@@ -1,5 +1,6 @@
 
 : cells 8 * ;
+: space 32 emit ;
 : cr 10 emit ;
 : not 0= ;
 
@@ -41,4 +42,36 @@
 
 : constant create docol , ['] lit , , ['] exit , ;
 : variable 1 cells allot constant ;
+
+0 constant nil
+
+: pad here 256 cells + ;
+
+: c, dp @ c! 1 dp +! ;
+
+: '"' [ char " ] literal ;
+
+: s" state @ if
+       ['] litstring , dp @ 0 ,
+       begin key dup '"' <>
+       while c,
+       repeat drop
+       dup dp @ swap - 1 cells - 1- swap ! align
+     else
+       dp @
+       begin key dup '"' <>
+       while over c! 1+
+       repeat drop
+       dp @ - 1- dp @ swap
+     then
+; immediate
+
+: ." state @ if
+       postpone s" ['] type ,
+     else
+       begin
+	 key dup '"' = if drop exit then emit
+       again
+     then
+; immediate
 
