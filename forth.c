@@ -168,6 +168,22 @@ int parse_name(){ // return true on success
   return 1;
 }
 
+void immediate() {
+  *(cell*)(latest) |= IMM_BIT;
+}
+
+int is_immediate(cell *word) {
+  return *word & IMM_BIT ;
+}
+
+void hide(){
+  *(cell*)(latest) |= HIDDEN_BIT;
+}
+
+cell aligned(cell x){
+  return (x + sizeof(cell)-1) & ~(sizeof(cell)-1);
+}
+
 void dict_append_str(char *a, int c){
   strncpy((char*)(dp), a, c);
   dp += c / bytes_per_cell + c % bytes_per_cell;
@@ -213,14 +229,14 @@ cell* cfa(cell* word){
   return word + 1 + len/bytes_per_cell + len % bytes_per_cell;
 }
 
-cell* find_word(char* a, int c, cell* imm){
+
+cell* find_word(char* a, int c){
   cell *word = latest;
   while (word){
     cell this = *word;
     int len = this & LEN_MASK;
     char* name = (char*)(word+1);
     if (str_eq(a, c, name, len)){
-      *imm = this & IMM_BIT;
       return word;
     }
     word = (cell*)*(word-1);
@@ -279,8 +295,8 @@ cell* handle_num(cell num){
 }
 
 cell* do_interpret(){
-  cell num, imm;
-  cell* word = find_word(word_a, word_c, &imm);
+  cell num;
+  cell* word = find_word(word_a, word_c);
   if (word) {
     return handle_word(word);
   }
@@ -294,8 +310,7 @@ cell* do_interpret(){
 }
 
 cell* get_xt(char* word){
-  cell imm;
-  cell* x = find_word(word, strlen(word), &imm);
+  cell* x = find_word(word, strlen(word));
   if (!x){
     error("get_xt undefined");
   }
@@ -323,8 +338,7 @@ void cmove(char *from, char *to, u_cell length) {
 }
 
 void see(char* a, int c){
-  cell imm;
-  cell* word = find_word(word_a, word_c, &imm);
+  cell* word = find_word(word_a, word_c);
   if (! word) {
     error("undefined");
   }
@@ -339,22 +353,10 @@ void see(char* a, int c){
   for(; (cell*)(*code) != EXIT_XT; code++) {
     printf("   %llu:   %llu\n", (cell)code, *code);
   }
-  if (imm) {
+  if (is_immediate(word)) {
     printf("  ; immediate\n");
   }
   else printf("  ;\n");
-}
-
-void immediate() {
-  *(cell*)(latest) |= IMM_BIT;
-}
-
-void hide(){
-  *(cell*)(latest) |= HIDDEN_BIT;
-}
-
-cell aligned(cell x){
-  return (x + sizeof(cell)-1) & ~(sizeof(cell)-1);
 }
 
 #define CODE(name, label) label
@@ -363,7 +365,7 @@ cell aligned(cell x){
 
 void forth(){
   cell* xt;
-  cell x, imm;
+  cell x, imm; //Todo; refactor to get rid of imm
   char* str, c;
 
 #include "_forthwords.c"
@@ -559,14 +561,14 @@ void forth(){
  CODE("find-name", find_name):
   x = pop();
   str = (char*)pop();
-  push(find_word(str, x, &imm));
+  push(find_word(str, x));
   NEXT;
  CODE("name>int", name_to_int):
   tos = (cell)cfa((cell*)tos);
   NEXT;
  CODE("'", tick):
   parse_name();
-  xt = find_word(word_a, word_c, &imm);
+  xt = find_word(word_a, word_c);
   push(cfa(xt));
   NEXT;
  CODE("compile,", compile_comma):
