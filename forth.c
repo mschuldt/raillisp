@@ -1,3 +1,8 @@
+   // Railforth \\
+  //             \\
+ // A simple Reference implementation
+// for the Raillisp Forth Specification.
+
 #include <readline/readline.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -139,7 +144,6 @@ char key(){
   if (c){
     return c;
   }
-  printf("KEY.EXIT\n");
   exit(1);
 }
 
@@ -303,7 +307,7 @@ int depth(){
 }
 
 void print_stack(){
-  printf("<%d> ", depth());   //TODO: depth is wrong
+  printf("<%d> ", depth());
   for (cell* p = sp0+1; p < sp; p++) {
     printf("%llu ", (cell)*p);
   }
