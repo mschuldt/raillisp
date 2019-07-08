@@ -1,4 +1,6 @@
 
+: version 1 ;
+
 : cells 8 * ;
 : space 32 emit ;
 : cr 10 emit ;
@@ -74,3 +76,4 @@
      then
 ; immediate
 
+." === railforth " version . ." === " cr
