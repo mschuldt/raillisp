@@ -304,9 +304,9 @@ cell* do_interpret(){
   if (ok) {
     return handle_num(num);
   }
+  printf("Undefined word: ");
   print_word(word_a, word_c);
   exit(1);
-  return LIT_XT;
 }
 
 cell* get_xt(char* word){
