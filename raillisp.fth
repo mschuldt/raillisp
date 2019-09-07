@@ -448,7 +448,7 @@ variable stack-depth
   stack-depth dup @ 1+ swap !
   stack do-list-push ;
 
-: stack-push*
+: stack-push* ( - )
   \ pushes a unique number onto the locals stack
   stack-counter dup @ 1+ dup tag-num stack-push swap ! ;
 
@@ -1220,20 +1220,23 @@ comp' k drop loop-var-addrs 2 cells + !
      while cons r> 1- >r
      repeat r> drop ;
 
+: compile-n-cons ( n - )
+  dup 3 < if
+    begin dup 0>
+    while comp, cons 1-
+    repeat drop
+  else
+    postpone literal comp, n-cons
+  then ;
+
 : list ( lisp - lisp )
-  0 >r
-  begin dup 0<>
+  0 >r \ counter
+  begin dup 0<>  \ compile list args
   while
     dup car lisp-interpret cdr r> 1+ >r
   repeat drop
-  0 postpone literal
-  r> dup 3 < if
-    dup begin dup 0>
-        while comp, cons 1-
-        repeat drop
-  else
-    dup postpone literal comp, n-cons
-  then
+  0 postpone literal \ compile nil
+  r> dup compile-n-cons \ compile calls to cons
   stack-drop-n stack-push*
 ; special*
 
