@@ -853,28 +853,30 @@ defer lisp-read-lisp
     <> curr-args 0> and if s" " arity-error then
   then 2drop ;
 
+: unpack-curr-args ( args - )
+  \ unpacks curr-args onto the stack
+  curr-args dup 0> if
+    curr-&rest if
+      1- 0 >r else 1 >r then >r \ rstack: &rest-flag arg-count -
+    begin r@ 0> while
+      dup car swap cdr \ unpack arg
+      r> 1- >r
+    repeat
+    r> ( count) drop
+    r> ( &rest flag) if drop then \ leave list tail for &rest arg
+  else drop then ;
+
 : lisp-interpret-special ( lisp func - )
   \ special form
+  \ Unpacks arguments onto stack before executing FUNCs word.
   \ FUNC is a function struct
   \ LISP has form: (function args...)
+  dup 0= if ." DEBUG ERROR: curr-func is nil" cr bye then \ temp
   dup set-curr-func >r
   cdr ( drop func) dup lisp-list-len check-arg-count
-  \ drop empty arglist if no arguments are expected
+  \ drop nil arglist if no args are expected. keep nil for &rest
   dup 0= curr-&rest 0= and if drop then
-  curr-func @ 0<> if
-    curr-args dup 0> if \ unpack arg list onto stack
-      curr-&rest if
-        1- 0 >r else 1 >r then >r \ rstack: &rest-flag arg-count
-      begin r@ 0> while
-        dup car swap cdr \ unpack arg
-        r> 1- >r
-      repeat
-      r> ( count) drop
-      r> ( &rest flag) if drop then \ leave list tail for &rest arg
-    else
-      drop
-    then
-  then
+  unpack-curr-args
   r> func>int execute ;
 
 : lisp-interpret-macro ( lisp func - )
