@@ -102,8 +102,8 @@ That's expected, symbols are not interned by default
 
 (eq? (intern 'defun) (intern 'defun)) => t
 
-* TODO BUG (str-count string "")
-* TODO BUG (list)
+* DONE BUG (str-count string "")
+* DONE BUG (list)
 * TODO combine fields for function arg and return lengths into a single word
 * TODO (set var value) should have better error message if var is undeclared
 
@@ -117,3 +117,16 @@ expression
 or anything else that allocates space on the dictionary
 
 maybe compile the _repl function at an offset?
+
+or don't put symbols on the dictionary
+* DONE BUG (eq? (read "nil") nil)
+
+(type-of nil) => integer
+(type-of (read "nil")) => symbol
+* TODO BUG: (type-of (read "1")) => symbol
+happens intermittently
+
+seems related to the file size somehow, works in repl,
+fails when unrelated lines are added or removed
+
+fixed??
