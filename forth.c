@@ -359,6 +359,12 @@ void see(char* a, int c){
   else printf("  ;\n");
 }
 
+cell utime(){
+  struct timeval time;
+  gettimeofday(&time, NULL);
+  return time.tv_sec * 1000000 + time.tv_usec;
+}
+
 #define CODE(name, label) label
 #define iCODE(name, label) label
 #define NEXT goto **(cell*)(*ip++)
@@ -685,6 +691,10 @@ void forth(){
  CODE("ms", ms):
   x = pop();
   usleep(x*1000);
+  NEXT;
+ CODE("utime", utime):
+  push(utime());
+  push(0);
   NEXT;
  CODE("allocate", allocate):
   x = pop();
