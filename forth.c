@@ -365,7 +365,7 @@ void see(char* a, int c){
 
 void forth(){
   cell* xt;
-  cell x, imm; //Todo; refactor to get rid of imm
+  cell x;
   char* str, c;
 
 #include "_forthwords.c"
