@@ -489,6 +489,10 @@ void forth(){
  CODE("0>", zero_greater_than):
   tos = (tos > 0);
   NEXT;
+ CODE("d<>", d_not_eq):
+  tos = tos != *(sp-2) || *(sp-1) != *(sp-3);
+  sp -= 3;
+  NEXT;
  CODE("invert", invert):
   tos = ~tos;
   NEXT;
