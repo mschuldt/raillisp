@@ -682,6 +682,10 @@ void forth(){
  CODE("aligned", _aligned):
   tos = aligned(tos);
   NEXT;
+ CODE("ms", ms):
+  x = pop();
+  usleep(x*1000);
+  NEXT;
 }
 
 void init(){
