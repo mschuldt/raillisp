@@ -686,6 +686,16 @@ void forth(){
   x = pop();
   usleep(x*1000);
   NEXT;
+ CODE("allocate", allocate):
+  x = pop();
+  xt = (cell*)malloc(sizeof(cell)*x);
+  push(xt);
+  push(xt == NULL);
+  NEXT;
+ CODE("free", free):
+  x = pop();
+  free((cell*)x);
+  NEXT;
 }
 
 void init(){
