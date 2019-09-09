@@ -26,4 +26,4 @@ bench:
 	gforth-fast benchmark/run.fth #TODO: fix
 
 clean:
-	rm -f forth _forth-words.c raillisp.fi temp-image.fi*
+	rm -f forth _forthwords.c raillisp.fi temp-image.fi*
