@@ -710,6 +710,9 @@ void forth(){
   x = pop();
   free((cell*)x);
   NEXT;
+ CODE("clearstack", clearstack):
+  sp = sp0;
+  NEXT;
 }
 
 void init(){
