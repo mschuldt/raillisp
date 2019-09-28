@@ -712,6 +712,13 @@ void forth(){
  CODE("clearstack", clearstack):
   sp = sp0;
   NEXT;
+ CODE("compare", compare):
+  tos = compare((char*)*(sp-3), *(sp-2), (char*)*(sp-1), tos);
+  sp -= 3;
+  NEXT;
+ CODE("refill", refill):
+  read_line();
+  NEXT;
 }
 
 void init(){

@@ -76,4 +76,7 @@
      then
 ; immediate
 
+: ?dup dup if dup then ;
+
+: comp' ' 0 ; immediate
 ." === railforth " version . ." === " cr
