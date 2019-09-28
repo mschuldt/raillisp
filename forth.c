@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <stdint.h>
+#include <sys/syscall.h>
 
 typedef long long int cell;
 typedef long long unsigned int u_cell;
@@ -718,6 +719,15 @@ void forth(){
   NEXT;
  CODE("refill", refill):
   read_line();
+  NEXT;
+ CODE("syscall1", syscall1):
+  tos = syscall(tos, 1, *--sp);
+  NEXT;
+ CODE("syscall2", syscall2):
+  tos = syscall(tos, 2, *--sp, *--sp);
+  NEXT;
+ CODE("syscall3", syscall3):
+  tos = syscall(tos, 3, *--sp, *--sp, *--sp);
   NEXT;
 }
 
