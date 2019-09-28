@@ -219,7 +219,6 @@ int compare(char *a1, u_cell c1, char *a2, u_cell c2) {
     if (*a1 != *a2) {
       return (*a1 < *a2) ? -1 : 1;
     }
-    a1++; a2++; c1--; c2--;
   }
   return c1 == c2 ? 0 : ((c1 < c2) ? -1 : 1);
 }
