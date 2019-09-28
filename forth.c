@@ -602,7 +602,7 @@ void forth(){
   NEXT;
  CODE("litstring", litstring):
   x = *ip++; // len
-  push(ip); // addr
+  push(((cell)(ip))+1); // addr
   push(x);
   ip = (cell*)aligned((cell)(ip) + x);
   NEXT;
@@ -618,7 +618,7 @@ void forth(){
   print_stack();
   NEXT;
  CODE("type", _type):
-  type(((char*)*--sp)+1, tos); //TODO: should not need +1
+  type(((char*)*--sp), tos);
   tos = *--sp;
   NEXT;
  iCODE("execute", execute):

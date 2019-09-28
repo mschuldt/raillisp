@@ -63,7 +63,7 @@
        begin key dup '"' <>
        while over c! 1+
        repeat drop
-       dp @ - 1- dp @ swap
+       dp @ - 1- dp @ 1+ swap
      then
 ; immediate
 
