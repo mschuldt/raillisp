@@ -729,6 +729,14 @@ void forth(){
   VAR("base", _base, base);
   VAR("dp", _dp, dp);
   VAR("state", _state, state);
+#define CONST(name, label, val) CODE(name, label): push( val ); NEXT
+  CONST("sys_open", sys_open, __NR_open);
+  CONST("sys_close", sys_close, __NR_close);
+  CONST("sys_read", sys_read, __NR_read);
+  CONST("sys_write", sys_write, __NR_write);
+  CONST("sys_exit", sys_exit, __NR_exit);
+  CONST("sys_brk", sys_brk, __NR_brk);
+
 }
 
 void init(){
