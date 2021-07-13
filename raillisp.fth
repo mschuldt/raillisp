@@ -717,8 +717,21 @@ defer lisp-read-lisp
     r> drop ( drop tail) r> ( return first)
   then ;
 
+: lisp-s>number? ( a u -- n o b )
+  \ s>number?, except that - is not considered a number
+  dup 1 = if
+    drop dup c@ [char] - = if
+      drop 0 0 0
+    else
+      1 s>number?
+    then
+  else
+    s>number?
+  then
+;
+
 : lisp-read-symbol ( e a -- e a lisp )
-  lisp-read-token 2dup s>number? if
+  lisp-read-token 2dup lisp-s>number? if
     drop tag-num nip nip
   else
     2drop 2dup s" nil" compare 0= if
@@ -1511,7 +1524,7 @@ s" command-line-args" str-intern sym>value _command-line-args !
   r> -rot r> cmove )
 
 1 (defun str->int ( lisp - lisp )
-  symbol->string s>number? if drop tag-num else nil then )
+  symbol->string lisp-s>number? if drop tag-num else nil then )
 
 1 (defun make-empty-vec ( n - )
   \ Contains uninitialized lisp objects. Should ever be printed.
