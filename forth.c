@@ -3,8 +3,8 @@
  // A simple Reference implementation
 // for the Raillisp Forth Specification.
 
-#include <readline/readline.h>
 #include <stdio.h>
+#include <readline/readline.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
